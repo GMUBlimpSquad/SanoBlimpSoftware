@@ -1,0 +1,32 @@
+<svg width="600" height="300" viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+    <!-- Blimp Body -->
+    <ellipse cx="300" cy="150" rx="200" ry="80" fill="lightgray" stroke="black" stroke-width="2"/>
+    
+    <!-- Motors (M1, M2) -->
+    <rect x="120" y="130" width="20" height="40" fill="gray" stroke="black" stroke-width="2"/>
+    <rect x="460" y="130" width="20" height="40" fill="gray" stroke="black" stroke-width="2"/>
+
+    <!-- Control Surfaces (S3, S4) -->
+    <polygon points="220,200 240,230 260,200" fill="darkgray" stroke="black" stroke-width="2"/>
+    <polygon points="340,200 360,230 380,200" fill="darkgray" stroke="black" stroke-width="2"/>
+
+    <!-- Gate Mechanism (S1) -->
+    <rect x="290" y="180" width="20" height="30" fill="black" stroke="black" stroke-width="2"/>
+
+    <!-- Labels -->
+    <text x="115" y="125" font-size="18" fill="black">M1</text>
+    <text x="465" y="125" font-size="18" fill="black">M2</text>
+    <text x="230" y="245" font-size="18" fill="black">S3</text>
+    <text x="350" y="245" font-size="18" fill="black">S4</text>
+    <text x="290" y="170" font-size="18" fill="white">S1</text>
+
+    <!-- Axis Arrows -->
+    <line x1="300" y1="150" x2="300" y2="50" stroke="blue" stroke-width="3"/>
+    <text x="310" y="60" font-size="16" fill="blue">Z (Altitude)</text>
+
+    <line x1="300" y1="150" x2="500" y2="150" stroke="red" stroke-width="3"/>
+    <text x="510" y="155" font-size="16" fill="red">X (Throttle)</text>
+
+    <line x1="300" y1="150" x2="300" y2="250" stroke="green" stroke-width="3"/>
+    <text x="310" y="240" font-size="16" fill="green">Y (Yaw)</text>
+</svg>

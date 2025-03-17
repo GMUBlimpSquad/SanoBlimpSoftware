@@ -4,6 +4,7 @@ use pwm_pca9685::{Address, Channel, Pca9685};
 use std::thread::sleep;
 use std::time::Duration;
 use tokio::spawn;
+use tokio::sync::mpsc::UnboundedReceiver;
 
 use super::object_detection::Detection;
 
@@ -11,17 +12,18 @@ const PWM_FREQUENCY: f32 = 60.0; // Hz for motors and servos
 const MIN_PULSE_SERVO: f32 = 500.0; // Minimum pulse width in µs (ESC arming)
 const MAX_PULSE_SERVO: f32 = 2500.0; // Maximum pulse width in µs (Full throttle)
                                      //
-const MIN_PULSE: f32 = 1000.0; // Minimum pulse width in µs (ESC arming)
-const MAX_PULSE: f32 = 2000.0; // Maximum pulse width in µs (Full throttle)
-const MID_PULSE: f32 = 1500.0; // Neutral (90° equivalent)
+const PWM_FREQUENCY_MOTOR: f32 = 60.0; // Hz for motors and servos
+const MIN_PULSE: f32 = 600.0; // Minimum pulse width in µs (ESC arming)
+const MAX_PULSE: f32 = 2600.0; // Maximum pulse width in µs (Full throttle)
+const MID_PULSE: f32 = 1600.0; // Neutral (90° equivalent)
 const NEUTRAL_ANGLE: f32 = 90.0; // Neutral position for motors and servos
 
 /// Every blimp needs the following trait
 pub trait Blimp {
     fn update(&mut self);
-    fn teleop(&mut self) -> Actuations;
-    fn autonomous(&mut self);
-    fn search(&mut self);
+
+    fn mix(&mut self) -> Actuations;
+    fn update_input(&mut self, input: (f32, f32, f32));
 }
 
 pub struct PCAActuator {
@@ -45,7 +47,7 @@ impl PCAActuator {
     fn set_motor_speed(&mut self, channel: Channel, angle: f32) {
         let pulse_width = MIN_PULSE + ((angle / 180.0) * (MAX_PULSE - MIN_PULSE));
         let on = 0;
-        let off = ((pulse_width * PWM_FREQUENCY * 4096.0 * 1e-6) as u16).clamp(0, 4095);
+        let off = ((pulse_width * PWM_FREQUENCY_MOTOR * 4096.0 * 1e-6) as u16).clamp(0, 4095);
 
         self.pwm.set_channel_on_off(channel, on, off).unwrap();
     }
@@ -69,7 +71,7 @@ impl PCAActuator {
         self.set_motor_speed(Channel::C1, 180.0);
         self.set_motor_speed(Channel::C2, 180.0);
         self.set_motor_speed(Channel::C3, 180.0);
-        sleep(Duration::from_secs(2));
+        sleep(Duration::from_secs(1));
 
         // Step 2: Send min throttle to arm the ESCs
         println!("Sending min throttle (arming)");
@@ -77,7 +79,8 @@ impl PCAActuator {
         self.set_motor_speed(Channel::C1, 0.0);
         self.set_motor_speed(Channel::C2, 0.0);
         self.set_motor_speed(Channel::C3, 0.0);
-        sleep(Duration::from_secs(2));
+
+        sleep(Duration::from_secs(1));
 
         // Step 3: Move to neutral throttle (ready to receive commands)
         println!("Setting ESCs to neutral");
@@ -85,7 +88,8 @@ impl PCAActuator {
         self.set_motor_speed(Channel::C1, NEUTRAL_ANGLE);
         self.set_motor_speed(Channel::C2, NEUTRAL_ANGLE);
         self.set_motor_speed(Channel::C3, NEUTRAL_ANGLE);
-        sleep(Duration::from_secs(1));
+
+        sleep(Duration::from_secs(2));
 
         println!("ESCs initialized!");
     }
@@ -136,11 +140,9 @@ impl SanoBlimp {
 
     pub fn run(&mut self) {
         self.update();
-        //self.autonomous();
-        let act = self.teleop();
+        let act = self.mix();
         self.actuator.actuate(act);
-
-        std::thread::sleep(std::time::Duration::from_millis(20));
+        //std::thread::sleep(std::time::Duration::from_millis(20));
     }
 }
 
@@ -159,31 +161,31 @@ impl Blimp for SanoBlimp {
         }
     }
 
-    fn teleop(&mut self) -> Actuations {
+    fn mix(&mut self) -> Actuations {
         let (x, y, z) = self.input;
 
-        println!("{:?}", self.input);
-
-        let mut m1 = NEUTRAL_ANGLE - (x * 9.0); // Map movement to a range (0-180°)
-        let mut m2 = NEUTRAL_ANGLE - (x * 9.0);
+        let mut m1 = NEUTRAL_ANGLE - (x * 7.0); // Map movement to a range (0-180°)
+        let mut m2 = NEUTRAL_ANGLE - (x * 7.0);
 
         if z > 0.1 {
-            m1 += z * 9.0;
-            m2 += z * 9.0;
-        } else if z < -0.1 {
-            m1 -= z * 9.0;
-            m2 -= z * 9.0;
+            m1 -= z * 8.0;
+            m2 -= z * 8.0;
+        }
+        if z < -0.1 {
+            m1 += z * 8.0;
+            m2 += z * 8.0;
         }
 
         let mut s3 = NEUTRAL_ANGLE - (90.0 * z);
         let mut s4 = NEUTRAL_ANGLE + (90.0 * z);
 
         if y < -0.1 {
-            m1 -= y * 9.0;
-            m2 += y * 9.0;
-        } else if y > 0.1 {
-            m1 += y * 9.0;
-            m2 -= y * 9.0;
+            m1 += y * 8.0;
+            //m2 += y * 9.0;
+        }
+        if y > 0.1 {
+            //m1 += y * 9.0;
+            m2 -= y * 8.0;
         }
 
         if z < -0.2 || z > 0.2 {
@@ -206,6 +208,7 @@ impl Blimp for SanoBlimp {
         }
     }
 
-    fn autonomous(&mut self) {}
-    fn search(&mut self) {}
+    fn update_input(&mut self, input: (f32, f32, f32)) {
+        self.input = input;
+    }
 }

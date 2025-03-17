@@ -6,6 +6,7 @@ use tokio_util::codec::{Decoder, Encoder};
 use bytes::BytesMut;
 use serde_json::Value;
 use std::sync::{Arc, Mutex};
+use tokio::sync::mpsc::UnboundedSender;
 use tokio_serial::SerialPortBuilderExt;
 use tokio_serial::SerialStream;
 
@@ -57,7 +58,7 @@ impl Detection {
     }
 
     /// Probably add a channel into the parameter to send the detection from a different thread
-    pub async fn detect(&mut self) {
+    pub async fn detect(&mut self, tx: UnboundedSender<Vec<Value>>) {
         while let Some(line_result) = self.reader.next().await {
             let line = line_result.expect("Failed to read line");
             let value: Result<Value, _> = serde_json::from_str(&line);
@@ -66,12 +67,11 @@ impl Detection {
                     if value["type"] == 1 {
                         let data_field = &value["data"];
                         let boxes = data_field["boxes"].as_array();
-                        println!("{:?}", boxes);
+                        //println!("{:?}", boxes);
+                        tx.send(boxes.unwrap().to_vec());
                     }
                 }
-                Err(e) => {
-                    //println!("err");
-                }
+                Err(e) => {}
             }
         }
     }

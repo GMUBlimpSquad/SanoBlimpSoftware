@@ -8,15 +8,18 @@ use tokio::sync::mpsc::UnboundedReceiver;
 
 use super::object_detection::Detection;
 
+// TODO Make these a config file, and will depend on the blimp's hardware
+
 const PWM_FREQUENCY: f32 = 60.0; // Hz for motors and servos
 const MIN_PULSE_SERVO: f32 = 500.0; // Minimum pulse width in µs (ESC arming)
 const MAX_PULSE_SERVO: f32 = 2500.0; // Maximum pulse width in µs (Full throttle)
-                                     //
+const NEUTRAL_ANGLE: f32 = 90.0; // Neutral position for motors and servos
+                                 //
 const PWM_FREQUENCY_MOTOR: f32 = 60.0; // Hz for motors and servos
 const MIN_PULSE: f32 = 600.0; // Minimum pulse width in µs (ESC arming)
 const MAX_PULSE: f32 = 2600.0; // Maximum pulse width in µs (Full throttle)
-const MID_PULSE: f32 = 1600.0; // Neutral (90° equivalent)
-const NEUTRAL_ANGLE: f32 = 90.0; // Neutral position for motors and servos
+const MID_PULSE: f32 = 1500.0; // Neutral (90° equivalent)
+const NEUTRAL_ANGLE_MOTOR: f32 = 83.0; // Neutral position for motors and servos
 
 /// Every blimp needs the following trait
 pub trait Blimp {
@@ -84,10 +87,10 @@ impl PCAActuator {
 
         // Step 3: Move to neutral throttle (ready to receive commands)
         println!("Setting ESCs to neutral");
-        self.set_motor_speed(Channel::C0, NEUTRAL_ANGLE);
-        self.set_motor_speed(Channel::C1, NEUTRAL_ANGLE);
-        self.set_motor_speed(Channel::C2, NEUTRAL_ANGLE);
-        self.set_motor_speed(Channel::C3, NEUTRAL_ANGLE);
+        self.set_motor_speed(Channel::C0, NEUTRAL_ANGLE_MOTOR);
+        self.set_motor_speed(Channel::C1, NEUTRAL_ANGLE_MOTOR);
+        self.set_motor_speed(Channel::C2, NEUTRAL_ANGLE_MOTOR);
+        self.set_motor_speed(Channel::C3, NEUTRAL_ANGLE_MOTOR);
 
         sleep(Duration::from_secs(2));
 
@@ -141,6 +144,7 @@ impl SanoBlimp {
     pub fn run(&mut self) {
         self.update();
         let act = self.mix();
+        //println!("{:?}", act);
         self.actuator.actuate(act);
         //std::thread::sleep(std::time::Duration::from_millis(20));
     }
@@ -164,8 +168,8 @@ impl Blimp for SanoBlimp {
     fn mix(&mut self) -> Actuations {
         let (x, y, z) = self.input;
 
-        let mut m1 = NEUTRAL_ANGLE - (x * 7.0); // Map movement to a range (0-180°)
-        let mut m2 = NEUTRAL_ANGLE - (x * 7.0);
+        let mut m1 = NEUTRAL_ANGLE_MOTOR - (x * 7.0); // Map movement to a range (0-180°)
+        let mut m2 = NEUTRAL_ANGLE_MOTOR - (x * 7.0);
 
         if z > 0.1 {
             m1 -= z * 8.0;

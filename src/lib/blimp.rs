@@ -14,7 +14,7 @@ const PWM_FREQUENCY: f32 = 60.0; // Hz for motors and servos
 const MIN_PULSE_SERVO: f32 = 500.0; // Minimum pulse width in µs (ESC arming)
 const MAX_PULSE_SERVO: f32 = 2500.0; // Maximum pulse width in µs (Full throttle)
 const NEUTRAL_ANGLE: f32 = 90.0; // Neutral position for motors and servos
-                                 //
+//
 const PWM_FREQUENCY_MOTOR: f32 = 60.0; // Hz for motors and servos
 const MIN_PULSE: f32 = 600.0; // Minimum pulse width in µs (ESC arming)
 const MAX_PULSE: f32 = 2600.0; // Maximum pulse width in µs (Full throttle)
@@ -97,7 +97,7 @@ impl PCAActuator {
         println!("ESCs initialized!");
     }
 
-    fn actuate(&mut self, act: Actuations) {
+    pub fn actuate(&mut self, act: Actuations) {
         self.set_motor_speed(Channel::C0, act.m1);
         self.set_motor_speed(Channel::C1, act.m2);
         self.set_motor_speed(Channel::C2, act.m3);
@@ -115,7 +115,8 @@ pub struct SanoBlimp {
     input: (f32, f32, f32),
     gilrs: Gilrs,
     active_gamepad: Option<GamepadId>,
-    actuator: PCAActuator,
+    pub actuator: PCAActuator,
+    manual: bool,
 }
 
 #[derive(Debug, Default)]
@@ -138,26 +139,39 @@ impl SanoBlimp {
             gilrs: Gilrs::new().expect("Failed to initialize Gilrs"),
             active_gamepad: None,
             actuator: PCAActuator::new(),
+            manual: true,
         }
     }
 
     pub fn run(&mut self) {
         self.update();
-        let act = self.mix();
-        //println!("{:?}", act);
-        self.actuator.actuate(act);
+
         //std::thread::sleep(std::time::Duration::from_millis(20));
+    }
+
+    pub fn manual(&mut self) {
+        let act = self.mix();
+        self.actuator.actuate(act);
+    }
+
+    pub fn is_manual(&self) -> bool {
+        self.manual
     }
 }
 
 impl Blimp for SanoBlimp {
     fn update(&mut self) {
+        // TODO Move the controller input to a saperate thread
         while let Some(Event { event, .. }) = self.gilrs.next_event() {
             match event {
                 gilrs::EventType::AxisChanged(axis, pos, _) => match axis {
                     gilrs::Axis::LeftStickY => self.input.0 = pos, // Forward/backward
                     gilrs::Axis::RightStickY => self.input.2 = pos, // Up/down
                     gilrs::Axis::RightStickX => self.input.1 = pos, // Turning
+                    _ => {}
+                },
+                gilrs::EventType::ButtonPressed(button, code) => match button {
+                    gilrs::Button::Start => self.manual = !self.manual,
                     _ => {}
                 },
                 _ => {}
@@ -185,10 +199,10 @@ impl Blimp for SanoBlimp {
 
         if y < -0.1 {
             m1 += y * 8.0;
-            //m2 += y * 9.0;
+            m2 -= y * 9.0;
         }
         if y > 0.1 {
-            //m1 += y * 9.0;
+            m1 += y * 9.0;
             m2 -= y * 8.0;
         }
 

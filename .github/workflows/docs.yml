@@ -1,35 +1,27 @@
-name: Deploy Docs
+name: Deploy mdBook
 
 on:
   push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
+    branches:
+      - main
 
 jobs:
-  build-deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: "3.9"
+      - name: Install mdBook
+        run: cargo install mdbook
 
-      - name: Install dependencies
-        run: |
-          pip install --upgrade pip
-          pip install mkdocs mkdocs-material
-
-      - name: Build docs
-        run: mkdocs build --strict
+      - name: Build book
+        run: mdbook build
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./site
+          publish_dir: ./book
           publish_branch: gh-pages

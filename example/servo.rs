@@ -8,7 +8,7 @@ fn angle_to_duty(angle: u16) -> u16 {
 
 fn main() {
     let dev = I2cdev::new("/dev/i2c-1").expect("Failed to initialize I2C device");
-    let address = Address::default();
+    let address = Address::from(0x55);
     let mut pwm = Pca9685::new(dev, address).expect("Failed to create PCA9685 instance");
     pwm.set_prescale(100).expect("Failed to set prescale");
     pwm.enable().expect("Failed to enable PCA9685");
@@ -24,7 +24,6 @@ fn main() {
         // the range `[0..4095]`.
         for i in 0..180 {
             let duty = angle_to_duty(i);
-            print!("{}", duty);
             pwm.set_channel_off(Channel::C0, duty).unwrap();
             pwm.set_channel_off(Channel::C1, duty).unwrap();
             pwm.set_channel_off(Channel::C2, duty).unwrap();

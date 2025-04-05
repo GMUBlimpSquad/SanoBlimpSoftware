@@ -4,18 +4,28 @@ version = "0.1.0"
 edition = "2024"
 
 [[bin]]
-name="gatt_client"
-path="example/gatt_client.rs"
+name = "gatt_client"
+path = "example/gatt_client.rs"
 
 [[bin]]
-name="servo"
-path="example/servo.rs"
+name = "servo"
+path = "example/servo.rs"
+
+[[bin]]
+name = "bme"
+path = "example/bme.rs"
+
+[[bin]]
+name = "bno"
+path = "example/bno055.rs"
 
 
 [dependencies]
 ab_glyph = "0.2.29"
 base64 = "0.22.1"
-bluer = {version="0.17.3",features=["bluetoothd", "rfcomm"]}
+bluer = { version = "0.17.3", features = ["bluetoothd", "rfcomm"] }
+bme280 = { version = "0.5.1", features = ["serde"] }
+bno055 = "0.4.0"
 bytes = "1.10.1"
 devices = "0.5.0"
 env_logger = "0.11.7"
@@ -26,18 +36,20 @@ gilrs = "0.11.0"
 image = "0.25.5"
 imageproc = "0.25.0"
 linux-embedded-hal = "0.4.0"
+mint = "0.5.9"
 pwm-pca9685 = "1.0.0"
-serde = "1.0.219"
+serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
 serialport = "4.7.0"
-tokio = {version="1.44.0", features =["full"]}
+tokio = { version = "1.44.0", features = ["full"] }
 tokio-stream = "0.1.17"
-tokio-util = {version="0.7.14", features=["codec"]}
+tokio-util = { version = "0.7.14", features = ["codec"] }
+toml = "0.8.20"
 uuid = "1.16.0"
 
 [workspace.metadata.cross.target.aarch64-unknown-linux-gnu]
 # Install libssl-dev:arm64, see <https://github.com/cross-rs/cross/blob/main/docs/custom_images.md#adding-dependencies-to-existing-images>
 pre-build = [
     "dpkg --add-architecture $CROSS_DEB_ARCH",
-    "apt-get update && apt-get --assume-yes install libdbus-1-dev:$CROSS_DEB_ARCH pkg-config:$CROSS_DEB_ARCH libudev-dev:$CROSS_DEB_ARCH"
+    "apt-get update && apt-get --assume-yes install libdbus-1-dev:$CROSS_DEB_ARCH pkg-config:$CROSS_DEB_ARCH libudev-dev:$CROSS_DEB_ARCH",
 ]

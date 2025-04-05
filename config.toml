@@ -1,0 +1,17 @@
+[server]
+host = "localhost"
+port = 8080
+
+[motor]
+m1_mul = 1.0
+m2_mul = 1.0
+m3_mul = 1.0
+m4_mul = 1.0
+
+[controller]
+kp_x = 1.0
+kp_y = 1.0
+kp_z = 1.0
+kd_x = 0.1
+kd_y = 0.1
+kd_z = 0.1

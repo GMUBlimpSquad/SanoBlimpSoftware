@@ -9,6 +9,8 @@ dependencies = [
  "ab_glyph",
  "base64",
  "bluer",
+ "bme280",
+ "bno055",
  "bytes",
  "devices",
  "env_logger",
@@ -19,6 +21,7 @@ dependencies = [
  "image",
  "imageproc",
  "linux-embedded-hal",
+ "mint",
  "pwm-pca9685",
  "serde",
  "serde_json",
@@ -26,6 +29,7 @@ dependencies = [
  "tokio",
  "tokio-stream",
  "tokio-util",
+ "toml",
  "uuid",
 ]
 
@@ -296,6 +300,31 @@ dependencies = [
  "tokio",
  "tokio-stream",
  "uuid",
+]
+
+[[package]]
+name = "bme280"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "169ac81b9123f316fde5b0e00175294dcdcdd800c1a6c92a4b58caf42a14cf1f"
+dependencies = [
+ "embedded-hal",
+ "maybe-async-cfg",
+ "serde",
+]
+
+[[package]]
+name = "bno055"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "20ae371e0ae10daadee46116bcbf64ead594b5f83fb0e50f380eca3dcf5b853a"
+dependencies = [
+ "bitflags 2.9.0",
+ "byteorder",
+ "embedded-hal",
+ "mint",
+ "num-derive",
+ "num-traits",
 ]
 
 [[package]]
@@ -1283,6 +1312,12 @@ dependencies = [
  "adler2",
  "simd-adler32",
 ]
+
+[[package]]
+name = "mint"
+version = "0.5.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e53debba6bda7a793e5f99b8dacf19e626084f525f7829104ba9898f367d85ff"
 
 [[package]]
 name = "mio"

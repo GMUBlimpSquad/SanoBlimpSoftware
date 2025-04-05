@@ -1,3 +1,4 @@
+// use bme280::i2c::BME280;
 use gilrs::{Button, Event, GamepadId, Gilrs};
 use linux_embedded_hal::I2cdev;
 use pwm_pca9685::{Address, Channel, Pca9685};
@@ -29,6 +30,10 @@ pub trait Blimp {
     fn update_input(&mut self, input: (f32, f32, f32));
 }
 
+pub struct Sensors {
+    pressure: f32,
+}
+
 pub struct PCAActuator {
     pwm: Pca9685<I2cdev>,
 }
@@ -36,7 +41,8 @@ pub struct PCAActuator {
 impl PCAActuator {
     pub fn new() -> Self {
         let dev = I2cdev::new("/dev/i2c-1").expect("Failed to initialize I2C device");
-        let address = Address::default();
+        // let address = Address::default();
+        let address = Address::from(0x55);
         let mut pwm = Pca9685::new(dev, address).expect("Failed to create PCA9685 instance");
         pwm.set_prescale(100).expect("Failed to set prescale");
         pwm.enable().expect("Failed to enable PCA9685");
@@ -181,29 +187,31 @@ impl Blimp for SanoBlimp {
 
     fn mix(&mut self) -> Actuations {
         let (x, y, z) = self.input;
+        let m1_mul = 1.3;
+        let m2_mul = 1.0;
 
-        let mut m1 = NEUTRAL_ANGLE_MOTOR - (x * 7.0); // Map movement to a range (0-180°)
-        let mut m2 = NEUTRAL_ANGLE_MOTOR - (x * 7.0);
+        let mut m1 = NEUTRAL_ANGLE_MOTOR - (x * 5.0) * m1_mul; // Map movement to a range (0-180°)
+        let mut m2 = NEUTRAL_ANGLE_MOTOR - (x * 5.0) * m2_mul;
 
         if z > 0.1 {
-            m1 -= z * 8.0;
-            m2 -= z * 8.0;
+            m1 -= z * 6.0;
+            m2 -= z * 6.0;
         }
         if z < -0.1 {
-            m1 += z * 8.0;
-            m2 += z * 8.0;
+            m1 += z * 6.0;
+            m2 += z * 6.0;
         }
 
         let mut s3 = NEUTRAL_ANGLE - (90.0 * z);
         let mut s4 = NEUTRAL_ANGLE + (90.0 * z);
 
         if y < -0.1 {
-            m1 += y * 8.0;
-            m2 -= y * 9.0;
+            m1 += y * 6.0;
+            m2 -= y * 6.0;
         }
         if y > 0.1 {
-            m1 += y * 9.0;
-            m2 -= y * 8.0;
+            m1 += y * 6.0;
+            m2 -= y * 6.0;
         }
 
         if z < -0.2 || z > 0.2 {

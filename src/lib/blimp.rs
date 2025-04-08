@@ -138,7 +138,7 @@ pub struct Flappy {
 
 impl Flappy {
     pub fn new() -> Self {
-        SanoBlimp {
+        Flappy {
             state: Vec::new(),
             input: (0.0_f32, 0.0_f32, 0.0_f32),
             gilrs: Gilrs::new().expect("Failed to initialize Gilrs"),
@@ -152,7 +152,7 @@ impl Flappy {
         direction
             * f64::sin(
                 (2.0 * freq * f64::consts::PI as f64)
-                    * *time::SystemTime::now()
+                    * time::SystemTime::now()
                         .duration_since(time::SystemTime::UNIX_EPOCH)
                         .unwrap()
                         .as_secs_f64(),
@@ -180,7 +180,7 @@ impl Blimp for Flappy {
     fn update_input(&mut self, input: (f32, f32, f32)) {
         self.input = input;
     }
-
+    //This takes controller input and updates the blimp's state
     fn update(&mut self) {
         while let Some(Event { event, .. }) = self.gilrs.next_event() {
             match event {
@@ -198,37 +198,39 @@ impl Blimp for Flappy {
             }
         }
     }
-
+    //Takes in inputs and converts them into actuations
+    //Options Teleop to autonomy
+    //in my temrinal type "scp targets/Georgie
     fn mix(&mut self) -> Actuations {
         let (x, y, z) = self.input;
 
         let freq = 0.7;
 
-        let mut s1_ac = 90;
-        let mut s2_ac = 90;
-        let mut s3_ac = 90;
-        let mut s_cg_ac = 90;
+        let mut s1_ac = 90.0;
+        let mut s2_ac = 90.0;
+        let mut s3_ac = 90.0;
+        let mut s_cg_ac = 95.0;
         if x > 0.1 {
-            s1_ac = self.oscillate_wing(-1, freq);
-            s2_ac = self.oscillate_wing(1, freq);
+            s1_ac = self.oscillate_wing(-1.0, freq);
+            s2_ac = self.oscillate_wing(1.0, freq);
         }
 
         if y > 0.2 {
-            s2_ac = 6.95;
+            s2_ac = 90.0;
             //s1_ac = self.oscillate_wing(-1, freq)
-            s3_ac = 10;
+            s3_ac = 180.0;
         }
         if y < -0.2 {
-            s1_ac = 6.95;
-            s2_ac = self.oscillate_wing(1, freq);
-            s3_ac = 1;
+            s1_ac = 90.0;
+            s2_ac = self.oscillate_wing(1.0, freq);
+            s3_ac = 0.0;
         }
 
         if z > 0.1 {
-            s_cg_ac = 12.5
+            s_cg_ac = 180.0
         }
         if z < -0.1 {
-            s_cg_ac = 1
+            s_cg_ac = 0.0
         }
 
         Actuations {

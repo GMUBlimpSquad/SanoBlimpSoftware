@@ -7,8 +7,8 @@ use lib::object_detection::Detection;
 use serde::Deserialize;
 use std::fs;
 use std::sync::{Arc, Mutex};
-use tokio::sync::Notify;
 use tokio::sync::mpsc::unbounded_channel;
+use tokio::sync::Notify;
 use tokio::time::timeout;
 
 #[derive(Deserialize, Debug)]
@@ -53,7 +53,7 @@ fn read_config() -> Config {
 async fn main() {
     let conf = read_config();
 
-    let mut blimp = blimp::SanoBlimp::new();
+    let mut blimp = blimp::Flappy::new();
     let mut detection = Detection::new();
 
     let mut time_p = std::time::Instant::now();

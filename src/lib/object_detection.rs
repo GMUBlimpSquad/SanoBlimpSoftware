@@ -82,7 +82,7 @@ impl Detection {
     /// an empty Vec if not found or if an error occurs.
     pub fn detect(&mut self, target: Vec<i32>) -> Vec<i32> {
         // Adjust this to your actual destination
-        let udp_dest = "192.168.1.56:54321";
+        let udp_dest = "192.168.8.194:54321";
 
         // Embed the font file in the binary
         let font_data: &[u8] = include_bytes!("FiraCode-Regular.ttf");

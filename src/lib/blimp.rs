@@ -1,9 +1,10 @@
 // use bme280::i2c::BME280;
+use core::f64;
 use gilrs::{Button, Event, GamepadId, Gilrs};
 use linux_embedded_hal::I2cdev;
 use pwm_pca9685::{Address, Channel, Pca9685};
 use std::thread::sleep;
-use std::time::Duration;
+use std::time::{self, Duration};
 use tokio::spawn;
 use tokio::sync::mpsc::UnboundedReceiver;
 
@@ -15,12 +16,13 @@ const PWM_FREQUENCY: f32 = 60.0; // Hz for motors and servos
 const MIN_PULSE_SERVO: f32 = 500.0; // Minimum pulse width in µs (ESC arming)
 const MAX_PULSE_SERVO: f32 = 2500.0; // Maximum pulse width in µs (Full throttle)
 const NEUTRAL_ANGLE: f32 = 90.0; // Neutral position for motors and servos
-//
+                                 //
 const PWM_FREQUENCY_MOTOR: f32 = 60.0; // Hz for motors and servos
 const MIN_PULSE: f32 = 600.0; // Minimum pulse width in µs (ESC arming)
 const MAX_PULSE: f32 = 2600.0; // Maximum pulse width in µs (Full throttle)
 const MID_PULSE: f32 = 1500.0; // Neutral (90° equivalent)
-const NEUTRAL_ANGLE_MOTOR: f32 = 83.0; // Neutral position for motors and servos
+                               // const NEUTRAL_ANGLE_MOTOR: f32 = 83.0; // Neutral position for motors and servos
+const NEUTRAL_ANGLE_MOTOR: f32 = 90.0; // Neutral position for motors and servos
 
 /// Every blimp needs the following trait
 pub trait Blimp {
@@ -41,8 +43,8 @@ pub struct PCAActuator {
 impl PCAActuator {
     pub fn new() -> Self {
         let dev = I2cdev::new("/dev/i2c-1").expect("Failed to initialize I2C device");
-        // let address = Address::default();
-        let address = Address::from(0x55);
+        let address = Address::default();
+        // let address = Address::from(0x55);
         let mut pwm = Pca9685::new(dev, address).expect("Failed to create PCA9685 instance");
         pwm.set_prescale(100).expect("Failed to set prescale");
         pwm.enable().expect("Failed to enable PCA9685");
@@ -123,6 +125,123 @@ pub struct SanoBlimp {
     active_gamepad: Option<GamepadId>,
     pub actuator: PCAActuator,
     manual: bool,
+}
+
+pub struct Flappy {
+    state: Vec<f32>,
+    input: (f32, f32, f32),
+    gilrs: Gilrs,
+    active_gamepad: Option<GamepadId>,
+    pub actuator: PCAActuator,
+    manual: bool,
+}
+
+impl Flappy {
+    pub fn new() -> Self {
+        SanoBlimp {
+            state: Vec::new(),
+            input: (0.0_f32, 0.0_f32, 0.0_f32),
+            gilrs: Gilrs::new().expect("Failed to initialize Gilrs"),
+            active_gamepad: None,
+            actuator: PCAActuator::new(),
+            manual: true,
+        }
+    }
+
+    fn oscillate_wing(self, direction: f64, freq: f64) -> f64 {
+        direction
+            * f64::sin(
+                (2.0 * freq * f64::consts::PI as f64)
+                    * *time::SystemTime::now()
+                        .duration_since(time::SystemTime::UNIX_EPOCH)
+                        .unwrap()
+                        .as_secs_f64(),
+            )
+        //angle = self.map_value(angle, 0, 180, 5, 10)
+    }
+
+    pub fn run(&mut self) {
+        self.update();
+
+        //std::thread::sleep(std::time::Duration::from_millis(20));
+    }
+
+    pub fn manual(&mut self) {
+        let act = self.mix();
+        self.actuator.actuate(act);
+    }
+
+    pub fn is_manual(&self) -> bool {
+        self.manual
+    }
+}
+
+impl Blimp for Flappy {
+    fn update_input(&mut self, input: (f32, f32, f32)) {
+        self.input = input;
+    }
+
+    fn update(&mut self) {
+        while let Some(Event { event, .. }) = self.gilrs.next_event() {
+            match event {
+                gilrs::EventType::AxisChanged(axis, pos, _) => match axis {
+                    gilrs::Axis::LeftStickY => self.input.0 = pos, // Forward/backward
+                    gilrs::Axis::RightStickY => self.input.2 = pos, // Up/down
+                    gilrs::Axis::RightStickX => self.input.1 = pos, // Turning
+                    _ => {}
+                },
+                gilrs::EventType::ButtonPressed(button, code) => match button {
+                    gilrs::Button::Start => self.manual = !self.manual,
+                    _ => {}
+                },
+                _ => {}
+            }
+        }
+    }
+
+    fn mix(&mut self) -> Actuations {
+        let (x, y, z) = self.input;
+
+        let freq = 0.7;
+
+        let mut s1_ac = 90;
+        let mut s2_ac = 90;
+        let mut s3_ac = 90;
+        let mut s_cg_ac = 90;
+        if x > 0.1 {
+            s1_ac = self.oscillate_wing(-1, freq);
+            s2_ac = self.oscillate_wing(1, freq);
+        }
+
+        if y > 0.2 {
+            s2_ac = 6.95;
+            //s1_ac = self.oscillate_wing(-1, freq)
+            s3_ac = 10;
+        }
+        if y < -0.2 {
+            s1_ac = 6.95;
+            s2_ac = self.oscillate_wing(1, freq);
+            s3_ac = 1;
+        }
+
+        if z > 0.1 {
+            s_cg_ac = 12.5
+        }
+        if z < -0.1 {
+            s_cg_ac = 1
+        }
+
+        Actuations {
+            m1: 0.0,
+            m2: 0.0,
+            m3: 0.0,
+            m4: 0.0,
+            s1: 0.0, // Keep neutral if not controlled
+            s2: 0.0,
+            s3: 0.0,
+            s4: 0.0,
+        }
+    }
 }
 
 #[derive(Debug, Default)]

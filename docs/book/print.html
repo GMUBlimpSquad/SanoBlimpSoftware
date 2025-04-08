@@ -1,0 +1,2035 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>SanoBlimp Documentation</title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="01_blimp_control___blimp__trait____flappy__implementation_.html"><strong aria-hidden="true">2.</strong> Blimp Control</a></li><li class="chapter-item expanded "><a href="02_hardware_actuation___pcaactuator__.html"><strong aria-hidden="true">3.</strong> Hardware Actuation</a></li><li class="chapter-item expanded "><a href="03_configuration___config__.html"><strong aria-hidden="true">4.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="04_object_detection___detection__.html"><strong aria-hidden="true">5.</strong> Object Detection</a></li><li class="chapter-item expanded "><a href="05_sensor_input_state__conceptual_.html"><strong aria-hidden="true">6.</strong> Sensor Input</a></li><li class="chapter-item expanded "><a href="06_autonomous_control___autonomous__.html"><strong aria-hidden="true">7.</strong> Autonomous Control</a></li><li class="chapter-item expanded "><a href="07_image_processing___streaming.html"><strong aria-hidden="true">8.</strong> Image Processing</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">SanoBlimp Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="tutorial-sanoblimpsoftware"><a class="header" href="#tutorial-sanoblimpsoftware">Tutorial: SanoBlimpSoftware</a></h1>
+<p>This project controls a <strong>blimp</strong>, specifically one called <em>Flappy</em> or a <em>SanoBlimp</em>.
+It can be flown <strong>manually</strong> using a gamepad or fly <strong>autonomously</strong> using <em>computer vision</em>.
+In autonomous mode, it tries to find specific objects using a camera (<code>Object Detection</code>), calculates how to move towards them using a <em>PID controller</em> (<code>Autonomous Control</code>), and sends commands to the blimp's <em>motors and servos</em> (<code>Hardware Actuation</code>).
+Settings like motor power and controller sensitivity can be adjusted via a <strong>configuration</strong> file (<code>Configuration</code>).
+It also processes the camera image to draw boxes around detected objects and streams this video over the network (<code>Image Processing &amp; Streaming</code>).
+The blimp uses <em>sensors</em> like pressure sensors (for altitude) and IMUs (for orientation) to understand its own state (<code>Sensor Input/State</code>).</p>
+<p><strong>Source Repository:</strong> <a href="git@github.com:GMUBlimpSquad/SanoBlimpSoftware.git">git@github.com:GMUBlimpSquad/SanoBlimpSoftware.git</a></p>
+<pre class="mermaid">flowchart TD
+    A0[&quot;Blimp Control (`Blimp` Trait / `Flappy` Implementation)&quot;]
+    A1[&quot;Hardware Actuation (`PCAActuator`)&quot;]
+    A2[&quot;Object Detection (`Detection`)&quot;]
+    A3[&quot;Autonomous Control (`Autonomous`)&quot;]
+    A4[&quot;Configuration (`Config`)&quot;]
+    A5[&quot;Sensor Input/State (Conceptual)&quot;]
+    A6[&quot;Image Processing &amp; Streaming&quot;]
+    A0 -- &quot;Sends commands to&quot; --&gt; A1
+    A0 -- &quot;Uses logic from&quot; --&gt; A3
+    A2 -- &quot;Provides detection data to&quot; --&gt; A0
+    A3 -- &quot;Provides control input to&quot; --&gt; A0
+    A4 -- &quot;Configures&quot; --&gt; A3
+    A5 -- &quot;Provides state data to&quot; --&gt; A3
+    A2 -- &quot;Performs&quot; --&gt; A6
+</pre>
+<h2 id="chapters"><a class="header" href="#chapters">Chapters</a></h2>
+<ol>
+<li><a href="01_blimp_control___blimp__trait____flappy__implementation_.html">Blimp Control (<code>Blimp</code> Trait / <code>Flappy</code> Implementation)</a></li>
+<li><a href="02_hardware_actuation___pcaactuator__.html">Hardware Actuation (<code>PCAActuator</code>)</a></li>
+<li><a href="03_configuration___config__.html">Configuration (<code>Config</code>)</a></li>
+<li><a href="04_object_detection___detection__.html">Object Detection (<code>Detection</code>)</a></li>
+<li><a href="05_sensor_input_state__conceptual_.html">Sensor Input/State (Conceptual)</a></li>
+<li><a href="06_autonomous_control___autonomous__.html">Autonomous Control (<code>Autonomous</code>)</a></li>
+<li><a href="07_image_processing___streaming.html">Image Processing &amp; Streaming</a></li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="chapter-1-blimp-control-blimp-trait--flappy-implementation"><a class="header" href="#chapter-1-blimp-control-blimp-trait--flappy-implementation">Chapter 1: Blimp Control (<code>Blimp</code> Trait / <code>Flappy</code> Implementation)</a></h1>
+<p>Welcome to the SanoBlimpSoftware project! This is the first step in understanding how our blimp thinks and moves.</p>
+<p>Imagine you have a remote-controlled blimp. How does it know whether to go forward when you push the joystick, or how to fly on its own to a specific target? We need a "brain" or a "pilot" inside the software to handle these decisions. That's exactly what this chapter is about!</p>
+<p>We'll explore the core control system of the blimp. Think of it like the <strong>driver of a car</strong>. The driver takes input:</p>
+<ul>
+<li>From you turning the steering wheel and pressing pedals (Manual Control).</li>
+<li>Or, from a self-driving computer system (Autonomous Control).</li>
+</ul>
+<p>Based on this input, the driver decides exactly how much gas, brake, or steering to apply to make the car move. Our blimp's software pilot does the same thing for its motors and control surfaces.</p>
+<p>In our project, this "driver" concept is defined by a set of rules called the <code>Blimp</code> <strong>trait</strong>, and we have a specific driver implementation called <code>Flappy</code>.</p>
+<h2 id="key-concepts"><a class="header" href="#key-concepts">Key Concepts</a></h2>
+<p>Let's break down the main ideas:</p>
+<h3 id="1-the-blimp-trait-the-rulebook"><a class="header" href="#1-the-blimp-trait-the-rulebook">1. The <code>Blimp</code> Trait (The Rulebook)</a></h3>
+<p>In Rust (the programming language we're using), a <strong>trait</strong> is like a blueprint or a contract. It defines a set of actions or capabilities that <em>any</em> blimp controller <em>must</em> have. It doesn't say <em>how</em> to do those actions, just <em>what</em> actions must be supported.</p>
+<p>Think of it like the basic requirements for being a "driver": a driver must be able to <code>steer</code>, <code>accelerate</code>, and <code>brake</code>. The <code>Blimp</code> trait defines similar core actions for our software pilot:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified view from src/lib/blimp.rs
+pub trait Blimp {
+    // Update internal state, like reading controller input
+    fn update(&amp;mut self);
+
+    // Calculate motor/servo commands based on current input
+    fn mix(&amp;mut self) -&gt; Actuations; // Returns motor/servo settings
+
+    // Allow autonomous system to provide input
+    fn update_input(&amp;mut self, input: (f32, f32, f32));
+}
+<span class="boring">}</span></code></pre></pre>
+<ul>
+<li><code>update()</code>: This function is like the driver checking their surroundings or listening for commands. It's used to refresh the controller's state, often by reading the latest joystick inputs.</li>
+<li><code>mix()</code>: This is where the main decision-making happens. It takes the desired movement (e.g., "go forward", "turn left", "go up") and "mixes" these commands into specific instructions for each motor or servo on the blimp. It returns an <code>Actuations</code> value, which holds all these specific instructions.</li>
+<li><code>update_input()</code>: This allows an <em>external</em> system (like our autonomous flight computer) to tell the blimp what to do, instead of relying on the joystick.</li>
+</ul>
+<p>Any code that wants to act as the blimp's main controller <em>must</em> provide these three functions.</p>
+<h3 id="2-the-flappy-implementation-a-specific-driver"><a class="header" href="#2-the-flappy-implementation-a-specific-driver">2. The <code>Flappy</code> Implementation (A Specific Driver)</a></h3>
+<p>While the <code>Blimp</code> trait is the rulebook, <code>Flappy</code> is a <em>specific</em> implementation – it's <em>one way</em> to follow those rules. We could have other implementations later (like <code>SanoBlimp</code> which is also in the code, or maybe <code>SuperStableBlimp</code>), but <code>Flappy</code> is one concrete "driver" we can use.</p>
+<p>The name <code>Flappy</code> might suggest it's designed for a blimp that uses flapping mechanisms for propulsion or control, but the key takeaway is that it <em>implements the <code>Blimp</code> trait</em>.</p>
+<p>Here's a peek at its structure (simplified):</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified view from src/lib/blimp.rs
+pub struct Flappy {
+    // Stores current desired movement (e.g., from joystick)
+    input: (f32, f32, f32), // (forward/backward, turn, up/down)
+
+    // Interface for reading joystick input
+    gilrs: Gilrs, // Gamepad Input Library
+
+    // Connection to the hardware controller
+    pub actuator: PCAActuator, // We'll cover this next!
+
+    // Is the blimp being flown manually or autonomously?
+    manual: bool,
+}
+<span class="boring">}</span></code></pre></pre>
+<p><code>Flappy</code> keeps track of:</p>
+<ul>
+<li><code>input</code>: The desired movement commands (like forward speed, turning speed, up/down speed).</li>
+<li><code>gilrs</code>: A library to read inputs from a physical gamepad/joystick.</li>
+<li><code>actuator</code>: The component that <em>actually</em> sends signals to the motors and servos. We'll learn about this in <a href="02_hardware_actuation___pcaactuator__.html">Chapter 2: Hardware Actuation (<code>PCAActuator</code>)</a>.</li>
+<li><code>manual</code>: A simple flag (<code>true</code> or <code>false</code>) to know if we should listen to the joystick (<code>true</code>) or the autonomous system (<code>false</code>).</li>
+</ul>
+<h3 id="3-input-where-do-commands-come-from"><a class="header" href="#3-input-where-do-commands-come-from">3. Input: Where do commands come from?</a></h3>
+<p>The blimp needs instructions! These can come from:</p>
+<ul>
+<li><strong>Manual Control:</strong> A human using a gamepad or joystick. The <code>Flappy</code> structure uses the <code>gilrs</code> library to listen for button presses and joystick movements.</li>
+<li><strong>Autonomous Control:</strong> A separate piece of software that calculates where the blimp should go based on sensors or mission goals. This system uses the <code>update_input</code> function to feed commands to <code>Flappy</code>. We'll explore this more in <a href="06_autonomous_control___autonomous__.html">Chapter 6: Autonomous Control (<code>Autonomous</code>)</a>.</li>
+</ul>
+<h3 id="4-mixing-from-desire-to-action"><a class="header" href="#4-mixing-from-desire-to-action">4. Mixing: From Desire to Action</a></h3>
+<p>The <code>mix()</code> function is crucial. It translates high-level desires like "go forward fast" or "turn sharp left" into low-level commands like "set motor 1 to 70% power", "set motor 2 to 50% power", "angle servo 3 to 45 degrees".</p>
+<p>Different blimp designs will need different mixing logic. A blimp with propellers might mix inputs differently than one with flapping wings (like <code>Flappy</code> might be intended for).</p>
+<h3 id="5-manual-vs-autonomous-mode"><a class="header" href="#5-manual-vs-autonomous-mode">5. Manual vs. Autonomous Mode</a></h3>
+<p>Our blimp needs to switch between being flown by a person and flying itself. <code>Flappy</code> handles this with the <code>manual</code> flag. Typically, a specific button on the controller (like the 'Start' button) is used to toggle this flag. The main program loop checks this flag to decide whether to use joystick input or commands from the autonomous system.</p>
+<h2 id="how-we-use-flappy"><a class="header" href="#how-we-use-flappy">How We Use <code>Flappy</code></a></h2>
+<p>Let's look at how the main program (<code>src/main.rs</code>) uses the <code>Flappy</code> controller.</p>
+<ol>
+<li>
+<p><strong>Create the Controller:</strong>
+First, we create an instance of our <code>Flappy</code> driver.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// From src/main.rs
+use lib::blimp::{self, Blimp}; // Import necessary items
+
+// Create a new Flappy controller instance
+let mut blimp = blimp::Flappy::new();
+<span class="boring">}</span></code></pre></pre>
+<p>This sets up <code>Flappy</code> with its initial state, ready to control the blimp, likely starting in manual mode.</p>
+</li>
+<li>
+<p><strong>The Main Loop:</strong>
+The program then enters a continuous loop, repeatedly checking inputs and updating the blimp.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified loop from src/main.rs
+loop {
+    // 1. Check for new joystick/gamepad input
+    blimp.update();
+
+    // 2. Check if we are in manual mode
+    if blimp.is_manual() {
+        // 3a. Manual Control: Mix joystick input and actuate
+        blimp.manual(); // Internally calls mix() then actuator.actuate()
+
+    } else {
+        // 3b. Autonomous Control
+        // (Simplified - Get autonomous command)
+        let auto_input = calculate_autonomous_command(); // e.g., (0.5, 0.0, 0.1)
+
+        // Send command to the blimp controller
+        blimp.update_input(auto_input);
+
+        // Mix the autonomous input and actuate
+        let actuations = blimp.mix();
+        blimp.actuator.actuate(actuations);
+    }
+
+    // (Small delay usually happens here)
+}
+<span class="boring">}</span></code></pre></pre>
+<ul>
+<li><code>blimp.update()</code>: Reads the latest joystick events via <code>gilrs</code>.</li>
+<li><code>blimp.is_manual()</code>: Checks the <code>manual</code> flag.</li>
+<li>If <code>manual</code>: It calls <code>blimp.manual()</code>, a helper function in <code>Flappy</code> that internally calls <code>mix()</code> to get motor commands based on the joystick input stored in <code>self.input</code>, and then sends these commands to the hardware using <code>actuator.actuate()</code>.</li>
+<li>If <em>not</em> <code>manual</code> (autonomous): The code gets commands from the autonomous system (we'll cover this in <a href="06_autonomous_control___autonomous__.html">Chapter 6</a>), uses <code>blimp.update_input(...)</code> to feed these commands into <code>Flappy</code>, then calls <code>blimp.mix()</code> to translate these commands into motor/servo settings, and finally <code>blimp.actuator.actuate(...)</code> to send them to the hardware.</li>
+</ul>
+</li>
+</ol>
+<p>This loop continuously pilots the blimp based on the selected control mode.</p>
+<h2 id="under-the-hood-how-flappy-works"><a class="header" href="#under-the-hood-how-flappy-works">Under the Hood: How <code>Flappy</code> Works</a></h2>
+<p>Let's trace the flow for <strong>Manual Control</strong>:</p>
+<ol>
+<li><strong>You move the joystick.</strong></li>
+<li>The <code>gilrs</code> library detects this physical movement as an event.</li>
+<li>Inside the main loop, <code>blimp.update()</code> is called. <code>Flappy</code>'s <code>update</code> function checks <code>gilrs</code> for new events.</li>
+<li><code>Flappy</code> sees the joystick event and updates its internal <code>self.input</code> variable (e.g., <code>self.input = (0.8, 0.2, 0.0)</code> meaning "go forward quite fast and turn slightly right").</li>
+<li>The loop checks <code>blimp.is_manual()</code> which returns <code>true</code>.</li>
+<li><code>blimp.manual()</code> is called.</li>
+<li>Inside <code>manual()</code>, <code>self.mix()</code> is called.</li>
+<li>The <code>mix()</code> function reads <code>self.input</code> (the <code>(0.8, 0.2, 0.0)</code> we stored). It performs calculations based on the <code>Flappy</code> logic (which might involve flapping calculations) to determine the exact settings needed for each motor and servo.</li>
+<li><code>mix()</code> returns an <code>Actuations</code> struct containing these settings (e.g., <code>m1: 120.0, m2: 110.0, s1: 90.0, ...</code>).</li>
+<li>Still inside <code>manual()</code>, <code>self.actuator.actuate(actuations)</code> is called, passing the calculated settings.</li>
+<li>The <code>actuator</code> (which we'll discuss next) takes these values and sends the corresponding electrical signals (PWM) to the actual hardware (motors/servos).</li>
+<li>The blimp moves!</li>
+</ol>
+<p>Here's a diagram showing this flow:</p>
+<pre class="mermaid">sequenceDiagram
+    participant User
+    participant Gamepad
+    participant GilrsLib as Gilrs Library
+    participant FlappyBlimp as Flappy Blimp
+    participant Mixer as Flappy.mix()
+    participant Actuator as PCAActuator
+
+    User-&gt;&gt;Gamepad: Moves Joystick
+    Gamepad-&gt;&gt;GilrsLib: Sends Event Signal
+    Note over FlappyBlimp: Loop calls update()
+    FlappyBlimp-&gt;&gt;GilrsLib: Checks for new events (gilrs.next_event())
+    GilrsLib--&gt;&gt;FlappyBlimp: Returns Joystick Event
+    FlappyBlimp-&gt;&gt;FlappyBlimp: Updates internal 'input' state
+    Note over FlappyBlimp: Loop sees manual=true, calls manual()
+    FlappyBlimp-&gt;&gt;Mixer: Calls mix()
+    Mixer-&gt;&gt;FlappyBlimp: Reads 'input' state
+    Mixer--&gt;&gt;FlappyBlimp: Returns calculated Actuations
+    FlappyBlimp-&gt;&gt;Actuator: Calls actuate(Actuations)
+    Actuator-&gt;&gt;+Hardware: Sends signals (PWM)
+    Hardware--&gt;&gt;-Actuator: Motors/Servos react
+</pre>
+<h3 id="code-dive-flappys-implementation"><a class="header" href="#code-dive-flappys-implementation">Code Dive: <code>Flappy</code>'s Implementation</a></h3>
+<p>Let's look briefly at the code within <code>src/lib/blimp.rs</code> that makes <code>Flappy</code> work.</p>
+<p><strong>The <code>update()</code> method:</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Inside `impl Blimp for Flappy` in src/lib/blimp.rs
+fn update(&amp;mut self) {
+    // Check for any new events from the gamepad library
+    while let Some(Event { event, .. }) = self.gilrs.next_event() {
+        match event {
+            // If a joystick axis moved...
+            gilrs::EventType::AxisChanged(axis, pos, _) =&gt; match axis {
+                gilrs::Axis::LeftStickY =&gt; self.input.0 = pos, // Forward/backward
+                gilrs::Axis::RightStickY =&gt; self.input.2 = pos, // Up/down
+                gilrs::Axis::RightStickX =&gt; self.input.1 = pos, // Turning
+                _ =&gt; {} // Ignore other axes
+            },
+            // If a button was pressed...
+            gilrs::EventType::ButtonPressed(button, code) =&gt; match button {
+                // Toggle manual/autonomous mode on Start button press
+                gilrs::Button::Start =&gt; self.manual = !self.manual,
+                _ =&gt; {} // Ignore other buttons
+            },
+            _ =&gt; {} // Ignore other event types
+        }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<p>This function simply checks for new gamepad events using <code>self.gilrs.next_event()</code> and updates <code>self.input</code> or toggles <code>self.manual</code> accordingly.</p>
+<p><strong>The <code>mix()</code> method (Conceptual):</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Inside `impl Blimp for Flappy` in src/lib/blimp.rs
+fn mix(&amp;mut self) -&gt; Actuations {
+    // Get the current desired movement
+    let (x, y, z) = self.input; // (forward, turn, up/down)
+
+    // --- Complex Flappy-Specific Logic ---
+    // This part calculates servo angles (s1, s2, s3, s4)
+    // based on input x, y, z, potentially using
+    // oscillating functions like `self.oscillate_wing(...)`
+    // to simulate flapping.
+    // --- End of Complex Logic ---
+
+    // For Flappy, motors might not be used directly, or are set to 0.
+    // Servos (s1..s4) would contain the calculated flapping angles.
+    let s1_angle = calculate_servo1_angle(x, y, z);
+    let s2_angle = calculate_servo2_angle(x, y, z);
+    // ... calculate s3, s4 ...
+
+    // Return the final commands for all actuators
+    Actuations {
+        m1: 0.0, // Example: Flappy might not use these motors
+        m2: 0.0,
+        m3: 0.0,
+        m4: 0.0,
+        s1: s1_angle.clamp(0.0, 180.0), // Ensure angle is valid
+        s2: s2_angle.clamp(0.0, 180.0),
+        s3: calculate_servo3_angle(x, y, z).clamp(0.0, 180.0),
+        s4: calculate_servo4_angle(x, y, z).clamp(0.0, 180.0),
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<p>The key idea here is that <code>mix</code> takes the simple <code>(x, y, z)</code> input and converts it into potentially complex <code>Actuations</code> specific to the <code>Flappy</code> blimp's hardware setup (likely focusing on servos <code>s1</code> to <code>s4</code>). The <code>clamp(0.0, 180.0)</code> ensures the calculated values stay within the valid range for typical servos.</p>
+<p><strong>The <code>update_input()</code> method:</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Inside `impl Blimp for Flappy` in src/lib/blimp.rs
+fn update_input(&amp;mut self, input: (f32, f32, f32)) {
+    // Simply overwrite the internal input state
+    self.input = input;
+}
+<span class="boring">}</span></code></pre></pre>
+<p>This is straightforward: it allows the autonomous controller to directly set the desired movement commands, bypassing the joystick input read in <code>update()</code>.</p>
+<h2 id="conclusion"><a class="header" href="#conclusion">Conclusion</a></h2>
+<p>Great job making it through the first chapter! We've learned about the core "brain" of the SanoBlimpSoftware:</p>
+<ul>
+<li>The <code>Blimp</code> <strong>trait</strong> acts as a rulebook, defining <em>what</em> any blimp controller must do (<code>update</code>, <code>mix</code>, <code>update_input</code>).</li>
+<li><code>Flappy</code> is a specific <strong>implementation</strong> of <code>Blimp</code>, acting like a driver that follows these rules.</li>
+<li><code>Flappy</code> handles <strong>inputs</strong> from joysticks (<code>gilrs</code>) or autonomous systems.</li>
+<li>It <strong>mixes</strong> these high-level inputs into low-level commands (<code>Actuations</code>) for motors and servos.</li>
+<li>It manages switching between <strong>manual</strong> and <strong>autonomous</strong> control modes.</li>
+</ul>
+<p>We saw how <code>Flappy</code> takes desired movements and calculates the necessary <code>Actuations</code>. But how do these calculated values actually make the motors spin or servos turn? That's where our hardware interface comes in.</p>
+<p>In the next chapter, we'll dive into how the blimp translates these software commands into real-world actions using the <code>PCAActuator</code>.</p>
+<p>Ready to see how the signals get sent? Let's move on to <a href="02_hardware_actuation___pcaactuator__.html">Chapter 2: Hardware Actuation (<code>PCAActuator</code>)</a>!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="chapter-2-hardware-actuation-pcaactuator"><a class="header" href="#chapter-2-hardware-actuation-pcaactuator">Chapter 2: Hardware Actuation (<code>PCAActuator</code>)</a></h1>
+<p>Welcome back! In <a href="01_blimp_control___blimp__trait____flappy__implementation_.html">Chapter 1: Blimp Control (<code>Blimp</code> Trait / <code>Flappy</code> Implementation)</a>, we saw how the <code>Flappy</code> controller acts like the blimp's "brain" or "pilot". It takes commands (from a joystick or an autonomous system) and decides exactly how fast each motor should spin or what angle each servo should be set to. These decisions are packaged into an <code>Actuations</code> struct.</p>
+<p>But how do those numbers in the <code>Actuations</code> struct <em>actually</em> make the physical parts of the blimp move? We need a way to translate these software commands into real electrical signals that the motors and servos understand.</p>
+<p>That's where the <code>PCAActuator</code> comes in! Think of it as the blimp's <strong>nervous system</strong>. It takes the signals from the brain (<code>Flappy</code>) and sends them down the "nerves" to the "muscles" (motors and servos), telling them precisely what to do.</p>
+<h2 id="why-do-we-need-this"><a class="header" href="#why-do-we-need-this">Why Do We Need This?</a></h2>
+<p>Computers speak the language of data (like the numbers in <code>Actuations</code>), while motors and servos speak the language of electricity – specifically, carefully timed electrical pulses called <strong>PWM (Pulse Width Modulation)</strong>.</p>
+<p>Our main computer (like a Raspberry Pi running this software) isn't great at generating <em>many</em> of these precise PWM signals simultaneously. So, we use a helper chip called the <strong>PCA9685</strong>. This chip is specifically designed to generate lots of PWM signals.</p>
+<p>The <code>PCAActuator</code> component in our software acts as the <strong>bridge</strong>:</p>
+<ol>
+<li>It receives the desired <code>Actuations</code> (motor speeds, servo angles) from <code>Flappy</code>.</li>
+<li>It communicates with the PCA9685 chip over a connection called <strong>I2C</strong> (a simple way for chips to talk to each other).</li>
+<li>It tells the PCA9685 exactly what kind of PWM signal to generate for each motor and servo.</li>
+<li>The PCA9685 chip generates these electrical signals, making the hardware move!</li>
+</ol>
+<h2 id="key-concepts-1"><a class="header" href="#key-concepts-1">Key Concepts</a></h2>
+<p>Let's break down the important ideas:</p>
+<h3 id="1-the-pca9685-chip-the-signal-generator"><a class="header" href="#1-the-pca9685-chip-the-signal-generator">1. The PCA9685 Chip (The Signal Generator)</a></h3>
+<p>Imagine you have a translator who can speak many specific dialects. The PCA9685 is like that translator. It sits between the main computer and the motors/servos. The computer gives it high-level instructions (like "set channel 3 to 50% power"), and the PCA9685 translates that into the precise electrical dialect (PWM signal) that the motor or servo on channel 3 understands. It can handle up to 16 different "dialects" (channels) at once!</p>
+<h3 id="2-pwm-signals-the-electrical-language"><a class="header" href="#2-pwm-signals-the-electrical-language">2. PWM Signals (The Electrical Language)</a></h3>
+<p>How do you tell a motor how fast to spin using electricity? You could try changing the voltage, but a more common and precise way is using PWM.</p>
+<p>Imagine flicking a light switch on and off really, really fast.</p>
+<ul>
+<li>If you leave it ON for a <em>short</em> time and OFF for a <em>long</em> time in each cycle, the light looks dim.</li>
+<li>If you leave it ON for a <em>long</em> time and OFF for a <em>short</em> time, the light looks bright.</li>
+</ul>
+<p>PWM works similarly for motors and servos:</p>
+<ul>
+<li><strong>Motors (via ESCs):</strong> A longer "ON" pulse generally means higher speed. A shorter pulse means lower speed. (ESCs, or Electronic Speed Controllers, are little circuits that interpret PWM for brushless motors).</li>
+<li><strong>Servos:</strong> The length of the "ON" pulse tells the servo what <em>angle</em> to move to. A specific pulse width corresponds to 0 degrees, another to 90 degrees, and another to 180 degrees.</li>
+</ul>
+<p>The <code>PCAActuator</code> calculates the correct pulse width (the "ON" time) based on the desired speed or angle from the <code>Actuations</code> struct.</p>
+<h3 id="3-motors-vs-servos"><a class="header" href="#3-motors-vs-servos">3. Motors vs. Servos</a></h3>
+<p>Our blimp uses both:</p>
+<ul>
+<li><strong>Motors:</strong> Usually for propulsion (going forward, up/down). They spin continuously. Their speed is controlled by PWM. In our code, these are often <code>m1</code>, <code>m2</code>, <code>m3</code>, <code>m4</code>.</li>
+<li><strong>Servos:</strong> Used for control surfaces (like fins or vectoring mounts) or flapping mechanisms. They move to and hold a specific angle. Their angle is controlled by PWM. In our code, these are often <code>s1</code>, <code>s2</code>, <code>s3</code>, <code>s4</code>.</li>
+</ul>
+<p>The <code>PCAActuator</code> knows how to generate the right kind of PWM signal for each type.</p>
+<h3 id="4-esc-initialization-waking-up-the-motors"><a class="header" href="#4-esc-initialization-waking-up-the-motors">4. ESC Initialization (Waking Up the Motors)</a></h3>
+<p>Brushless motors controlled by ESCs often need a special "handshake" sequence when they first power up. This tells the ESC the range of PWM signals it should expect (what means "stop" and what means "full speed"). The <code>PCAActuator</code> handles this automatically when it starts up using the <code>init_escs()</code> function. It usually involves sending a "full speed" signal, then a "stop" signal, so the ESC learns the limits.</p>
+<h2 id="how-flappy-uses-pcaactuator"><a class="header" href="#how-flappy-uses-pcaactuator">How <code>Flappy</code> Uses <code>PCAActuator</code></a></h2>
+<p>Let's revisit how <code>Flappy</code> triggers the hardware, now understanding <code>PCAActuator</code>'s role.</p>
+<p>Remember the <code>manual()</code> function in <code>Flappy</code>?</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified from src/lib/blimp.rs (inside Flappy implementation)
+pub fn manual(&amp;mut self) {
+    // 1. Calculate desired motor/servo settings
+    let act: Actuations = self.mix(); // e.g., { m1: 100.0, s1: 45.0, ... }
+
+    // 2. Send these settings to the hardware interface
+    self.actuator.actuate(act); // Tell PCAActuator to make it happen!
+}
+<span class="boring">}</span></code></pre></pre>
+<ol>
+<li><code>Flappy</code> calls its <code>mix()</code> function to figure out the desired <code>Actuations</code> based on joystick input.</li>
+<li>It then calls <code>self.actuator.actuate(act)</code>, passing the calculated <code>Actuations</code> struct to the <code>PCAActuator</code>.</li>
+</ol>
+<p>The <code>actuate</code> function is the main command center for making things move.</p>
+<h2 id="under-the-hood-how-pcaactuator-works"><a class="header" href="#under-the-hood-how-pcaactuator-works">Under the Hood: How <code>PCAActuator</code> Works</a></h2>
+<p>What happens inside <code>PCAActuator</code> when <code>actuate()</code> is called?</p>
+<ol>
+<li><strong>Receive Commands:</strong> The <code>actuate</code> function gets the <code>Actuations</code> struct (e.g., <code>m1: 100.0, s1: 45.0, ...</code>).</li>
+<li><strong>Translate Each Command:</strong> For <em>each</em> motor (<code>m1</code>..<code>m4</code>) and servo (<code>s1</code>..<code>s4</code>) value in the struct:
+<ul>
+<li>It calls a helper function like <code>set_motor_speed()</code> or <code>set_servo_speed()</code>.</li>
+<li>These helpers take the target value (e.g., <code>100.0</code> for <code>m1</code>) and the specific hardware channel it's connected to (e.g., <code>Channel::C0</code>).</li>
+</ul>
+</li>
+<li><strong>Calculate PWM:</strong> Inside the helper functions:
+<ul>
+<li>The target value (like an angle from 0-180) is converted into a specific PWM pulse width (usually measured in microseconds, like 1500µs for neutral).</li>
+<li>This pulse width is then converted into the numbers (duty cycle, typically 0-4095) that the PCA9685 chip understands.</li>
+</ul>
+</li>
+<li><strong>Send to Chip:</strong> The <code>PCAActuator</code> uses the <code>pwm_pca9685</code> library (a specialized tool for talking to the chip) to send these calculated duty cycle numbers to the PCA9685 chip over the I2C communication wire.</li>
+<li><strong>Generate Signal:</strong> The PCA9685 chip receives the command and starts generating the corresponding PWM electrical signal on the specified output pin.</li>
+<li><strong>Move!:</strong> The ESC/motor or servo connected to that pin receives the PWM signal and moves accordingly.</li>
+</ol>
+<p>Here's a simplified diagram of the process:</p>
+<pre class="mermaid">sequenceDiagram
+    participant Flappy as Flappy Blimp
+    participant PCAAct as PCAActuator
+    participant PwmLib as pwm_pca9685 Library
+    participant I2C as I2C Bus
+    participant PCAChip as PCA9685 Chip
+    participant MotorServo as Motor/Servo
+
+    Flappy-&gt;&gt;PCAAct: Calls actuate(Actuations)
+    PCAAct-&gt;&gt;PCAAct: For each motor/servo value...
+    PCAAct-&gt;&gt;PCAAct: Calls set_motor_speed(Channel, value)
+    PCAAct-&gt;&gt;PCAAct: Calculates PWM duty cycle (0-4095)
+    PCAAct-&gt;&gt;PwmLib: set_channel_on_off(Channel, 0, duty_cycle)
+    PwmLib-&gt;&gt;I2C: Sends I2C command
+    I2C-&gt;&gt;PCAChip: Delivers command
+    PCAChip-&gt;&gt;MotorServo: Generates PWM Signal
+    MotorServo-&gt;&gt;MotorServo: Reacts (spins/moves)
+</pre>
+<h3 id="code-dive-inside-pcaactuator"><a class="header" href="#code-dive-inside-pcaactuator">Code Dive: Inside <code>PCAActuator</code></a></h3>
+<p>Let's peek at some key parts of the <code>src/lib/blimp.rs</code> file related to <code>PCAActuator</code>.</p>
+<p><strong>Creating the Actuator (<code>PCAActuator::new</code>)</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified from src/lib/blimp.rs
+impl PCAActuator {
+    pub fn new() -&gt; Self {
+        // 1. Setup communication with the PCA9685 chip via I2C
+        let dev = I2cdev::new("/dev/i2c-1") // Specify the I2C bus
+            .expect("Failed to initialize I2C device");
+        let address = Address::default(); // Use default PCA9685 address
+        let mut pwm = Pca9685::new(dev, address) // Create the library object
+            .expect("Failed to create PCA9685 instance");
+
+        // 2. Configure the PCA9685 chip
+        pwm.set_prescale(100) // Set PWM frequency (e.g., ~60Hz)
+            .expect("Failed to set prescale");
+        pwm.enable() // Turn the chip ON
+            .expect("Failed to enable PCA9685");
+
+        // 3. Create the PCAActuator struct
+        let mut actuator = PCAActuator { pwm };
+
+        // 4. Initialize the ESCs (important!)
+        actuator.init_escs();
+
+        actuator // Return the ready-to-use actuator
+    }
+    // ... other functions ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>This function does the initial setup: connecting to the PCA9685 chip over I2C, configuring the PWM signal frequency, enabling the chip, and importantly, running the ESC initialization sequence.</p>
+<p><strong>Initializing the ESCs (<code>init_escs</code>)</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified from src/lib/blimp.rs
+impl PCAActuator {
+    pub fn init_escs(&amp;mut self) {
+        println!("Initializing ESCs...");
+
+        // Send max throttle (e.g., 180.0 degrees) to all motor channels
+        self.set_motor_speed(Channel::C0, 180.0);
+        // ... send to C1, C2, C3 ...
+        sleep(Duration::from_secs(1)); // Wait
+
+        // Send min throttle (e.g., 0.0 degrees) to arm
+        self.set_motor_speed(Channel::C0, 0.0);
+        // ... send to C1, C2, C3 ...
+        sleep(Duration::from_secs(1)); // Wait
+
+        // Move to neutral (e.g., 90.0 degrees) - ready!
+        self.set_motor_speed(Channel::C0, NEUTRAL_ANGLE_MOTOR); // e.g., 90.0
+        // ... send to C1, C2, C3 ...
+        sleep(Duration::from_secs(2)); // Wait longer
+
+        println!("ESCs initialized!");
+    }
+    // ... other functions ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>This function performs the critical startup "handshake" for the ESCs by sending high, low, and then neutral signals. This ensures the motors respond correctly later.</p>
+<p><strong>Setting Motor/Servo Speeds (<code>set_motor_speed</code>, <code>set_servo_speed</code>)</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified from src/lib/blimp.rs
+// Constants defining the PWM signal range
+const MIN_PULSE: f32 = 600.0; // Pulse width in µs for 0% speed / 0 degrees
+const MAX_PULSE: f32 = 2600.0; // Pulse width in µs for 100% speed / 180 degrees
+const PWM_FREQUENCY_MOTOR: f32 = 60.0; // How many pulses per second (Hz)
+
+impl PCAActuator {
+    fn set_motor_speed(&amp;mut self, channel: Channel, angle: f32) {
+        // 1. Map angle (0-180) to pulse width (e.g., 600-2600 µs)
+        let pulse_width = MIN_PULSE + (angle / 180.0) * (MAX_PULSE - MIN_PULSE);
+
+        // 2. Calculate the PCA9685 duty cycle (0-4095) based on pulse width and frequency
+        let on = 0; // Start the pulse at the beginning of the cycle
+        let off = ((pulse_width * PWM_FREQUENCY_MOTOR * 4096.0 * 1e-6) as u16)
+                    .clamp(0, 4095); // Ensure value is within 0-4095
+
+        // 3. Send command to the PCA9685 library
+        self.pwm.set_channel_on_off(channel, on, off).unwrap();
+    }
+
+    // set_servo_speed is very similar, but might use different MIN/MAX_PULSE values
+    fn set_servo_speed(&amp;mut self, channel: Channel, angle: f32) {
+        // ... calculations similar to set_motor_speed ...
+        // ... may use MIN_PULSE_SERVO, MAX_PULSE_SERVO constants ...
+        let on = 0;
+        let off = /* calculated duty cycle */ ;
+        self.pwm.set_channel_on_off(channel, on, off).unwrap();
+    }
+    // ... other functions ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>These functions contain the core translation logic. They convert a simple input <code>angle</code> (representing speed for motors or position for servos, usually mapped 0-180) into the specific <code>on</code> and <code>off</code> values (duty cycle) needed by the PCA9685 chip. The <code>clamp(0, 4095)</code> ensures we don't send invalid values to the chip.</p>
+<p><strong>Actuating (<code>actuate</code>)</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified from src/lib/blimp.rs
+impl PCAActuator {
+    pub fn actuate(&amp;mut self, act: Actuations) {
+        // Call set_motor_speed for each motor channel
+        self.set_motor_speed(Channel::C0, act.m1); // Motor 1 on Channel 0
+        self.set_motor_speed(Channel::C1, act.m2); // Motor 2 on Channel 1
+        self.set_motor_speed(Channel::C2, act.m3); // Motor 3 on Channel 2
+        self.set_motor_speed(Channel::C3, act.m4); // Motor 4 on Channel 3
+
+        // Call set_servo_speed for each servo channel
+        self.set_servo_speed(Channel::C4, act.s1); // Servo 1 on Channel 4
+        self.set_servo_speed(Channel::C5, act.s2); // Servo 2 on Channel 5
+        self.set_servo_speed(Channel::C6, act.s3); // Servo 3 on Channel 6
+        self.set_servo_speed(Channel::C7, act.s4); // Servo 4 on Channel 7
+    }
+    // ... other functions ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>This function simply takes the <code>Actuations</code> struct and calls the appropriate <code>set_..._speed</code> function for each motor and servo value, associating it with the correct hardware channel (C0, C1, C4, etc.) on the PCA9685 board.</p>
+<h2 id="conclusion-1"><a class="header" href="#conclusion-1">Conclusion</a></h2>
+<p>We've now seen how the <code>PCAActuator</code> acts as the vital link between the software decisions made by <code>Flappy</code> and the physical hardware of the blimp.</p>
+<ul>
+<li>It uses the <strong>PCA9685 chip</strong> to generate precise <strong>PWM</strong> signals.</li>
+<li>It translates abstract commands (<code>Actuations</code>) into these electrical signals.</li>
+<li>It handles the necessary <strong>ESC initialization</strong> sequence for the motors.</li>
+<li>The <code>actuate()</code> function is the main way <code>Flappy</code> commands the hardware to move.</li>
+</ul>
+<p>You now understand how the blimp's "brain" (<code>Flappy</code>) talks to its "nervous system" (<code>PCAActuator</code>) to control its "muscles" (motors and servos)!</p>
+<p>But wait, how does the <code>PCAActuator</code> know things like the correct PWM frequency, or the exact pulse widths (MIN_PULSE, MAX_PULSE) for our specific motors and servos? And how does <code>Flappy</code> know which joystick axis controls which movement? These details often need to be configured.</p>
+<p>In the next chapter, we'll explore how we manage settings and parameters using the configuration system. Let's dive into <a href="03_configuration___config__.html">Chapter 3: Configuration (<code>Config</code>)</a>!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="chapter-3-configuration-config"><a class="header" href="#chapter-3-configuration-config">Chapter 3: Configuration (<code>Config</code>)</a></h1>
+<p>Welcome back! In <a href="02_hardware_actuation___pcaactuator__.html">Chapter 2: Hardware Actuation (<code>PCAActuator</code>)</a>, we learned how the <code>PCAActuator</code> takes commands from our software pilot (<code>Flappy</code>) and turns them into electrical signals to move the blimp's motors and servos.</p>
+<p>But how fast should motor 1 spin compared to motor 2? How aggressively should the blimp try to correct its course when flying autonomously? These are examples of settings or <strong>parameters</strong> that we might want to adjust frequently as we test and improve the blimp.</p>
+<p>Imagine tuning a guitar. You don't rebuild the guitar every time you need to adjust the tuning pegs! Similarly, we don't want to rewrite and recompile our entire software project just to make the blimp turn a little faster or slower.</p>
+<p>This chapter introduces the <strong>Configuration (<code>Config</code>)</strong> system – our way of keeping these adjustable settings separate from the main code, making it easy to tune the blimp's behavior.</p>
+<h2 id="why-do-we-need-configuration"><a class="header" href="#why-do-we-need-configuration">Why Do We Need Configuration?</a></h2>
+<p>Think about the settings menu on your phone or computer. You can change the screen brightness, Wi-Fi password, or notification sounds without needing to be a programmer or reinstalling the operating system.</p>
+<p>Our blimp needs a similar "settings menu". Here's why:</p>
+<ol>
+<li><strong>Easy Tuning:</strong> We often need to tweak parameters like:
+<ul>
+<li>How much power goes to each motor (maybe one motor is slightly stronger than another).</li>
+<li>How sensitive the autonomous control is (the PID controller gains we'll see in <a href="06_autonomous_control___autonomous__.html">Chapter 6: Autonomous Control (<code>Autonomous</code>)</a>).</li>
+</ul>
+</li>
+<li><strong>Adaptability:</strong> Different blimps might use slightly different hardware, or we might fly in different conditions (indoors vs. outdoors). Configuration files let us adapt without changing the core code.</li>
+<li><strong>No Recompiling:</strong> Changing a setting in a configuration file is much faster than changing the code, recompiling everything, and restarting.</li>
+</ol>
+<p><strong>Our Use Case:</strong> Let's say the blimp is flying autonomously, but it's reacting too slowly when it drifts off course. We want to increase its responsiveness by adjusting a setting called <code>kp_x</code> (a "Proportional gain" for the controller, which we'll learn more about later). Using the configuration system, we can just change a number in a text file and restart the program!</p>
+<h2 id="key-concepts-2"><a class="header" href="#key-concepts-2">Key Concepts</a></h2>
+<p>How do we make this "settings menu" work?</p>
+<h3 id="1-the-settings-file-configtoml"><a class="header" href="#1-the-settings-file-configtoml">1. The Settings File (<code>config.toml</code>)</a></h3>
+<p>We store our settings in a separate text file called <code>config.toml</code>. This file uses a simple format called <strong>TOML</strong> (Tom's Obvious, Minimal Language), which is designed to be easy for humans to read.</p>
+<p>It uses <code>key = value</code> pairs, often grouped into sections using <code>[section_name]</code>.</p>
+<p>Here's a small example of what <code>config.toml</code> might look like:</p>
+<pre><code class="language-toml"># Example config.toml
+
+[server]
+host = "0.0.0.0"
+port = 8080
+
+[motor]
+# Multipliers to adjust power scaling for each motor
+m1_mul = 1.0
+m2_mul = 1.0
+m3_mul = 0.95 # Maybe motor 3 needs slightly less power
+m4_mul = 1.0
+
+[controller]
+# Gains for the PID controller (used in autonomous mode)
+kp_x = 0.8  # Proportional gain for X-axis (sideways)
+kp_y = 0.7  # Proportional gain for Y-axis (forward/backward)
+kp_z = 1.2  # Proportional gain for Z-axis (up/down)
+kd_x = 0.1  # Derivative gain for X-axis
+kd_y = 0.1  # Derivative gain for Y-axis
+kd_z = 0.2  # Derivative gain for Z-axis
+</code></pre>
+<p>You can see settings for the network server, adjustments for individual motors (<code>m*_mul</code>), and tuning parameters (<code>kp_*</code>, <code>kd_*</code>) for the autonomous controller.</p>
+<h3 id="2-the-config-struct-in-rust"><a class="header" href="#2-the-config-struct-in-rust">2. The <code>Config</code> Struct in Rust</a></h3>
+<p>Okay, we have the settings in a file. How does our Rust code read and understand them? We define a special structure (a <code>struct</code>) in our code that exactly mirrors the structure of the <code>config.toml</code> file.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// From src/main.rs
+
+// Automatically generate code to load data into this struct
+use serde::Deserialize;
+
+// Top-level structure matching the config file
+#[derive(Deserialize, Debug)]
+struct Config {
+    motor: Motor,         // Matches the [motor] section
+    controller: Controller, // Matches the [controller] section
+    server: Server,       // Matches the [server] section
+}
+
+// Structure for the [motor] section
+#[derive(Deserialize, Debug)]
+struct Motor {
+    m1_mul: f32, // f32 means a decimal number
+    m2_mul: f32,
+    m3_mul: f32,
+    m4_mul: f32,
+}
+
+// Structure for the [controller] section
+#[derive(Deserialize, Debug)]
+struct Controller {
+    kp_x: f32,
+    kp_y: f32,
+    kp_z: f32,
+    kd_x: f32,
+    kd_y: f32,
+    kd_z: f32,
+}
+
+// Structure for the [server] section (example)
+#[derive(Deserialize, Debug)]
+struct Server {
+    host: String, // String means text
+    port: u16,    // u16 means a whole number (port number)
+}
+<span class="boring">}</span></code></pre></pre>
+<ul>
+<li>We define structs (<code>Config</code>, <code>Motor</code>, <code>Controller</code>, <code>Server</code>) whose fields match the keys in the <code>config.toml</code> file.</li>
+<li>The magic <code>#[derive(Deserialize)]</code> line uses a Rust library called <code>serde</code> to automatically generate the code needed to read data from the TOML format and fill in these structs. We don't have to write the parsing code ourselves!</li>
+<li><code>Debug</code> is added to allow printing the struct easily for debugging.</li>
+</ul>
+<h3 id="3-loading-the-configuration-read_config"><a class="header" href="#3-loading-the-configuration-read_config">3. Loading the Configuration (<code>read_config</code>)</a></h3>
+<p>We need a function that actually reads the <code>config.toml</code> file from the disk and uses <code>serde</code> to "deserialize" it (turn the text into our Rust <code>Config</code> struct).</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified from src/main.rs
+use std::fs; // File System access
+use toml; // TOML parsing library
+
+fn read_config() -&gt; Config {
+    // 1. Read the entire content of "config.toml" into a text string
+    let conf_str = fs::read_to_string("config.toml")
+        .expect("Failed to read config file"); // Crash if file not found
+
+    // 2. Parse the text string using the TOML library,
+    //    filling a 'Config' struct.
+    let config: Config = toml::from_str(&amp;conf_str)
+        .expect("Failed to parse config file"); // Crash if format is wrong
+
+    // 3. Return the filled 'Config' struct
+    config
+}
+<span class="boring">}</span></code></pre></pre>
+<p>This simple function does two main things:</p>
+<ol>
+<li>Reads the text content of <code>config.toml</code>.</li>
+<li>Uses <code>toml::from_str</code> (powered by <code>serde</code>) to automatically parse that text and create a <code>Config</code> object filled with the values from the file.</li>
+</ol>
+<h2 id="how-we-use-the-configuration"><a class="header" href="#how-we-use-the-configuration">How We Use the Configuration</a></h2>
+<p>Now let's see how the main program uses this.</p>
+<ol>
+<li>
+<p><strong>Read at Startup:</strong> When the program starts, the first thing it does is load the configuration.</p>
+<pre><pre class="playground"><code class="language-rust">// From src/main.rs
+#[tokio::main]
+async fn main() {
+    // Load all settings from config.toml into the 'conf' variable
+    let conf = read_config();
+    println!("Loaded configuration: {:?}", conf); // Print for debugging
+
+    // ... rest of the setup ...
+}</code></pre></pre>
+<p>The <code>conf</code> variable now holds all the settings loaded from the file.</p>
+</li>
+<li>
+<p><strong>Pass Settings to Components:</strong> We then use the values stored in <code>conf</code> when creating other parts of our system. For example, when setting up the autonomous controller:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// From src/main.rs (inside main function, after reading conf)
+use lib::autonomous::Autonomous;
+
+// Create the autonomous controller
+let mut auto = Autonomous::new(
+    // Pass the PID gains directly from the loaded config!
+    conf.controller.kp_x,
+    conf.controller.kp_y,
+    conf.controller.kp_z,
+    conf.controller.kd_x,
+    conf.controller.kd_y,
+    conf.controller.kd_z,
+    0.0, // Another parameter (perhaps Ki, set to 0 here)
+);
+
+// Use motor multipliers (Example - actual use might be inside Flappy or PCAActuator)
+// let motor_1_power = raw_motor_power * conf.motor.m1_mul;
+
+// ... rest of the program loop ...
+<span class="boring">}</span></code></pre></pre>
+<p>Notice how we access the values using <code>conf.controller.kp_x</code>, <code>conf.motor.m1_mul</code>, etc. This directly uses the settings loaded from <code>config.toml</code>.</p>
+</li>
+</ol>
+<p><strong>Tuning Example:</strong></p>
+<p>Remember our use case? The blimp reacts too slowly. We think <code>kp_x</code> (sideways responsiveness) is too low.</p>
+<ol>
+<li>Open <code>config.toml</code> in a text editor.</li>
+<li>Find the line <code>kp_x = 0.8</code> under <code>[controller]</code>.</li>
+<li>Change it to <code>kp_x = 1.1</code> (or some other value).</li>
+<li>Save the <code>config.toml</code> file.</li>
+<li>Stop the blimp software (if it's running).</li>
+<li>Restart the blimp software.</li>
+</ol>
+<p>Now, when <code>read_config()</code> runs, it will load <code>1.1</code> into <code>conf.controller.kp_x</code>. When the <code>Autonomous</code> controller is created, it will receive this new, higher value, making the blimp react more aggressively to sideways movement. We successfully tuned the blimp without touching the main Rust code!</p>
+<h2 id="under-the-hood-the-loading-process"><a class="header" href="#under-the-hood-the-loading-process">Under the Hood: The Loading Process</a></h2>
+<p>Let's visualize the step-by-step process when <code>read_config()</code> is called:</p>
+<pre class="mermaid">sequenceDiagram
+    participant Main as main() function
+    participant ReadConfig as read_config()
+    participant FileSys as File System
+    participant TomlLib as TOML Library (serde)
+    participant ConfigStruct as Config Struct
+
+    Main-&gt;&gt;ReadConfig: Call read_config()
+    ReadConfig-&gt;&gt;FileSys: Ask to read &quot;config.toml&quot;
+    FileSys--&gt;&gt;ReadConfig: Return file content (text)
+    ReadConfig-&gt;&gt;TomlLib: Parse this text using Config structure
+    TomlLib--&gt;&gt;ConfigStruct: Create and fill Config struct instance
+    ConfigStruct--&gt;&gt;ReadConfig: Return filled struct
+    ReadConfig--&gt;&gt;Main: Return the Config struct instance
+</pre>
+<ol>
+<li><code>main()</code> calls <code>read_config()</code>.</li>
+<li><code>read_config()</code> asks the operating system's <strong>File System</strong> to read the contents of <code>config.toml</code>.</li>
+<li>The File System provides the text content.</li>
+<li><code>read_config()</code> passes this text to the <strong>TOML Library</strong> (specifically <code>toml::from_str</code>, which uses <code>serde</code>). It tells the library to try and fit this text into the shape defined by our <code>Config</code> struct.</li>
+<li>The TOML library parses the text, identifies the <code>[sections]</code> and <code>key = value</code> pairs, and creates a new <strong><code>Config</code> Struct</strong> instance, filling its fields (<code>motor</code>, <code>controller</code>, <code>server</code>, and their sub-fields) with the corresponding values.</li>
+<li>The filled <code>Config</code> struct is returned to <code>read_config()</code>, which then returns it to <code>main()</code>.</li>
+</ol>
+<p>The key players are the file system access (<code>std::fs</code>) and the TOML parsing library (<code>toml</code> powered by <code>serde</code>), which handle the translation from a text file to a usable Rust data structure.</p>
+<h2 id="conclusion-2"><a class="header" href="#conclusion-2">Conclusion</a></h2>
+<p>We've learned about the crucial role of the <strong>Configuration (<code>Config</code>)</strong> system in <code>SanoBlimpSoftware</code>.</p>
+<ul>
+<li>It allows us to define adjustable <strong>settings</strong> (like motor multipliers and controller gains) in an external file (<code>config.toml</code>).</li>
+<li>This makes it easy to <strong>tune</strong> the blimp's behavior without recompiling the code.</li>
+<li>We use Rust <strong>structs</strong> (like <code>Config</code>, <code>Motor</code>, <code>Controller</code>) that mirror the <code>.toml</code> file structure.</li>
+<li>The <code>serde</code> and <code>toml</code> libraries handle the <strong>loading and parsing</strong> of the configuration file into these structs.</li>
+<li>The main program reads this configuration at <strong>startup</strong> and uses the values to initialize components like the <code>Autonomous</code> controller.</li>
+</ul>
+<p>Now that we understand how to control the blimp (<a href="01_blimp_control___blimp__trait____flappy__implementation_.html">Chapter 1</a>), actuate its hardware (<a href="02_hardware_actuation___pcaactuator__.html">Chapter 2</a>), and configure its parameters (<a href="03_configuration___config__.html">Chapter 3</a>), how does the blimp actually <em>see</em> the world around it, especially when flying autonomously?</p>
+<p>In the next chapter, we'll explore how the blimp detects objects using its camera. Let's move on to <a href="04_object_detection___detection__.html">Chapter 4: Object Detection (<code>Detection</code>)</a>!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="chapter-4-object-detection-detection"><a class="header" href="#chapter-4-object-detection-detection">Chapter 4: Object Detection (<code>Detection</code>)</a></h1>
+<p>Welcome back! In <a href="03_configuration___config__.html">Chapter 3: Configuration (<code>Config</code>)</a>, we saw how to easily adjust settings for our blimp, like motor power or controller sensitivity, using the <code>config.toml</code> file. This makes tuning the blimp's behavior much easier.</p>
+<p>Now, imagine we want the blimp to do more than just fly around based on joystick commands or simple pre-programmed paths. What if we want it to find and fly towards a specific object, like a landing pad or a target marker? To do that, the blimp needs <strong>eyes</strong>!</p>
+<p>This chapter introduces the <strong><code>Detection</code></strong> module – the part of our software that acts as the blimp's vision system. It takes data from a camera, identifies objects it sees, and figures out where the most important object is located.</p>
+<p><strong>Our Use Case:</strong> Let's say we want the blimp to autonomously find and hover in front of a specific marker (let's say this marker has a class ID of <code>5</code>). The <code>Detection</code> module will be responsible for looking at the camera feed, finding all objects identified as class <code>5</code>, figuring out which one is the biggest (likely the closest), and telling the rest of the system where the center of that marker is in the camera's view.</p>
+<h2 id="key-concepts-3"><a class="header" href="#key-concepts-3">Key Concepts</a></h2>
+<p>How does the blimp "see"? Let's break it down:</p>
+<h3 id="1-camera-input-via-serial-port"><a class="header" href="#1-camera-input-via-serial-port">1. Camera Input (via Serial Port)</a></h3>
+<p>The blimp likely has a small camera connected, maybe to a separate microcontroller (like an ESP32) that's doing the initial heavy lifting of running an object detection model (like YOLO). This microcontroller then sends the results – what it detected and the image itself – over a <strong>serial connection</strong> (like a USB cable) to the main computer running our <code>SanoBlimpSoftware</code>. Think of the serial port as a simple one-way communication channel, like a telegraph wire, sending messages from the camera system to our main software.</p>
+<h3 id="2-json-format-the-language-of-detection"><a class="header" href="#2-json-format-the-language-of-detection">2. JSON Format (The Language of Detection)</a></h3>
+<p>How does the camera system package its findings? It sends messages formatted in <strong>JSON</strong> (JavaScript Object Notation). JSON is a very common text-based format that uses key-value pairs, making it easy for different programs (and humans!) to read and understand.</p>
+<p>A typical message might look something like this (simplified):</p>
+<pre><code class="language-json">{
+  "type": 1,
+  "data": {
+    "boxes": [
+      [100, 50, 30, 30, 95, 5], // [x, y, width, height, confidence, class_id]
+      [200, 150, 40, 40, 88, 2]
+    ],
+    "image": "aGVsbG8gd29ybGQ=..." // Long string of base64 encoded image data
+  }
+}
+</code></pre>
+<ul>
+<li><code>type</code>: Identifies the message type (here, <code>1</code> might mean "detection results").</li>
+<li><code>data</code>: Contains the actual information.</li>
+<li><code>boxes</code>: A list of detected objects. Each object includes its position (<code>x</code>, <code>y</code>), size (<code>width</code>, <code>height</code>), confidence score (how sure the model is), and a <code>class_id</code> (what kind of object it is, e.g., <code>5</code> for our marker, <code>2</code> for something else).</li>
+<li><code>image</code>: The actual image from the camera, encoded into text using <strong>Base64</strong> so it can be sent easily within the JSON message.</li>
+</ul>
+<p>Our <code>Detection</code> module needs to read this JSON text from the serial port.</p>
+<h3 id="3-parsing-the-data-understanding-the-message"><a class="header" href="#3-parsing-the-data-understanding-the-message">3. Parsing the Data (Understanding the Message)</a></h3>
+<p>Once we receive the JSON text, we need to "parse" it – turn that text into a data structure our Rust code can easily work with. We use a library called <code>serde_json</code> to automatically handle this conversion.</p>
+<h3 id="4-identifying-objects-and-targets"><a class="header" href="#4-identifying-objects-and-targets">4. Identifying Objects and Targets</a></h3>
+<p>After parsing, we can look inside the <code>boxes</code> list. We can iterate through each detected object and check its <code>class_id</code>. If we're looking for our marker (class <code>5</code>), we'd ignore any objects with a different ID.</p>
+<h3 id="5-finding-the-best-target"><a class="header" href="#5-finding-the-best-target">5. Finding the "Best" Target</a></h3>
+<p>Often, the camera might see multiple objects of the same target class. Which one should the blimp focus on? A common strategy is to choose the <strong>largest</strong> one based on its bounding box area (width * height). The assumption is that the largest object is likely the closest or most relevant one. Our <code>Detection</code> module includes logic (<code>get_largest</code> function) to find the bounding box with the biggest area among the target classes we care about.</p>
+<h3 id="6-annotating-the-image-drawing-on-the-picture"><a class="header" href="#6-annotating-the-image-drawing-on-the-picture">6. Annotating the Image (Drawing on the Picture)</a></h3>
+<p>For debugging and visualization, it's helpful to <em>see</em> what the detection module is doing. The <code>Detection</code> module takes the original image (decoded from Base64), draws the bounding box of the chosen target object on it, maybe adds a circle at its center, and includes a label with the class ID and confidence score. This creates a new, annotated image.</p>
+<h3 id="7-streaming-the-annotated-image-via-udp"><a class="header" href="#7-streaming-the-annotated-image-via-udp">7. Streaming the Annotated Image (via UDP)</a></h3>
+<p>Finally, how do we see this annotated image? The <code>Detection</code> module sends the processed image data over the network using <strong>UDP</strong> (User Datagram Protocol). UDP is a fast way to send data, suitable for streaming video frames. A separate program running on another computer on the network can listen for these UDP packets and display the live, annotated video feed, showing us what the blimp sees and detects.</p>
+<h2 id="how-we-use-detection"><a class="header" href="#how-we-use-detection">How We Use <code>Detection</code></a></h2>
+<p>Let's look at how the main program (<code>src/main.rs</code>) uses the <code>Detection</code> module to achieve our goal: finding the marker (class <code>5</code>).</p>
+<ol>
+<li>
+<p><strong>Create the Detector:</strong>
+First, we create an instance of the <code>Detection</code> struct. This automatically sets up the serial port connection and the UDP socket for sending images.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// From src/main.rs
+use lib::object_detection::Detection;
+
+// Create a new Detection instance
+let mut detection = Detection::new();
+<span class="boring">}</span></code></pre></pre>
+<p>This prepares the <code>detection</code> object to start receiving and processing data.</p>
+</li>
+<li>
+<p><strong>Call <code>detect</code> in the Loop:</strong>
+Inside the main program loop, we continuously ask the <code>detection</code> module to look for our target.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified loop from src/main.rs
+loop {
+    // ... (update blimp state) ...
+
+    // Define which object classes we are interested in
+    let target_classes = vec![5]; // We only care about class ID 5
+
+    // Ask the detection module to process the next camera frame
+    // and find the largest object matching target_classes.
+    let det_result = detection.detect(target_classes);
+    // det_result might be: [120, 80] (center coordinates cx, cy)
+    // or: [] (if no target class 5 was found)
+
+    if blimp.is_manual() {
+        // ... (handle manual control) ...
+    } else {
+        // Autonomous Mode
+        if !det_result.is_empty() {
+            // We found our target!
+            let cx = det_result[0] as f32; // Center X coordinate
+            let cy = det_result[1] as f32; // Center Y coordinate
+
+            // Use cx, cy to calculate blimp movement commands
+            // (We'll cover this in Chapter 6: Autonomous Control)
+            let auto_input = auto.position(-1.0, cx, cy); // Example call
+
+            // Send commands to the blimp
+            blimp.update_input(auto_input);
+            let actuations = blimp.mix();
+            blimp.actuator.actuate(actuations);
+        } else {
+            // No target found, maybe search?
+            println!("Searching for target...");
+            // ... (handle searching behavior) ...
+        }
+    }
+    // ... (small delay) ...
+}
+<span class="boring">}</span></code></pre></pre>
+<ul>
+<li>We define <code>target_classes</code> as a list containing just <code>5</code>.</li>
+<li>We call <code>detection.detect(target_classes)</code>. This function does all the work: reads serial, parses JSON, finds the largest object with class ID 5, annotates the image, sends it via UDP, and <em>returns</em> the center coordinates <code>[cx, cy]</code> of the detected object.</li>
+<li>If <code>det_result</code> is not empty, it means our target marker was found. We extract the <code>cx</code> and <code>cy</code> coordinates.</li>
+<li>These coordinates are then passed to the <code>Autonomous</code> controller (covered in <a href="06_autonomous_control___autonomous__.html">Chapter 6: Autonomous Control (<code>Autonomous</code>)</a>) which figures out how the blimp should move to center the target in its view.</li>
+<li>If <code>det_result</code> <em>is</em> empty, the target wasn't found in this frame, so the blimp might enter a "searching" state.</li>
+</ul>
+</li>
+</ol>
+<h2 id="under-the-hood-how-detect-works"><a class="header" href="#under-the-hood-how-detect-works">Under the Hood: How <code>detect()</code> Works</a></h2>
+<p>What actually happens step-by-step when <code>detection.detect()</code> is called?</p>
+<ol>
+<li><strong>Read Serial:</strong> It waits to receive a complete line of text (ending in a newline character) from the serial port connection established in <code>Detection::new()</code>.</li>
+<li><strong>Parse JSON:</strong> It takes the received text line and uses <code>serde_json</code> to try and turn it into a structured Rust object that mirrors the expected JSON format (with <code>type</code>, <code>data</code>, <code>boxes</code>, <code>image</code>). If parsing fails (e.g., malformed JSON), it stops and returns empty.</li>
+<li><strong>Check Type:</strong> It checks if the <code>type</code> field in the JSON is <code>1</code>. If not, it ignores this message and returns empty.</li>
+<li><strong>Extract Data:</strong> It gets the <code>boxes</code> array and the base64-encoded <code>image</code> string from the <code>data</code> field. If either is missing or has the wrong format, it stops and returns empty.</li>
+<li><strong>Decode Image:</strong> It decodes the base64 <code>image</code> string back into raw image bytes.</li>
+<li><strong>Load Image:</strong> It uses the <code>image</code> library to load these raw bytes into an image object that Rust can manipulate.</li>
+<li><strong>Find Largest Target:</strong> It calls the internal <code>get_largest</code> function, passing it the <code>boxes</code> array and the <code>target_classes</code> provided by the user (e.g., <code>vec![5]</code>). <code>get_largest</code> loops through the boxes, checks if the class ID matches any in <code>target_classes</code>, calculates the area (w*h), and keeps track of the box with the largest area found so far. It returns the details (<code>[x, y, w, h, conf, cls]</code>) of that largest matching box.</li>
+<li><strong>Annotate Image:</strong> If <code>get_largest</code> found a target, the <code>detect</code> function uses the <code>imageproc</code> library to:
+<ul>
+<li>Draw a rectangle around the bounding box (<code>[x, y, w, h]</code>).</li>
+<li>Draw a circle at the center (<code>cx = x + w/2</code>, <code>cy = y + h/2</code>).</li>
+<li>Add text labels (like class ID and confidence).</li>
+</ul>
+</li>
+<li><strong>Encode Image:</strong> The annotated image (now possibly with drawings on it) is encoded into a standard image format like PNG. This turns the image object back into a sequence of bytes.</li>
+<li><strong>Send UDP:</strong> These image bytes are sent as a single packet over the UDP socket (created in <code>Detection::new()</code>) to a predefined network address and port. A separate viewer application can listen here to display the stream.</li>
+<li><strong>Return Coordinates:</strong> If a target was found, the function calculates the center coordinates <code>cx</code> and <code>cy</code> and returns them as a <code>Vec&lt;i32&gt;</code> (e.g., <code>vec![120, 80]</code>). If no target was found at any step, it returns an empty <code>Vec&lt;i32&gt;</code> (<code>vec![]</code>).</li>
+</ol>
+<p>Here’s a diagram showing the flow:</p>
+<pre class="mermaid">sequenceDiagram
+    participant MainLoop as Main Loop
+    participant Detector as Detection.detect()
+    participant Serial as Serial Port Reader
+    participant JsonParser as JSON Parser (serde)
+    participant ImageLib as Image/ImageProc Libs
+    participant UDPSocket as UDP Socket
+
+    MainLoop-&gt;&gt;Detector: Call detect(target_classes)
+    Detector-&gt;&gt;Serial: Read line()
+    Serial--&gt;&gt;Detector: Return JSON string
+    Detector-&gt;&gt;JsonParser: Parse(JSON string)
+    JsonParser--&gt;&gt;Detector: Return structured data (or error)
+    Note over Detector: Check type, extract boxes &amp; image_b64
+    Detector-&gt;&gt;ImageLib: Decode base64 image
+    ImageLib--&gt;&gt;Detector: Return raw image bytes
+    Detector-&gt;&gt;ImageLib: Load image from bytes
+    ImageLib--&gt;&gt;Detector: Return image object
+    Note over Detector: Find largest target box in 'boxes'
+    Detector-&gt;&gt;ImageLib: Draw annotations (rect, circle, text)
+    ImageLib--&gt;&gt;Detector: Return annotated image object
+    Detector-&gt;&gt;ImageLib: Encode image (e.g., PNG)
+    ImageLib--&gt;&gt;Detector: Return image bytes
+    Detector-&gt;&gt;UDPSocket: Send(image bytes)
+    Note over Detector: Calculate center [cx, cy]
+    Detector--&gt;&gt;MainLoop: Return [cx, cy] or []
+</pre>
+<h2 id="code-dive-inside-object_detectionrs"><a class="header" href="#code-dive-inside-object_detectionrs">Code Dive: Inside <code>object_detection.rs</code></a></h2>
+<p>Let's peek at some key code snippets from <code>src/lib/object_detection.rs</code>.</p>
+<p><strong>Setting up (<code>Detection::new</code>)</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified from src/lib/object_detection.rs
+use std::io::{BufRead, BufReader};
+use std::net::UdpSocket;
+use serialport::SerialPort; // For serial communication
+use std::time::Duration;
+
+pub struct Detection {
+    reader: BufReader&lt;Box&lt;dyn SerialPort&gt;&gt;, // Reads from serial
+    udp_socket: UdpSocket, // Sends images via UDP
+}
+
+impl Detection {
+    pub fn new() -&gt; Self {
+        // Configure and open the serial port
+        let port_name = /* "/dev/ttyACM0" or "COM1" */;
+        let baud_rate = 921600; // High speed for images
+        let serial_port = serialport::new(port_name, baud_rate)
+            .timeout(Duration::from_secs(1)) // Wait up to 1 sec for data
+            .open()
+            .expect("Failed to open the serial port");
+
+        // Create a buffered reader for efficient line reading
+        let reader = BufReader::new(serial_port);
+
+        // Create a UDP socket bound to any local port (0 means OS chooses)
+        let udp_socket = UdpSocket::bind("0.0.0.0:0")
+            .expect("Failed to bind local UDP socket");
+
+        Detection { reader, udp_socket }
+    }
+    // ... detect() and get_largest() methods ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>This <code>new</code> function handles the one-time setup: opening the specified serial port with the correct settings and creating the UDP socket that will be used later to send out annotated images.</p>
+<p><strong>Finding the Largest Target (<code>get_largest</code>)</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified from src/lib/object_detection.rs
+use serde_json::Value; // Represents parsed JSON data
+
+impl Detection {
+    // boxes: List of detected objects from JSON [x, y, w, h, conf, cls]
+    // target: List of class IDs we care about (e.g., [5])
+    fn get_largest(&amp;self, boxes: &amp;[Value], target: &amp;[i32]) -&gt; Vec&lt;i32&gt; {
+        let mut largest_area = 0;
+        let mut largest_bb = Vec::new(); // Store the best [x,y,w,h,conf,cls]
+
+        for b in boxes {
+            if let Some(arr) = b.as_array() { // Check if it's a list
+                if arr.len() &lt; 6 { continue; } // Need at least 6 values
+
+                // Extract values (simplified error handling)
+                let w = arr[2].as_i64().unwrap_or(0) as i32;
+                let h = arr[3].as_i64().unwrap_or(0) as i32;
+                let cls = arr[5].as_i64().unwrap_or(0) as i32;
+
+                // Is this class one of our targets?
+                if target.contains(&amp;cls) {
+                    let area = w * h;
+                    // Is this area the biggest one we've seen so far?
+                    if area &gt; largest_area {
+                        largest_area = area;
+                        // Store all details of this new largest box
+                        largest_bb = arr.iter()
+                                       .map(|v| v.as_i64().unwrap_or(0) as i32)
+                                       .collect();
+                    }
+                }
+            }
+        }
+        largest_bb // Return the details of the largest target found (or empty)
+    }
+    // ... new() and detect() methods ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>This helper function iterates through the detected boxes, checks if their class ID is in our desired <code>target</code> list, calculates the area, and returns the full details of the matching box with the largest area.</p>
+<p><strong>The Main <code>detect</code> Method (Simplified Flow)</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified flow within src/lib/object_detection.rs detect() method
+pub fn detect(&amp;mut self, target: Vec&lt;i32&gt;) -&gt; Vec&lt;i32&gt; {
+    // 1. Read a line from serial
+    let mut line = String::new();
+    if self.reader.read_line(&amp;mut line).is_err() { return vec![]; }
+
+    // 2. Parse JSON
+    let json_val: Value = match serde_json::from_str(line.trim()) {
+        Ok(val) =&gt; val,
+        Err(_) =&gt; return vec![], // Parsing failed
+    };
+
+    // 3. Check type and extract data (simplified)
+    if json_val["type"].as_i64() != Some(1) { return vec![]; }
+    let boxes = json_val["data"]["boxes"].as_array().unwrap_or_default();
+    let image_b64 = json_val["data"]["image"].as_str().unwrap_or("");
+
+    // 4. Decode and Load Image (simplified)
+    let image_bytes = match base64::decode(image_b64) {/* ... */}
+    let dyn_img = match image::load_from_memory(&amp;image_bytes) {/* ... */}
+
+    // 5. Find Largest Target
+    let arr = self.get_largest(boxes, &amp;target);
+    if arr.is_empty() {
+        // No target found - send raw image via UDP (optional) &amp; return []
+        // ... (code to send dyn_img via UDP) ...
+        return vec![];
+    }
+
+    // Target found! Extract details.
+    let x = arr[0]; let y = arr[1]; let w = arr[2]; let h = arr[3];
+    let cx = x + w / 2; let cy = y + h / 2;
+
+    // 6. Annotate Image (simplified)
+    let mut rgba_img = dyn_img.to_rgba8();
+    // ... draw_hollow_rect_mut(&amp;mut rgba_img, ...) ...
+    // ... draw_filled_circle_mut(&amp;mut rgba_img, (cx, cy), ...) ...
+    // ... draw_text_mut(&amp;mut rgba_img, ...) ...
+
+    // 7. Encode and Send Annotated Image via UDP (simplified)
+    let mut img_buf = Vec::new();
+    // ... encode rgba_img to PNG into img_buf ...
+    let udp_dest = "192.168.8.194:54321"; // Destination address
+    self.udp_socket.send_to(&amp;img_buf, udp_dest).ok(); // Send UDP packet
+
+    // 8. Return Center Coordinates
+    vec![cx, cy]
+}
+<span class="boring">}</span></code></pre></pre>
+<p>This shows the main steps within the <code>detect</code> function: reading, parsing, finding the target using <code>get_largest</code>, annotating the image if found, sending the (potentially annotated) image via UDP, and finally returning the center coordinates <code>[cx, cy]</code> or an empty vector.</p>
+<h2 id="conclusion-3"><a class="header" href="#conclusion-3">Conclusion</a></h2>
+<p>Fantastic! You've now learned how the <code>SanoBlimpSoftware</code> gets its "vision" using the <strong><code>Detection</code></strong> module.</p>
+<ul>
+<li>It receives object detection results (bounding boxes, class IDs) and camera images via <strong>serial</strong> communication, formatted as <strong>JSON</strong>.</li>
+<li>It <strong>parses</strong> this JSON data to understand what the camera system detected.</li>
+<li>It can identify specific <strong>target objects</strong> based on their class ID.</li>
+<li>It finds the <strong>largest</strong> relevant target object, assuming it's the most important one.</li>
+<li>It <strong>annotates</strong> the camera image by drawing boxes and labels for visualization.</li>
+<li>It <strong>streams</strong> the annotated image over the network using <strong>UDP</strong>.</li>
+<li>The <code>detect()</code> method provides the <strong>center coordinates (<code>cx</code>, <code>cy</code>)</strong> of the primary target, which is crucial information for autonomous navigation.</li>
+</ul>
+<p>We now have the blimp's controls (<a href="01_blimp_control___blimp__trait____flappy__implementation_.html">Chapter 1</a>), its muscle control (<a href="02_hardware_actuation___pcaactuator__.html">Chapter 2</a>), its settings (<a href="03_configuration___config__.html">Chapter 3</a>), and its vision (<a href="04_object_detection___detection__.html">Chapter 4</a>).</p>
+<p>What other information might the blimp need to fly effectively, especially on its own? It probably needs more than just camera vision. Think about sensors like height sensors (altimeters) or orientation sensors (IMUs).</p>
+<p>In the next chapter, we'll conceptually discuss how sensor inputs might be integrated to give the blimp a better understanding of its own state in the world. Let's move on to <a href="05_sensor_input_state__conceptual_.html">Chapter 5: Sensor Input/State (Conceptual)</a>!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="chapter-5-sensor-inputstate-conceptual"><a class="header" href="#chapter-5-sensor-inputstate-conceptual">Chapter 5: Sensor Input/State (Conceptual)</a></h1>
+<p>Welcome back! In <a href="04_object_detection___detection__.html">Chapter 4: Object Detection (<code>Detection</code>)</a>, we gave our blimp "eyes" to see the world around it, allowing it to find specific objects like markers.</p>
+<p>But just seeing isn't enough for stable flight. Imagine trying to walk with your eyes open, but completely losing your sense of balance or whether you're going uphill or downhill. You'd stumble and fall! Our blimp needs a sense of its own <strong>state</strong> – its orientation (which way is up?) and its altitude (how high is it?).</p>
+<p>This chapter explores the concept of <strong>Sensor Input/State</strong>. Unlike previous chapters focusing on specific code structures like <code>Flappy</code> or <code>PCAActuator</code>, this is more about <em>how the blimp perceives itself</em> using various sensors. We'll look at examples using common sensors: an IMU for balance and a pressure sensor for height. This self-awareness is absolutely vital for the blimp to fly smoothly and navigate autonomously using the logic in <a href="06_autonomous_control___autonomous__.html">Chapter 6: Autonomous Control (<code>Autonomous</code>)</a>.</p>
+<p><strong>Our Use Case:</strong> Imagine the blimp needs to fly autonomously towards the marker it detected in Chapter 4, but it must stay perfectly level and maintain a constant height of 2 meters above the ground while doing so. It needs sensors to constantly check: "Am I tilted?" and "Am I at the right height?".</p>
+<h2 id="key-concepts-4"><a class="header" href="#key-concepts-4">Key Concepts</a></h2>
+<p>Let's break down how the blimp achieves this self-awareness.</p>
+<h3 id="1-self-awareness-the-blimps-inner-senses"><a class="header" href="#1-self-awareness-the-blimps-inner-senses">1. Self-Awareness: The Blimp's Inner Senses</a></h3>
+<p>Humans have an inner ear for balance and a sense of our body's position. Our blimp needs similar "inner senses" provided by electronic sensors. This information tells the control system (especially the autonomous part) about the blimp's current condition, allowing it to make corrections.</p>
+<h3 id="2-orientation-the-inner-ear-the-imu-bno055"><a class="header" href="#2-orientation-the-inner-ear-the-imu-bno055">2. Orientation (The Inner Ear): The IMU (BNO055)</a></h3>
+<ul>
+<li><strong>What is it?</strong> An <strong>IMU (Inertial Measurement Unit)</strong> is a small chip packed with sensors (like accelerometers and gyroscopes) that can figure out its orientation in 3D space. Think of it as the blimp's electronic inner ear, responsible for its sense of balance. The BNO055 is a popular IMU chip that even does some clever calculations onboard (sensor fusion) to give a stable orientation reading.</li>
+<li><strong>What does it measure?</strong> It tells us how the blimp is tilted:
+<ul>
+<li><strong>Roll:</strong> Tilting side to side (like an airplane banking).</li>
+<li><strong>Pitch:</strong> Tilting nose up or nose down.</li>
+<li><strong>Yaw:</strong> Turning left or right.</li>
+</ul>
+</li>
+<li><strong>How is the data represented?</strong> Orientation can be represented as:
+<ul>
+<li><strong>Euler Angles:</strong> Three angles (roll, pitch, yaw), often in degrees. Simple to understand, but can have mathematical quirks (gimbal lock).</li>
+<li><strong>Quaternions:</strong> A more complex, 4-number representation. Mathematically more robust and often preferred for calculations, avoiding gimbal lock.</li>
+</ul>
+</li>
+<li><strong>Why is it important?</strong> The autonomous controller needs to know if the blimp is level or tilted to make corrections. If the blimp is supposed to fly straight but the IMU says it's rolling to the right, the controller knows it needs to apply counter-thrust or adjust control surfaces.</li>
+</ul>
+<h3 id="3-altitude-the-sense-of-height-the-pressure-sensor-bme280"><a class="header" href="#3-altitude-the-sense-of-height-the-pressure-sensor-bme280">3. Altitude (The Sense of Height): The Pressure Sensor (BME280)</a></h3>
+<ul>
+<li><strong>What is it?</strong> A <strong>barometric pressure sensor</strong> measures air pressure. Since air pressure generally decreases as you go higher, we can use this measurement to estimate altitude. The BME280 is a common sensor that measures pressure, temperature, and humidity.</li>
+<li><strong>How does it work?</strong> It detects the tiny changes in air pressure. By comparing the current pressure to a known reference pressure (like the pressure at ground level), we can calculate the approximate height difference.</li>
+<li><strong>Why is it important?</strong> For tasks like maintaining a specific flying height, hovering above a target, or landing gently, the blimp needs to know its altitude. The pressure sensor provides this crucial piece of information.</li>
+</ul>
+<h3 id="4-data-for-control"><a class="header" href="#4-data-for-control">4. Data for Control</a></h3>
+<p>The raw data from these sensors (like quaternion values from the IMU or pressure readings in Pascals from the BME280) isn't usually used <em>directly</em> to set motor speeds. It needs to be processed and interpreted, often by the <a href="06_autonomous_control___autonomous__.html">Autonomous Control (<code>Autonomous</code>)</a> logic.</p>
+<ul>
+<li>The <strong>IMU data</strong> helps calculate orientation errors (e.g., "I'm tilted 5 degrees left, but I should be level").</li>
+<li>The <strong>pressure data</strong> is converted into an altitude reading, which is then compared to the desired altitude to find the height error (e.g., "I'm at 1.8 meters, but I should be at 2.0 meters").</li>
+</ul>
+<p>These calculated <em>errors</em> are what the autonomous controller uses to decide how to adjust the motors and servos via the <a href="01_blimp_control___blimp__trait____flappy__implementation_.html">Blimp Control (<code>Blimp</code> Trait / <code>Flappy</code> Implementation)</a> and <a href="02_hardware_actuation___pcaactuator__.html">Hardware Actuation (<code>PCAActuator</code>)</a>.</p>
+<h2 id="how-we-use-sensor-data-conceptually"><a class="header" href="#how-we-use-sensor-data-conceptually">How We Use Sensor Data (Conceptually)</a></h2>
+<p>Integrating sensor data usually involves these steps within the main program loop:</p>
+<ol>
+<li><strong>Initialize Sensors:</strong> When the software starts, initialize the connection to each sensor (often over an I2C bus). This might involve setting the sensor's mode or performing initial calibration.</li>
+<li><strong>Read Sensors Periodically:</strong> Inside the main loop, regularly ask each sensor for its latest reading.</li>
+<li><strong>Process Data:</strong> Convert raw sensor readings into useful information (e.g., pressure to altitude, quaternion to understandable angles if needed).</li>
+<li><strong>Feed to Controller:</strong> Pass this state information (orientation, altitude) to the <code>Autonomous</code> controller.</li>
+<li><strong>Calculate Corrections:</strong> The <code>Autonomous</code> controller uses this state information, along with target information (like desired heading or altitude), to calculate the necessary adjustments.</li>
+<li><strong>Actuate:</strong> The calculated adjustments are sent to the motors/servos.</li>
+</ol>
+<p>Here's how it might look conceptually in the main loop:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// --- Conceptual Main Loop ---
+loop {
+    // --- Read Sensors ---
+    // Get orientation data (e.g., as a Quaternion) from the IMU
+    let current_orientation = read_imu_orientation(); // Hypothetical function
+
+    // Get pressure data from the pressure sensor
+    let current_pressure = read_pressure_sensor(); // Hypothetical function
+    // Convert pressure to altitude relative to ground
+    let current_altitude = pressure_to_altitude(current_pressure, ground_pressure);
+
+    // --- Object Detection (from Chapter 4) ---
+    let target_coords = detection.detect(target_classes);
+
+    // --- Control Logic ---
+    if blimp.is_manual() {
+        // Manual control based on joystick
+        blimp.update(); // Read joystick
+        blimp.manual(); // Mix and Actuate
+    } else {
+        // Autonomous Control
+        // Combine sensor state and detection results
+        let autonomous_input = auto.calculate_commands(
+            current_orientation,
+            current_altitude,
+            target_coords,
+            desired_altitude, // e.g., 2.0 meters
+            // ... other goal parameters ...
+        ); // Hypothetical function in Autonomous controller
+
+        // Send commands to blimp
+        blimp.update_input(autonomous_input);
+        let actuations = blimp.mix();
+        blimp.actuator.actuate(actuations);
+    }
+
+    // --- Delay ---
+    // sleep(Duration::from_millis(20)); // Loop delay
+}
+<span class="boring">}</span></code></pre></pre>
+<p>This pseudo-code shows the flow: read sensors, get detection results, and then, in autonomous mode, feed <em>all</em> this information into the <code>Autonomous</code> controller (<code>auto.calculate_commands(...)</code>) to figure out the next move.</p>
+<h2 id="under-the-hood-talking-to-sensors"><a class="header" href="#under-the-hood-talking-to-sensors">Under the Hood: Talking to Sensors</a></h2>
+<p>How does the code <em>actually</em> get data from a BNO055 or BME280 chip? These sensors typically communicate using a protocol called <strong>I2C</strong> (Inter-Integrated Circuit). This is a simple two-wire bus that allows the main computer (like the Raspberry Pi) to talk to multiple peripheral devices (like our sensors).</p>
+<p>Luckily, we don't usually need to handle the low-level I2C signal details ourselves. We use <strong>libraries</strong> (often called "drivers" or "HAL crates" in Rust) that provide a much friendlier interface.</p>
+<p>Let's look at simplified examples based on the code provided earlier, showing how these libraries make it easier.</p>
+<h3 id="example-interfacing-with-bme280-pressurealtitude"><a class="header" href="#example-interfacing-with-bme280-pressurealtitude">Example: Interfacing with BME280 (Pressure/Altitude)</a></h3>
+<p>The <code>bme280-rs</code> library helps us talk to the BME280 sensor.</p>
+<ol>
+<li>
+<p><strong>Initialization:</strong> We need to tell the library which I2C bus the sensor is on and its address.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified from example/bme.rs
+use bme280::i2c::BME280;
+use linux_embedded_hal::{Delay, I2cdev}; // For I2C and delay
+
+// Tell it which I2C bus (e.g., /dev/i2c-1 on Raspberry Pi)
+let i2c_bus = I2cdev::new("/dev/i2c-1").unwrap();
+// Create a delay provider (some sensors need short pauses)
+let mut delay = Delay;
+
+// Create the sensor object using its default I2C address
+let mut bme280 = BME280::new_primary(i2c_bus);
+
+// Initialize the sensor hardware
+bme280.init(&amp;mut delay).unwrap();
+<span class="boring">}</span></code></pre></pre>
+<p>This code sets up the communication channel and performs any necessary startup configuration on the sensor chip itself.</p>
+</li>
+<li>
+<p><strong>Reading Data:</strong> Once initialized, reading the sensor is straightforward.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified from example/bme.rs
+// Inside a loop...
+// Ask the sensor for the latest measurements
+let measurements = bme280.measure(&amp;mut delay).unwrap();
+
+// Extract the pressure reading
+let pressure_pascals = measurements.pressure;
+
+// (You would then convert pressure_pascals to altitude)
+println!("Pressure = {} pascals", pressure_pascals);
+<span class="boring">}</span></code></pre></pre>
+<p>Calling <code>bme280.measure()</code> triggers the sensor to take readings and return them in a convenient <code>measurements</code> struct.</p>
+</li>
+</ol>
+<h3 id="example-interfacing-with-bno055-imuorientation"><a class="header" href="#example-interfacing-with-bno055-imuorientation">Example: Interfacing with BNO055 (IMU/Orientation)</a></h3>
+<p>Similarly, the <code>bno055</code> crate simplifies interaction with the BNO055 IMU.</p>
+<ol>
+<li>
+<p><strong>Initialization:</strong> Set up I2C communication and configure the IMU's operating mode. The <code>NDOF</code> mode is often best, as it uses all onboard sensors for fused, stable orientation data.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified from example/bno055.rs
+use bno055::{BNO055OperationMode, Bno055};
+use linux_embedded_hal::{Delay, I2cdev};
+
+let dev = I2cdev::new("/dev/i2c-1").unwrap();
+let mut delay = Delay {};
+
+// Create the IMU object
+let mut imu = Bno055::new(dev);
+imu.init(&amp;mut delay).expect("IMU init failed");
+
+// Set the operating mode (NDOF is fusion mode)
+imu.set_mode(BNO055OperationMode::NDOF, &amp;mut delay)
+    .expect("IMU mode set failed");
+
+// (Optional but recommended: Wait for calibration)
+println!("Calibrating IMU...");
+// while !imu.is_fully_calibrated().unwrap() { /* wait */ }
+println!("IMU calibrated!");
+<span class="boring">}</span></code></pre></pre>
+<p>This gets the IMU ready and sets it to the desired mode. Calibration is often needed for best accuracy.</p>
+</li>
+<li>
+<p><strong>Reading Data:</strong> Reading orientation is then a simple function call. Quaternions are generally recommended for calculations.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified from example/bno055.rs
+use mint::Quaternion; // A standard way to represent quaternions
+
+// Inside a loop...
+let mut orientation_quat: Quaternion&lt;f32&gt;;
+
+match imu.quaternion() {
+    Ok(quat_reading) =&gt; {
+        orientation_quat = quat_reading;
+        println!("IMU Quaternion: {:?}", orientation_quat);
+        // Use orientation_quat in the Autonomous controller
+    }
+    Err(e) =&gt; {
+        eprintln!("Error reading IMU: {:?}", e);
+        // Handle error (e.g., use last known value)
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Calling <code>imu.quaternion()</code> fetches the latest orientation reading directly from the sensor's fusion algorithm.</p>
+</li>
+</ol>
+<p>These examples show that while the underlying communication (I2C) and sensor details can be complex, well-designed libraries provide a much simpler way to get the crucial state information we need.</p>
+<pre class="mermaid">flowchart TD
+    A[Main Loop] --&gt; B{Read IMU?};
+    B -- Yes --&gt; C[IMU Library (e.g., `bno055`)];
+    C --&gt; D[I2C Communication];
+    D --&gt; E[BNO055 Chip];
+    E --&gt; D;
+    D --&gt; C;
+    C --&gt; F[Get Orientation (Quaternion)];
+    F --&gt; A;
+
+    A --&gt; G{Read Pressure Sensor?};
+    G -- Yes --&gt; H[Pressure Sensor Library (e.g., `bme280-rs`)];
+    H --&gt; I[I2C Communication];
+    I --&gt; J[BME280 Chip];
+    J --&gt; I;
+    I --&gt; H;
+    H --&gt; K[Get Pressure (Pascals)];
+    K --&gt; L[Convert Pressure to Altitude];
+    L --&gt; A;
+
+    A --&gt; M{Use Data in Autonomous?};
+    M -- Yes --&gt; N[Autonomous Controller];
+    F --&gt; N;
+    L --&gt; N;
+    N --&gt; O[Calculate Corrections];
+    O --&gt; P[Blimp Control Logic];
+    P --&gt; Q[Hardware Actuation];
+    Q --&gt; R[Motors/Servos Move];
+    R --&gt; A;
+</pre>
+<p>This diagram shows the conceptual flow: the main loop uses libraries to read sensors via I2C, processes the data (like converting pressure to altitude), and feeds the resulting state (orientation, altitude) to the autonomous controller, which then computes corrections to control the blimp.</p>
+<h2 id="conclusion-4"><a class="header" href="#conclusion-4">Conclusion</a></h2>
+<p>We've explored the crucial concept of <strong>Sensor Input/State</strong> – how the blimp perceives its own condition in the world.</p>
+<ul>
+<li>The blimp needs <strong>self-awareness</strong> (orientation and altitude) for stable and autonomous flight.</li>
+<li>An <strong>IMU</strong> (like the BNO055) acts as the "inner ear," providing <strong>orientation</strong> data (roll, pitch, yaw), often as robust quaternions.</li>
+<li>A <strong>pressure sensor</strong> (like the BME280) acts as a "sense of height," allowing <strong>altitude</strong> estimation.</li>
+<li>This sensor data is read periodically using hardware interface libraries (often abstracting <strong>I2C</strong> communication).</li>
+<li>The processed state information (current orientation, current altitude) is essential input for the <a href="06_autonomous_control___autonomous__.html">Autonomous Control (<code>Autonomous</code>)</a> system.</li>
+</ul>
+<p>Now that we understand how the blimp knows <em>where it is</em> and <em>how it's oriented</em>, how does it use this information, along with data from its "eyes" (<a href="04_object_detection___detection__.html">Chapter 4: Object Detection (<code>Detection</code>)</a>), to make intelligent decisions about where to go next?</p>
+<p>In the next chapter, we'll finally dive into the brain of the autonomous flight system! Let's move on to <a href="06_autonomous_control___autonomous__.html">Chapter 6: Autonomous Control (<code>Autonomous</code>)</a>.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="chapter-6-autonomous-control-autonomous"><a class="header" href="#chapter-6-autonomous-control-autonomous">Chapter 6: Autonomous Control (<code>Autonomous</code>)</a></h1>
+<p>Welcome! In <a href="05_sensor_input_state__conceptual_.html">Chapter 5: Sensor Input/State (Conceptual)</a>, we explored how the blimp uses sensors like IMUs and pressure sensors to understand its own orientation and altitude. Combined with the "eyes" from <a href="04_object_detection___detection__.html">Chapter 4: Object Detection (<code>Detection</code>)</a> that let it see targets, the blimp now has a good sense of both itself and its surroundings.</p>
+<p>But how does it <em>use</em> all this information to fly on its own? How does it decide to turn left when the target is off to the left, or fly forward to get closer? We need an <strong>autopilot</strong>!</p>
+<p>This chapter introduces the <strong><code>Autonomous</code></strong> module. Think of it as the <strong>pilot's brain</strong> when the blimp is flying itself. It takes information about the target's position (from <code>Detection</code>) and potentially the blimp's own state (like altitude, though the current implementation focuses mainly on visual target tracking), and calculates the precise steering and throttle commands needed to reach the goal.</p>
+<p><strong>Our Use Case:</strong> We want the blimp to automatically find a marker (class ID 5, detected by <code>Detection</code>) and fly towards it, trying to keep the marker centered in its camera view. The <code>Autonomous</code> module will continuously calculate how much to turn, fly forward/backward, and move up/down to achieve this.</p>
+<h2 id="key-concepts-5"><a class="header" href="#key-concepts-5">Key Concepts</a></h2>
+<p>Let's break down how this software autopilot works:</p>
+<h3 id="1-the-goal-stay-on-target"><a class="header" href="#1-the-goal-stay-on-target">1. The Goal: Stay on Target</a></h3>
+<p>The main job of the <code>Autonomous</code> module in our current setup is to keep a visually detected object centered in the camera's view. It might also aim to maintain a specific altitude, although we'll focus on the visual centering first.</p>
+<h3 id="2-measuring-the-error-how-far-are-we-off"><a class="header" href="#2-measuring-the-error-how-far-are-we-off">2. Measuring the "Error": How Far Are We Off?</a></h3>
+<p>The first step is figuring out how far the blimp is from its desired state. This difference is called the <strong>error</strong>.</p>
+<ul>
+<li><strong>Position Error:</strong> The <code>Detection</code> module gives us the center coordinates (<code>cx</code>, <code>cy</code>) of the target object in the camera image (e.g., <code>cx=400</code>, <code>cy=200</code>). Our goal might be to have the target perfectly centered (e.g., at <code>cx=300</code>, <code>cy=250</code> if the camera resolution is 600x500). The <code>Autonomous</code> module calculates the difference:
+<ul>
+<li>Horizontal Error (<code>y_err</code> in the code): How far left/right the target is from the center (<code>400 - 300 = 100 pixels to the right</code>).</li>
+<li>Vertical Error (<code>z_err</code> in the code): How far up/down the target is from the center (<code>200 - 250 = -50 pixels, meaning 50 pixels too high</code>).</li>
+</ul>
+</li>
+<li><strong>Altitude Error (Conceptual):</strong> If we also wanted to maintain a height of 2 meters, and the sensor from Chapter 5 reported we are at 1.8 meters, the altitude error would be <code>1.8 - 2.0 = -0.2 meters</code> (too low).</li>
+</ul>
+<p>The <code>Autonomous</code> module needs these error values to know what corrections are needed.</p>
+<h3 id="3-the-pid-controller-smart-corrections"><a class="header" href="#3-the-pid-controller-smart-corrections">3. The PID Controller: Smart Corrections</a></h3>
+<p>Okay, we know we're 100 pixels off to the right. How much should we tell the blimp to turn left? Just turning hard left might overshoot the target. Not turning enough will be too slow. We need a smart way to decide the <em>amount</em> of correction.</p>
+<p>This is where a <strong>PID controller</strong> comes in. PID stands for Proportional-Integral-Derivative. It's a widely used control method that calculates an output command based on the error, trying to minimize it efficiently and stably. Think of it like sophisticated cruise control for position:</p>
+<ul>
+<li><strong>P (Proportional):</strong> This part reacts based on the <em>current</em> error. The bigger the error, the bigger the correction. If the target is far to the right (<code>y_err</code> is large), the Proportional term says "turn left significantly". If it's only slightly off, it says "turn left gently". It's like pressing the gas pedal harder the further you are below your target speed.</li>
+<li><strong>I (Integral):</strong> This part looks at the <em>sum of past errors</em>. If, despite corrections, the blimp is <em>consistently</em> a little bit off to the right over time, the Integral term will gradually increase the "turn left" command to eliminate this steady drift. (Note: The <code>ki</code> gain for this is present in our <code>Autonomous</code> struct but set to 0.0 in <code>main.rs</code>, so the Integral part isn't active in the current configuration, simplifying things.)</li>
+<li><strong>D (Derivative):</strong> This part looks at how <em>fast</em> the error is <em>changing</em>. If the target is rapidly moving towards the center (error is decreasing quickly), the Derivative term might reduce the "turn left" command slightly to prevent overshooting. It acts like a damper, smoothing out the corrections and preventing jerky oscillations. It's like easing off the gas slightly as you approach your target speed quickly.</li>
+</ul>
+<p>By combining these three components (or just P and D in our case), the PID controller calculates a balanced output command.</p>
+<h3 id="4-output-movement-commands"><a class="header" href="#4-output-movement-commands">4. Output: Movement Commands</a></h3>
+<p>Based on the calculated errors (<code>y_err</code> for horizontal, <code>z_err</code> for vertical, and a term related to forward motion <code>x_err</code>), the PID controller in <code>Autonomous</code> computes three output values (<code>pid_x</code>, <code>pid_y</code>, <code>pid_z</code>). These represent the desired adjustments:</p>
+<ul>
+<li><code>pid_x</code>: Controls <strong>forward/backward</strong> movement (likely based on a constant error term, telling the blimp to generally move forward towards the target).</li>
+<li><code>pid_y</code>: Controls <strong>turning left/right</strong> (based on the horizontal error <code>y_err</code>).</li>
+<li><code>pid_z</code>: Controls <strong>moving up/down</strong> (based on the vertical error <code>z_err</code>).</li>
+</ul>
+<p>These three values are typically numbers between -1.0 and 1.0, representing the intensity and direction of the desired movement.</p>
+<h2 id="how-we-use-autonomous"><a class="header" href="#how-we-use-autonomous">How We Use <code>Autonomous</code></a></h2>
+<p>Let's see how the <code>main.rs</code> program uses the <code>Autonomous</code> controller.</p>
+<ol>
+<li>
+<p><strong>Create the Controller:</strong>
+First, we create an instance of <code>Autonomous</code>, providing the PID gains loaded from our <a href="03_configuration___config__.html">Configuration (<code>Config</code>)</a>. These gains (<code>kp_x</code>, <code>kd_y</code>, etc.) tune how aggressively the P and D terms react.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// From src/main.rs
+use lib::autonomous::Autonomous;
+// ... load conf = read_config(); ...
+
+let mut auto = Autonomous::new(
+    // Pass the PID gains from the loaded config
+    conf.controller.kp_x, // Proportional gain for X (Forward/Backward)
+    conf.controller.kp_y, // Proportional gain for Y (Turning)
+    conf.controller.kp_z, // Proportional gain for Z (Up/Down)
+    conf.controller.kd_x, // Derivative gain for X
+    conf.controller.kd_y, // Derivative gain for Y
+    conf.controller.kd_z, // Derivative gain for Z
+    0.0,                  // Integral gain (set to 0)
+);
+<span class="boring">}</span></code></pre></pre>
+<p>This creates the <code>auto</code> object, ready to calculate commands using the tuning parameters from <code>config.toml</code>.</p>
+</li>
+<li>
+<p><strong>Using it in the Loop:</strong>
+Inside the main loop, when the blimp is <em>not</em> in manual mode:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified loop from src/main.rs
+loop {
+    blimp.update(); // Check joystick (for mode switching)
+    // Get detection results: [cx, cy] or []
+    let det = detection.detect(vec![/* target classes */]);
+
+    if blimp.is_manual() {
+        // Manual Control
+        blimp.manual();
+    } else {
+        // Autonomous Mode
+        if det.len() &gt; 1 { // Check if a target was detected
+            let cx = det[0] as f32; // Target horizontal center
+            let cy = det[1] as f32; // Target vertical center
+
+            // Calculate desired movement using PID based on target pos
+            // Input: x (fixed -1.0), y (cx), z (cy)
+            // Output: (forward, turn, up/down) commands [-1.0, 1.0]
+            let auto_input = auto.position(-1.0, cx, cy);
+            println!("Autonomous commands: {:?}", auto_input); // e.g., (0.5, -0.2, 0.1)
+
+            // Send these commands to the blimp controller
+            blimp.update_input(auto_input);
+
+            // Tell the blimp to mix and actuate based on these commands
+            let actuations = blimp.mix();
+            blimp.actuator.actuate(actuations);
+
+        } else {
+            // No target detected - maybe stop or search
+            println!("Searching for target...");
+            blimp.update_input((0.0, 0.0, 0.0)); // Command: Stop
+            let acc = blimp.mix();
+            blimp.actuator.actuate(acc); // Apply the stop command
+            // (Could add searching movements here)
+        }
+    }
+    // (Small delay usually happens here)
+}
+<span class="boring">}</span></code></pre></pre>
+<ul>
+<li>It calls <code>detection.detect()</code> to get the target's center coordinates (<code>cx</code>, <code>cy</code>).</li>
+<li>If a target is found (<code>det.len() &gt; 1</code>), it calls <code>auto.position(-1.0, cx, cy)</code>.
+<ul>
+<li>The <code>-1.0</code> seems to be a fixed input related to the forward motion calculation.</li>
+<li><code>cx</code> and <code>cy</code> provide the current position error inputs.</li>
+</ul>
+</li>
+<li><code>auto.position</code> performs the PID calculation and returns the desired movement commands <code>(pid_x, pid_y, pid_z)</code> as <code>auto_input</code>. For example, <code>(0.5, -0.2, 0.1)</code> might mean "fly forward moderately", "turn left slightly", and "move up slightly".</li>
+<li>These commands are fed into the <code>Flappy</code> controller using <code>blimp.update_input()</code>.</li>
+<li><code>blimp.mix()</code> translates these abstract commands into specific motor/servo settings (<code>Actuations</code>).</li>
+<li><code>blimp.actuator.actuate()</code> sends the signals to the hardware, making the blimp move.</li>
+<li>If no target is detected, it commands the blimp to stop (<code>update_input((0.0, 0.0, 0.0))</code>).</li>
+</ul>
+</li>
+</ol>
+<p>This loop continuously uses the <code>Autonomous</code> brain to steer the blimp towards the detected target.</p>
+<h2 id="under-the-hood-how-autonomousposition-works"><a class="header" href="#under-the-hood-how-autonomousposition-works">Under the Hood: How <code>Autonomous::position</code> Works</a></h2>
+<p>Let's trace the steps inside the <code>auto.position(x, y, z)</code> function when it's called with the target coordinates (<code>x=-1.0</code>, <code>y=cx</code>, <code>z=cy</code>):</p>
+<ol>
+<li><strong>Calculate Errors:</strong>
+<ul>
+<li>It calculates the difference between the current target position (<code>y=cx</code>, <code>z=cy</code>) and the desired setpoint (e.g., center of the screen, hardcoded as <code>300</code> for horizontal and <code>250</code> for vertical in the code).</li>
+<li><code>y_err = map(cx - 300, ...)</code>: Horizontal error, mapped to <code>[-1.0, 1.0]</code>.</li>
+<li><code>z_err = map(cy - 250, ...)</code>: Vertical error, mapped to <code>[-1.0, 1.0]</code>.</li>
+<li><code>x_err = 0.0 - x = 0.0 - (-1.0) = 1.0</code>: Error related to forward motion (constant in this setup).</li>
+</ul>
+</li>
+<li><strong>Calculate Time Delta (<code>dt</code>):</strong> It measures the time elapsed since the <code>position</code> function was last called. This is needed for the Derivative calculation.</li>
+<li><strong>Calculate Derivatives:</strong> It calculates how fast each error is changing:
+<ul>
+<li><code>dx = (x_err - prev_x) / dt</code> (This will be 0 after the first call, since <code>x_err</code> is constant).</li>
+<li><code>dy = (y_err - prev_y) / dt</code>.</li>
+<li><code>dz = (z_err - prev_z) / dt</code>.</li>
+</ul>
+</li>
+<li><strong>Calculate PID Output:</strong> It applies the PID formula (using only P and D terms here) for each axis:
+<ul>
+<li><code>pid_x = (kp_x * x_err) + (kd_x * dx)</code> (Controls Forward/Backward)</li>
+<li><code>pid_y = (kp_y * y_err) + (kd_y * dy)</code> (Controls Turning)</li>
+<li><code>pid_z = (kp_z * z_err) + (kd_z * dz)</code> (Controls Up/Down)</li>
+</ul>
+</li>
+<li><strong>Update State:</strong> It stores the current errors (<code>x_err</code>, <code>y_err</code>, <code>z_err</code>) and the current time (<code>now</code>) to be used as the "previous" values in the next calculation.</li>
+<li><strong>Clamp Output:</strong> It ensures each output command (<code>pid_x</code>, <code>pid_y</code>, <code>pid_z</code>) stays within the valid range of <code>[-1.0, 1.0]</code>.</li>
+<li><strong>Return Commands:</strong> It returns the calculated <code>(pid_x, pid_y, pid_z)</code> tuple.</li>
+</ol>
+<p>Here’s a simplified diagram of this flow:</p>
+<pre class="mermaid">sequenceDiagram
+    participant MainLoop as Main Loop
+    participant AutoPos as Autonomous.position(x, y, z)
+    participant PIDCalc as PID Calculator
+
+    MainLoop-&gt;&gt;AutoPos: Call position(-1.0, cx, cy)
+    AutoPos-&gt;&gt;PIDCalc: Calculate Errors (x_err=1.0, y_err=map(cx-300), z_err=map(cy-250))
+    AutoPos-&gt;&gt;PIDCalc: Calculate Time Delta (dt)
+    AutoPos-&gt;&gt;PIDCalc: Calculate Derivatives (dx, dy, dz)
+    PIDCalc-&gt;&gt;AutoPos: Return dx, dy, dz
+    AutoPos-&gt;&gt;PIDCalc: Apply PID: (kp*err + kd*deriv) for x, y, z
+    PIDCalc-&gt;&gt;AutoPos: Return pid_x, pid_y, pid_z
+    Note over AutoPos: Update prev_err, prev_time
+    Note over AutoPos: Clamp outputs to [-1, 1]
+    AutoPos--&gt;&gt;MainLoop: Return (pid_x, pid_y, pid_z) commands
+</pre>
+<h2 id="code-dive-inside-srclibautonomousrs"><a class="header" href="#code-dive-inside-srclibautonomousrs">Code Dive: Inside <code>src/lib/autonomous.rs</code></a></h2>
+<p>Let's look at the key parts of the <code>Autonomous</code> implementation.</p>
+<p><strong>The <code>Autonomous</code> Struct:</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// From src/lib/autonomous.rs
+use std::time::{Duration, Instant};
+
+#[derive(Debug)]
+pub struct Autonomous {
+    // Previous error values for Derivative calculation
+    prev_x: f32,
+    prev_y: f32,
+    prev_z: f32,
+
+    // Timestamp of the last call to position()
+    prev_detection: Option&lt;Instant&gt;,
+
+    // PID gains (loaded from config)
+    kp_x: f32, // Proportional gain for Forward/Backward
+    kd_x: f32, // Derivative gain for Forward/Backward
+    kp_y: f32, // Proportional gain for Turning
+    kd_y: f32, // Derivative gain for Turning
+    kp_z: f32, // Proportional gain for Up/Down
+    kd_z: f32, // Derivative gain for Up/Down
+    ki: f32,   // Integral gain (unused if 0)
+
+    // Altitude control related (less used in main loop example)
+    ground_altitude: Option&lt;f32&gt;,
+}
+<span class="boring">}</span></code></pre></pre>
+<p>This struct holds the state needed for PID calculations: the previous errors, the time of the last update, and the crucial PID gains (<code>kp_</code>, <code>kd_</code>, <code>ki</code>) that determine the controller's behavior.</p>
+<p><strong>Creating the Controller (<code>new</code>):</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// From src/lib/autonomous.rs
+impl Autonomous {
+    // Creates a new Autonomous controller instance.
+    pub fn new(kp_x: f32, kp_y: f32, kp_z: f32, kd_x: f32, kd_y: f32, kd_z: f32, ki: f32) -&gt; Self {
+        Self {
+            prev_x: 0.0, // Initialize previous errors to 0
+            prev_y: 0.0,
+            prev_z: 0.0,
+            prev_detection: None, // No previous detection time yet
+
+            // Store the gains passed in
+            kp_x, kd_x,
+            kp_y, kd_y,
+            kp_z, kd_z,
+            ki,
+
+            ground_altitude: None,
+        }
+    }
+    // ... other methods ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>The <code>new</code> function simply takes the PID gains (likely from the config file) and initializes the state variables.</p>
+<p><strong>Calculating Position Commands (<code>position</code>):</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified from src/lib/autonomous.rs
+impl Autonomous {
+    // Calculates PID control outputs based on target position (x,y,z)
+    // y = cx (horizontal pixels), z = cy (vertical pixels)
+    // Output: (forward, turn, up/down) commands [-1.0, 1.0]
+    pub fn position(&amp;mut self, x: f32, y: f32, z: f32) -&gt; (f32, f32, f32) {
+        // 1. Calculate Errors relative to setpoint (e.g., 300, 250)
+        //    and map them to the range [-1.0, 1.0]
+        let x_err = 0.0 - x; // Constant 1.0 if x = -1.0
+        let y_err = self.map_value(y - 300.0, -300.0, 300.0, -1.0, 1.0); // Horizontal err
+        let z_err = self.map_value(z - 250.0, 250.0, -250.0, 1.0, -1.0); // Vertical err (note inverted mapping)
+
+        // 2. Calculate Time Delta (dt)
+        let now = Instant::now();
+        let dt = if let Some(prev) = self.prev_detection {
+            now.duration_since(prev).as_secs_f32().max(1e-6) // Avoid div by zero
+        } else {
+            1e-6 // Default dt for the first run
+        };
+
+        // 3. Calculate Derivatives
+        let dx = (x_err - self.prev_x) / dt;
+        let dy = (y_err - self.prev_y) / dt;
+        let dz = (z_err - self.prev_z) / dt;
+
+        // 4. Calculate PID Output (P + D terms only, as ki=0 typically)
+        // Note: kp_x/kd_x affect forward, kp_y/kd_y affect turning, kp_z/kd_z affect up/down
+        let pid_x = (self.kp_x * x_err) + (self.kd_x * dx); // Forward command
+        let pid_y = (self.kp_y * y_err) + (self.kd_y * dy); // Turning command
+        let pid_z = (self.kp_z * z_err) + (self.kd_z * dz); // Up/Down command
+
+        // 5. Update State for next iteration
+        self.prev_x = x_err;
+        self.prev_y = y_err;
+        self.prev_z = z_err;
+        self.prev_detection = Some(now);
+
+        // 6. Clamp Output to [-1.0, 1.0]
+        let px = pid_x.clamp(-1.0, 1.0);
+        let py = pid_y.clamp(-1.0, 1.0);
+        let pz = pid_z.clamp(-1.0, 1.0);
+
+        // 7. Return Commands
+        (px, py, pz) // (forward, turn, up/down)
+    }
+
+    // Helper to map a value from one range to another
+    pub fn map_value(&amp;self, value: f32, from_low: f32, from_high: f32, to_low: f32, to_high: f32) -&gt; f32 {
+        (value - from_low) / (from_high - from_low) * (to_high - to_low) + to_low
+    }
+    // ... altitude methods (set_ground, goal_height) ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>This function implements the core PID logic described earlier. It calculates errors, derivatives, applies the PID formula using the configured gains, and returns clamped output commands ready to be sent to the blimp's control system (<a href="01_blimp_control___blimp__trait____flappy__implementation_.html">Chapter 1: Blimp Control (<code>Blimp</code> Trait / <code>Flappy</code> Implementation)</a>). The <code>map_value</code> helper is used to scale the raw pixel errors into the standard <code>[-1.0, 1.0]</code> range expected by the PID calculations.</p>
+<h2 id="conclusion-5"><a class="header" href="#conclusion-5">Conclusion</a></h2>
+<p>Great job! You've now learned about the <strong><code>Autonomous</code></strong> module, the autopilot brain of the <code>SanoBlimpSoftware</code>.</p>
+<ul>
+<li>It acts as an <strong>autopilot</strong>, calculating movement commands to achieve goals like centering a visual target.</li>
+<li>It relies on measuring the <strong>error</strong> (how far the blimp is from its target state).</li>
+<li>It uses a <strong>PID controller</strong> (Proportional-Integral-Derivative) to smartly calculate corrections based on the error and how it's changing.</li>
+<li>The PID <strong>gains</strong> (<code>kp</code>, <code>ki</code>, <code>kd</code>) are crucial tuning parameters, often set via the <a href="03_configuration___config__.html">Configuration (<code>Config</code>)</a>.</li>
+<li>The <code>position</code> function takes target coordinates (from <a href="04_object_detection___detection__.html">Chapter 4: Object Detection (<code>Detection</code>)</a>) and calculates <strong>forward/backward, turn, and up/down</strong> commands.</li>
+<li>These commands are then fed into the main blimp control system (<a href="01_blimp_control___blimp__trait____flappy__implementation_.html">Chapter 1</a>) and sent to the hardware (<a href="02_hardware_actuation___pcaactuator__.html">Chapter 2: Hardware Actuation (<code>PCAActuator</code>)</a>).</li>
+</ul>
+<p>We've covered almost the entire software pipeline, from control and actuation to configuration, vision, sensors, and autonomous logic. There's one more piece: how do we actually <em>see</em> the annotated video feed that the <code>Detection</code> module creates?</p>
+<p>In the final chapter, we'll look at the system components responsible for processing the camera image and streaming it over the network. Let's move on to <a href="07_image_processing___streaming.html">Chapter 7: Image Processing &amp; Streaming</a>!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="chapter-7-image-processing--streaming"><a class="header" href="#chapter-7-image-processing--streaming">Chapter 7: Image Processing &amp; Streaming</a></h1>
+<p>Welcome back! In <a href="06_autonomous_control___autonomous__.html">Chapter 6: Autonomous Control (<code>Autonomous</code>)</a>, we saw how the blimp uses its "brain" – the <code>Autonomous</code> module with its PID controller – to decide how to fly towards a target based on information from its sensors and vision system. We know the <code>Detection</code> module finds the target's coordinates (<code>cx</code>, <code>cy</code>).</p>
+<p>But wouldn't it be great if we could <em>see</em> what the blimp is seeing while it flies? Can we get a live video feed, maybe even with the detected objects highlighted, so we know what the blimp is focusing on?</p>
+<p>This chapter covers <strong>Image Processing &amp; Streaming</strong>. This capability, mostly happening inside the <a href="04_object_detection___detection__.html">Object Detection (<code>Detection</code>)</a> module, is like setting up a live video call from the blimp back to our control station (our laptop). It takes the raw picture from the camera, draws helpful information on it, and sends it over the network.</p>
+<p><strong>Our Use Case:</strong> We want to watch the blimp fly autonomously from our laptop. We need a live video stream showing the blimp's camera view. Crucially, we want to see boxes drawn around the objects the blimp detects, and maybe a red circle around the specific target it's currently flying towards, just to confirm it's working correctly.</p>
+<h2 id="key-concepts-6"><a class="header" href="#key-concepts-6">Key Concepts</a></h2>
+<p>Let's break down how the blimp becomes a video streamer:</p>
+<h3 id="1-getting-the-picture-decoding-base64"><a class="header" href="#1-getting-the-picture-decoding-base64">1. Getting the Picture: Decoding Base64</a></h3>
+<p>Remember in <a href="04_object_detection___detection__.html">Chapter 4: Object Detection (<code>Detection</code>)</a>, the camera system sends its findings as JSON messages? Inside that JSON, the actual image data is encoded as a long string of text using <strong>Base64</strong>. Think of Base64 as a way to disguise picture data as plain text so it can travel easily inside the JSON message.</p>
+<p>The first step is to <strong>decode</strong> this Base64 string back into its original form: raw image bytes, the actual data representing the picture.</p>
+<h3 id="2-understanding-the-picture-loading-into-memory"><a class="header" href="#2-understanding-the-picture-loading-into-memory">2. Understanding the Picture: Loading into Memory</a></h3>
+<p>Once we have the raw image bytes, the computer needs to understand it as a picture. We use a Rust library called <code>image</code> to load these bytes and turn them into an image object in the computer's memory. This object represents the picture as a grid of pixels, where each pixel has a color.</p>
+<h3 id="3-drawing-on-the-picture-annotation"><a class="header" href="#3-drawing-on-the-picture-annotation">3. Drawing on the Picture: Annotation</a></h3>
+<p>This is where we add helpful visuals! If the <code>Detection</code> module found our target marker, we want to highlight it. We use another Rust library called <code>imageproc</code> (image processing) which provides tools like virtual pens and shape tools. We can:</p>
+<ul>
+<li>Draw a rectangle (bounding box) around detected objects.</li>
+<li>Draw a filled circle at the center of the main target.</li>
+<li>Write text labels (like the object's class ID or confidence score) directly onto the image.</li>
+</ul>
+<p>This process is called <strong>annotation</strong>. We're adding notes and drawings to the original picture.</p>
+<h3 id="4-preparing-for-sending-resizing-and-encoding"><a class="header" href="#4-preparing-for-sending-resizing-and-encoding">4. Preparing for Sending: Resizing and Encoding</a></h3>
+<p>Raw, high-resolution images can be quite large, making them slow to send over a network. To speed things up, we often <strong>resize</strong> the annotated image to make it smaller (e.g., 180x180 pixels). This reduces the amount of data we need to send.</p>
+<p>After resizing, we need to convert the image object (which is now stored in the computer's memory in a specific way) back into a standard format that can be easily sent and displayed. We <strong>encode</strong> it, often into a format like <strong>PNG</strong>. Encoding is like saving the picture to a file, but instead of saving to disk, we save the resulting bytes into a temporary storage area (a buffer) in memory.</p>
+<h3 id="5-sending-the-picture-udp-streaming"><a class="header" href="#5-sending-the-picture-udp-streaming">5. Sending the Picture: UDP Streaming</a></h3>
+<p>Now we have the final, annotated, resized, and PNG-encoded image bytes ready to go. How do we send them? We use <strong>UDP (User Datagram Protocol)</strong>.</p>
+<p>Think of UDP like sending postcards:</p>
+<ul>
+<li>It's fast because you just write the address and drop it in the mailbox. You don't wait for confirmation that it arrived.</li>
+<li>Sometimes, a postcard might get lost or arrive out of order, but for live video, losing an occasional frame isn't usually a disaster. We prioritize speed over guaranteed delivery.</li>
+</ul>
+<p>Our <code>Detection</code> module uses a <strong>UDP socket</strong> (like a dedicated mailbox) to send these image bytes as a packet over the network to a specific address and port (e.g., <code>192.168.8.194:54321</code>), where our laptop can be listening to receive and display them.</p>
+<h2 id="how-we-use-image-streaming"><a class="header" href="#how-we-use-image-streaming">How We Use Image Streaming</a></h2>
+<p>The good news is, you don't need to call a separate function just for streaming! This image processing and streaming happens automatically <em>inside</em> the <code>Detection::detect</code> method we already learned about in <a href="04_object_detection___detection__.html">Chapter 4: Object Detection (<code>Detection</code>)</a>.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Remember this from Chapter 4 / Chapter 6?
+// Simplified loop from src/main.rs
+loop {
+    // ... (other logic) ...
+
+    if !blimp.is_manual() {
+        // Autonomous Mode
+        // Calling detect() finds the target AND streams the image!
+        let det_result = detection.detect(target_classes);
+
+        if !det_result.is_empty() {
+            // Use cx, cy for autonomous control...
+            let cx = det_result[0] as f32;
+            let cy = det_result[1] as f32;
+            let auto_input = auto.position(-1.0, cx, cy);
+            blimp.update_input(auto_input);
+            // ... (mix and actuate) ...
+        } else {
+            // Target not found...
+        }
+    }
+    // ... (delay) ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Every time the loop calls <code>detection.detect(...)</code> in autonomous mode:</p>
+<ol>
+<li>It reads the serial port for JSON data.</li>
+<li>It processes the image (decode, annotate, resize, encode).</li>
+<li>It <strong>sends the processed image via UDP</strong> to the configured destination.</li>
+<li>It returns the target coordinates <code>[cx, cy]</code> (or an empty vector).</li>
+</ol>
+<p>So, just by running the normal autonomous loop, the annotated video stream is automatically being sent out! You just need another program on your laptop (listening at the correct UDP address and port) to catch these image packets and display them.</p>
+<h2 id="under-the-hood-image-handling-in-detect"><a class="header" href="#under-the-hood-image-handling-in-detect">Under the Hood: Image Handling in <code>detect()</code></a></h2>
+<p>Let's trace the journey of an image specifically through the processing and streaming steps within the <code>Detection::detect</code> function:</p>
+<ol>
+<li><strong>Get Base64:</strong> The function receives the JSON and extracts the Base64-encoded image string (e.g., <code>"aGVsbG8gd29ybGQ=..."</code>).</li>
+<li><strong>Decode:</strong> It uses the <code>base64::decode()</code> function to convert this text string back into raw image bytes.</li>
+<li><strong>Load:</strong> It uses <code>image::load_from_memory()</code> to interpret these bytes and create a <code>DynamicImage</code> object.</li>
+<li><strong>Find Target:</strong> It calls <code>get_largest()</code> to find the bounding box <code>[x, y, w, h, conf, cls]</code> of the best target.</li>
+<li><strong>Prepare for Drawing:</strong> It converts the <code>DynamicImage</code> into an <code>RgbaImage</code> format, which is easier to draw on (it ensures every pixel has Red, Green, Blue, and Alpha/transparency values).</li>
+<li><strong>Annotate (if target found):</strong>
+<ul>
+<li><code>draw_hollow_rect_mut()</code>: Draws a green rectangle using <code>x, y, w, h</code>.</li>
+<li><code>draw_filled_circle_mut()</code>: Draws a red circle at the center <code>(cx, cy)</code>.</li>
+<li><code>draw_text_mut()</code>: Draws the label (e.g., "cls=5 conf=95") above the box.</li>
+</ul>
+</li>
+<li><strong>Resize:</strong> It uses <code>resize()</code> to scale the (possibly annotated) <code>RgbaImage</code> down to 180x180 pixels using a fast method (<code>Nearest</code>).</li>
+<li><strong>Encode:</strong> It uses <code>write_to()</code> with <code>ImageFormat::Png</code> to convert the resized <code>RgbaImage</code> into PNG-formatted bytes, storing them in a temporary buffer (<code>img_buf</code>).</li>
+<li><strong>Send UDP:</strong> It calls <code>self.udp_socket.send_to(&amp;img_buf, udp_dest)</code> to send the PNG bytes over the network to the destination address (e.g., <code>"192.168.8.194:54321"</code>).</li>
+</ol>
+<p>Here's a simplified diagram focusing on these steps:</p>
+<pre class="mermaid">sequenceDiagram
+    participant Detect as Detection.detect()
+    participant Base64Lib as base64 Library
+    participant ImageLib as image Library
+    participant ImageProcLib as imageproc Library
+    participant UDPSocket as UDP Socket
+
+    Note over Detect: Has Base64 image string from JSON
+    Detect-&gt;&gt;Base64Lib: decode(base64_string)
+    Base64Lib--&gt;&gt;Detect: Return raw image bytes
+    Detect-&gt;&gt;ImageLib: load_from_memory(bytes)
+    ImageLib--&gt;&gt;Detect: Return DynamicImage object
+    Note over Detect: Find target box [x,y,w,h,...]
+    Detect-&gt;&gt;ImageLib: Convert to RgbaImage
+    ImageLib--&gt;&gt;Detect: Return RgbaImage object
+    Detect-&gt;&gt;ImageProcLib: draw_hollow_rect_mut(...)
+    Detect-&gt;&gt;ImageProcLib: draw_filled_circle_mut(...)
+    Detect-&gt;&gt;ImageProcLib: draw_text_mut(...)
+    Note over Detect: Image is now annotated
+    Detect-&gt;&gt;ImageLib: resize(180, 180)
+    ImageLib--&gt;&gt;Detect: Return resized RgbaImage
+    Detect-&gt;&gt;ImageLib: write_to(buffer, PngFormat)
+    ImageLib--&gt;&gt;Detect: Fill buffer with PNG bytes
+    Detect-&gt;&gt;UDPSocket: send_to(PNG bytes, destination)
+    Note over Detect: Image frame sent!
+</pre>
+<h2 id="code-dive-image-operations-in-object_detectionrs"><a class="header" href="#code-dive-image-operations-in-object_detectionrs">Code Dive: Image Operations in <code>object_detection.rs</code></a></h2>
+<p>Let's look at the specific code snippets within <code>src/lib/object_detection.rs</code> that perform these image operations.</p>
+<p><strong>Decoding Base64:</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Inside detect() function:
+let image_b64 = data_field["image"].as_str().unwrap_or("");
+// ... error check if image_b64 is empty ...
+
+// Decode base64
+let image_bytes = match base64::decode(image_b64) {
+    Ok(bytes) =&gt; bytes, // Success! We have the raw image bytes.
+    Err(e) =&gt; {
+        eprintln!("Error decoding base64: {:?}", e);
+        return vec![]; // Stop if decoding fails
+    }
+};
+<span class="boring">}</span></code></pre></pre>
+<p>This uses the <code>base64</code> crate's <code>decode</code> function to turn the text string into usable image data.</p>
+<p><strong>Loading the Image:</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Inside detect() function, after getting image_bytes:
+let dyn_img = match image::load_from_memory(&amp;image_bytes) {
+    Ok(img) =&gt; img, // Success! We have an image object.
+    Err(e) =&gt; {
+        eprintln!("Error decoding image: {:?}", e);
+        return vec![]; // Stop if loading fails
+    }
+};
+// Convert to RGBA format for drawing
+let mut rgba_img: RgbaImage = dyn_img.to_rgba8();
+<span class="boring">}</span></code></pre></pre>
+<p>This uses the <code>image</code> crate to load the bytes into a <code>DynamicImage</code> and then converts it to <code>RgbaImage</code> stored in <code>rgba_img</code>, ready for annotation.</p>
+<p><strong>Drawing Annotations (Example: Rectangle and Circle):</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Inside detect(), after finding the target box [x, y, w, h, ...]
+use image::{Rgba}; // Need Rgba for color definitions
+use imageproc::rect::Rect; // Need Rect for drawing rectangles
+
+// Define colors (Red, Green, Blue, Alpha)
+let green = Rgba([0, 255, 0, 255]); // Opaque green
+let red = Rgba([255, 0, 0, 255]); // Opaque red
+
+// 1) Draw a green rectangle
+let rect = Rect::at(x, y).of_size(w as u32, h as u32);
+draw_hollow_rect_mut(&amp;mut rgba_img, rect, green);
+
+// 2) Draw a filled red circle at the center (cx, cy)
+let radius = 20; // Circle size
+draw_filled_circle_mut(&amp;mut rgba_img, (cx, cy), radius, red);
+
+// (Drawing text is similar using draw_text_mut)
+<span class="boring">}</span></code></pre></pre>
+<p>These calls to functions from the <code>imageproc</code> crate modify the <code>rgba_img</code> object by drawing shapes directly onto its pixel data.</p>
+<p><strong>Resizing and Encoding to PNG:</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Inside detect(), after annotations are drawn on rgba_img:
+use image::{DynamicImage, ImageFormat};
+use std::io::Cursor; // Needed for writing to a memory buffer
+
+let mut img_buf = Vec::new(); // Create an empty buffer to hold PNG bytes
+{ // Use a block to manage the Cursor's lifetime
+    let mut cursor = Cursor::new(&amp;mut img_buf); // Point the cursor to our buffer
+    DynamicImage::ImageRgba8(rgba_img) // Wrap our image
+        .resize(180, 180, image::imageops::FilterType::Nearest) // Resize it
+        .write_to(&amp;mut cursor, ImageFormat::Png) // Encode as PNG into the buffer
+        .expect("Failed to write image to buffer");
+}
+// img_buf now contains the bytes of the resized, annotated PNG image.
+<span class="boring">}</span></code></pre></pre>
+<p>This code resizes the <code>rgba_img</code> and uses the <code>image</code> crate's <code>write_to</code> function to encode it as a PNG directly into the <code>img_buf</code> vector.</p>
+<p><strong>Sending via UDP:</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Inside detect(), after img_buf is filled with PNG bytes:
+let udp_dest = "192.168.8.194:54321"; // Target IP and port
+
+// Send the buffer content using the UDP socket created in Detection::new()
+if let Err(e) = self.udp_socket.send_to(&amp;img_buf, udp_dest) {
+    eprintln!("UDP send error: {:?}", e);
+    // Don't stop the whole program, just log the error
+}
+// The image packet has been sent (or an error logged).
+<span class="boring">}</span></code></pre></pre>
+<p>This final step takes the <code>img_buf</code> (containing the PNG data) and sends it as a single UDP packet to the specified network destination using the <code>udp_socket</code> that was set up when the <code>Detection</code> object was created.</p>
+<h2 id="conclusion-6"><a class="header" href="#conclusion-6">Conclusion</a></h2>
+<p>Congratulations! You've reached the end of this tutorial series on the core concepts of <code>SanoBlimpSoftware</code>. In this final chapter, we learned about <strong>Image Processing &amp; Streaming</strong>:</p>
+<ul>
+<li>Raw images (decoded from <strong>Base64</strong>) are loaded into memory.</li>
+<li>Libraries like <code>imageproc</code> allow us to <strong>annotate</strong> these images by drawing shapes (rectangles, circles) and text.</li>
+<li>Images are often <strong>resized</strong> to reduce data size.</li>
+<li>The processed image is <strong>encoded</strong> into a standard format like PNG.</li>
+<li>These image bytes are <strong>streamed</strong> over the network using <strong>UDP</strong> for fast, real-time viewing.</li>
+<li>This entire process happens within the <code>Detection::detect</code> method, providing both detection results and a visual feed simultaneously.</li>
+</ul>
+<p>You now have a good understanding of the key software modules that make the SanoBlimp fly:</p>
+<ul>
+<li>How it's controlled (<a href="01_blimp_control___blimp__trait____flappy__implementation_.html">Chapter 1: Blimp Control (<code>Blimp</code> Trait / <code>Flappy</code> Implementation)</a>)</li>
+<li>How software commands move the hardware (<a href="02_hardware_actuation___pcaactuator__.html">Chapter 2: Hardware Actuation (<code>PCAActuator</code>)</a>)</li>
+<li>How its behavior is tuned (<a href="03_configuration___config__.html">Chapter 3: Configuration (<code>Config</code>)</a>)</li>
+<li>How it sees targets (<a href="04_object_detection___detection__.html">Chapter 4: Object Detection (<code>Detection</code>)</a>)</li>
+<li>How it senses its own state (<a href="05_sensor_input_state__conceptual_.html">Chapter 5: Sensor Input/State (Conceptual)</a>)</li>
+<li>How its autopilot works (<a href="06_autonomous_control___autonomous__.html">Chapter 6: Autonomous Control (<code>Autonomous</code>)</a>)</li>
+<li>And how we can watch it remotely (<a href="07_image_processing___streaming.html">Chapter 7: Image Processing &amp; Streaming</a>)</li>
+</ul>
+<p>We hope this tour helps you understand, use, and contribute to the <code>SanoBlimpSoftware</code> project. Happy flying!</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="mermaid.min.js"></script>
+        <script src="mermaid-init.js"></script>
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+    </div>
+    </body>
+</html>

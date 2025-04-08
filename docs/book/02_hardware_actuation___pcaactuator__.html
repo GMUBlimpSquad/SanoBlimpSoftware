@@ -1,0 +1,473 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Hardware Actuation - SanoBlimp Documentation</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="01_blimp_control___blimp__trait____flappy__implementation_.html"><strong aria-hidden="true">2.</strong> Blimp Control</a></li><li class="chapter-item expanded "><a href="02_hardware_actuation___pcaactuator__.html" class="active"><strong aria-hidden="true">3.</strong> Hardware Actuation</a></li><li class="chapter-item expanded "><a href="03_configuration___config__.html"><strong aria-hidden="true">4.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="04_object_detection___detection__.html"><strong aria-hidden="true">5.</strong> Object Detection</a></li><li class="chapter-item expanded "><a href="05_sensor_input_state__conceptual_.html"><strong aria-hidden="true">6.</strong> Sensor Input</a></li><li class="chapter-item expanded "><a href="06_autonomous_control___autonomous__.html"><strong aria-hidden="true">7.</strong> Autonomous Control</a></li><li class="chapter-item expanded "><a href="07_image_processing___streaming.html"><strong aria-hidden="true">8.</strong> Image Processing</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">SanoBlimp Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="chapter-2-hardware-actuation-pcaactuator"><a class="header" href="#chapter-2-hardware-actuation-pcaactuator">Chapter 2: Hardware Actuation (<code>PCAActuator</code>)</a></h1>
+<p>Welcome back! In <a href="01_blimp_control___blimp__trait____flappy__implementation_.html">Chapter 1: Blimp Control (<code>Blimp</code> Trait / <code>Flappy</code> Implementation)</a>, we saw how the <code>Flappy</code> controller acts like the blimp's "brain" or "pilot". It takes commands (from a joystick or an autonomous system) and decides exactly how fast each motor should spin or what angle each servo should be set to. These decisions are packaged into an <code>Actuations</code> struct.</p>
+<p>But how do those numbers in the <code>Actuations</code> struct <em>actually</em> make the physical parts of the blimp move? We need a way to translate these software commands into real electrical signals that the motors and servos understand.</p>
+<p>That's where the <code>PCAActuator</code> comes in! Think of it as the blimp's <strong>nervous system</strong>. It takes the signals from the brain (<code>Flappy</code>) and sends them down the "nerves" to the "muscles" (motors and servos), telling them precisely what to do.</p>
+<h2 id="why-do-we-need-this"><a class="header" href="#why-do-we-need-this">Why Do We Need This?</a></h2>
+<p>Computers speak the language of data (like the numbers in <code>Actuations</code>), while motors and servos speak the language of electricity – specifically, carefully timed electrical pulses called <strong>PWM (Pulse Width Modulation)</strong>.</p>
+<p>Our main computer (like a Raspberry Pi running this software) isn't great at generating <em>many</em> of these precise PWM signals simultaneously. So, we use a helper chip called the <strong>PCA9685</strong>. This chip is specifically designed to generate lots of PWM signals.</p>
+<p>The <code>PCAActuator</code> component in our software acts as the <strong>bridge</strong>:</p>
+<ol>
+<li>It receives the desired <code>Actuations</code> (motor speeds, servo angles) from <code>Flappy</code>.</li>
+<li>It communicates with the PCA9685 chip over a connection called <strong>I2C</strong> (a simple way for chips to talk to each other).</li>
+<li>It tells the PCA9685 exactly what kind of PWM signal to generate for each motor and servo.</li>
+<li>The PCA9685 chip generates these electrical signals, making the hardware move!</li>
+</ol>
+<h2 id="key-concepts"><a class="header" href="#key-concepts">Key Concepts</a></h2>
+<p>Let's break down the important ideas:</p>
+<h3 id="1-the-pca9685-chip-the-signal-generator"><a class="header" href="#1-the-pca9685-chip-the-signal-generator">1. The PCA9685 Chip (The Signal Generator)</a></h3>
+<p>Imagine you have a translator who can speak many specific dialects. The PCA9685 is like that translator. It sits between the main computer and the motors/servos. The computer gives it high-level instructions (like "set channel 3 to 50% power"), and the PCA9685 translates that into the precise electrical dialect (PWM signal) that the motor or servo on channel 3 understands. It can handle up to 16 different "dialects" (channels) at once!</p>
+<h3 id="2-pwm-signals-the-electrical-language"><a class="header" href="#2-pwm-signals-the-electrical-language">2. PWM Signals (The Electrical Language)</a></h3>
+<p>How do you tell a motor how fast to spin using electricity? You could try changing the voltage, but a more common and precise way is using PWM.</p>
+<p>Imagine flicking a light switch on and off really, really fast.</p>
+<ul>
+<li>If you leave it ON for a <em>short</em> time and OFF for a <em>long</em> time in each cycle, the light looks dim.</li>
+<li>If you leave it ON for a <em>long</em> time and OFF for a <em>short</em> time, the light looks bright.</li>
+</ul>
+<p>PWM works similarly for motors and servos:</p>
+<ul>
+<li><strong>Motors (via ESCs):</strong> A longer "ON" pulse generally means higher speed. A shorter pulse means lower speed. (ESCs, or Electronic Speed Controllers, are little circuits that interpret PWM for brushless motors).</li>
+<li><strong>Servos:</strong> The length of the "ON" pulse tells the servo what <em>angle</em> to move to. A specific pulse width corresponds to 0 degrees, another to 90 degrees, and another to 180 degrees.</li>
+</ul>
+<p>The <code>PCAActuator</code> calculates the correct pulse width (the "ON" time) based on the desired speed or angle from the <code>Actuations</code> struct.</p>
+<h3 id="3-motors-vs-servos"><a class="header" href="#3-motors-vs-servos">3. Motors vs. Servos</a></h3>
+<p>Our blimp uses both:</p>
+<ul>
+<li><strong>Motors:</strong> Usually for propulsion (going forward, up/down). They spin continuously. Their speed is controlled by PWM. In our code, these are often <code>m1</code>, <code>m2</code>, <code>m3</code>, <code>m4</code>.</li>
+<li><strong>Servos:</strong> Used for control surfaces (like fins or vectoring mounts) or flapping mechanisms. They move to and hold a specific angle. Their angle is controlled by PWM. In our code, these are often <code>s1</code>, <code>s2</code>, <code>s3</code>, <code>s4</code>.</li>
+</ul>
+<p>The <code>PCAActuator</code> knows how to generate the right kind of PWM signal for each type.</p>
+<h3 id="4-esc-initialization-waking-up-the-motors"><a class="header" href="#4-esc-initialization-waking-up-the-motors">4. ESC Initialization (Waking Up the Motors)</a></h3>
+<p>Brushless motors controlled by ESCs often need a special "handshake" sequence when they first power up. This tells the ESC the range of PWM signals it should expect (what means "stop" and what means "full speed"). The <code>PCAActuator</code> handles this automatically when it starts up using the <code>init_escs()</code> function. It usually involves sending a "full speed" signal, then a "stop" signal, so the ESC learns the limits.</p>
+<h2 id="how-flappy-uses-pcaactuator"><a class="header" href="#how-flappy-uses-pcaactuator">How <code>Flappy</code> Uses <code>PCAActuator</code></a></h2>
+<p>Let's revisit how <code>Flappy</code> triggers the hardware, now understanding <code>PCAActuator</code>'s role.</p>
+<p>Remember the <code>manual()</code> function in <code>Flappy</code>?</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified from src/lib/blimp.rs (inside Flappy implementation)
+pub fn manual(&amp;mut self) {
+    // 1. Calculate desired motor/servo settings
+    let act: Actuations = self.mix(); // e.g., { m1: 100.0, s1: 45.0, ... }
+
+    // 2. Send these settings to the hardware interface
+    self.actuator.actuate(act); // Tell PCAActuator to make it happen!
+}
+<span class="boring">}</span></code></pre></pre>
+<ol>
+<li><code>Flappy</code> calls its <code>mix()</code> function to figure out the desired <code>Actuations</code> based on joystick input.</li>
+<li>It then calls <code>self.actuator.actuate(act)</code>, passing the calculated <code>Actuations</code> struct to the <code>PCAActuator</code>.</li>
+</ol>
+<p>The <code>actuate</code> function is the main command center for making things move.</p>
+<h2 id="under-the-hood-how-pcaactuator-works"><a class="header" href="#under-the-hood-how-pcaactuator-works">Under the Hood: How <code>PCAActuator</code> Works</a></h2>
+<p>What happens inside <code>PCAActuator</code> when <code>actuate()</code> is called?</p>
+<ol>
+<li><strong>Receive Commands:</strong> The <code>actuate</code> function gets the <code>Actuations</code> struct (e.g., <code>m1: 100.0, s1: 45.0, ...</code>).</li>
+<li><strong>Translate Each Command:</strong> For <em>each</em> motor (<code>m1</code>..<code>m4</code>) and servo (<code>s1</code>..<code>s4</code>) value in the struct:
+<ul>
+<li>It calls a helper function like <code>set_motor_speed()</code> or <code>set_servo_speed()</code>.</li>
+<li>These helpers take the target value (e.g., <code>100.0</code> for <code>m1</code>) and the specific hardware channel it's connected to (e.g., <code>Channel::C0</code>).</li>
+</ul>
+</li>
+<li><strong>Calculate PWM:</strong> Inside the helper functions:
+<ul>
+<li>The target value (like an angle from 0-180) is converted into a specific PWM pulse width (usually measured in microseconds, like 1500µs for neutral).</li>
+<li>This pulse width is then converted into the numbers (duty cycle, typically 0-4095) that the PCA9685 chip understands.</li>
+</ul>
+</li>
+<li><strong>Send to Chip:</strong> The <code>PCAActuator</code> uses the <code>pwm_pca9685</code> library (a specialized tool for talking to the chip) to send these calculated duty cycle numbers to the PCA9685 chip over the I2C communication wire.</li>
+<li><strong>Generate Signal:</strong> The PCA9685 chip receives the command and starts generating the corresponding PWM electrical signal on the specified output pin.</li>
+<li><strong>Move!:</strong> The ESC/motor or servo connected to that pin receives the PWM signal and moves accordingly.</li>
+</ol>
+<p>Here's a simplified diagram of the process:</p>
+<pre class="mermaid">sequenceDiagram
+    participant Flappy as Flappy Blimp
+    participant PCAAct as PCAActuator
+    participant PwmLib as pwm_pca9685 Library
+    participant I2C as I2C Bus
+    participant PCAChip as PCA9685 Chip
+    participant MotorServo as Motor/Servo
+
+    Flappy-&gt;&gt;PCAAct: Calls actuate(Actuations)
+    PCAAct-&gt;&gt;PCAAct: For each motor/servo value...
+    PCAAct-&gt;&gt;PCAAct: Calls set_motor_speed(Channel, value)
+    PCAAct-&gt;&gt;PCAAct: Calculates PWM duty cycle (0-4095)
+    PCAAct-&gt;&gt;PwmLib: set_channel_on_off(Channel, 0, duty_cycle)
+    PwmLib-&gt;&gt;I2C: Sends I2C command
+    I2C-&gt;&gt;PCAChip: Delivers command
+    PCAChip-&gt;&gt;MotorServo: Generates PWM Signal
+    MotorServo-&gt;&gt;MotorServo: Reacts (spins/moves)
+</pre>
+<h3 id="code-dive-inside-pcaactuator"><a class="header" href="#code-dive-inside-pcaactuator">Code Dive: Inside <code>PCAActuator</code></a></h3>
+<p>Let's peek at some key parts of the <code>src/lib/blimp.rs</code> file related to <code>PCAActuator</code>.</p>
+<p><strong>Creating the Actuator (<code>PCAActuator::new</code>)</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified from src/lib/blimp.rs
+impl PCAActuator {
+    pub fn new() -&gt; Self {
+        // 1. Setup communication with the PCA9685 chip via I2C
+        let dev = I2cdev::new("/dev/i2c-1") // Specify the I2C bus
+            .expect("Failed to initialize I2C device");
+        let address = Address::default(); // Use default PCA9685 address
+        let mut pwm = Pca9685::new(dev, address) // Create the library object
+            .expect("Failed to create PCA9685 instance");
+
+        // 2. Configure the PCA9685 chip
+        pwm.set_prescale(100) // Set PWM frequency (e.g., ~60Hz)
+            .expect("Failed to set prescale");
+        pwm.enable() // Turn the chip ON
+            .expect("Failed to enable PCA9685");
+
+        // 3. Create the PCAActuator struct
+        let mut actuator = PCAActuator { pwm };
+
+        // 4. Initialize the ESCs (important!)
+        actuator.init_escs();
+
+        actuator // Return the ready-to-use actuator
+    }
+    // ... other functions ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>This function does the initial setup: connecting to the PCA9685 chip over I2C, configuring the PWM signal frequency, enabling the chip, and importantly, running the ESC initialization sequence.</p>
+<p><strong>Initializing the ESCs (<code>init_escs</code>)</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified from src/lib/blimp.rs
+impl PCAActuator {
+    pub fn init_escs(&amp;mut self) {
+        println!("Initializing ESCs...");
+
+        // Send max throttle (e.g., 180.0 degrees) to all motor channels
+        self.set_motor_speed(Channel::C0, 180.0);
+        // ... send to C1, C2, C3 ...
+        sleep(Duration::from_secs(1)); // Wait
+
+        // Send min throttle (e.g., 0.0 degrees) to arm
+        self.set_motor_speed(Channel::C0, 0.0);
+        // ... send to C1, C2, C3 ...
+        sleep(Duration::from_secs(1)); // Wait
+
+        // Move to neutral (e.g., 90.0 degrees) - ready!
+        self.set_motor_speed(Channel::C0, NEUTRAL_ANGLE_MOTOR); // e.g., 90.0
+        // ... send to C1, C2, C3 ...
+        sleep(Duration::from_secs(2)); // Wait longer
+
+        println!("ESCs initialized!");
+    }
+    // ... other functions ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>This function performs the critical startup "handshake" for the ESCs by sending high, low, and then neutral signals. This ensures the motors respond correctly later.</p>
+<p><strong>Setting Motor/Servo Speeds (<code>set_motor_speed</code>, <code>set_servo_speed</code>)</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified from src/lib/blimp.rs
+// Constants defining the PWM signal range
+const MIN_PULSE: f32 = 600.0; // Pulse width in µs for 0% speed / 0 degrees
+const MAX_PULSE: f32 = 2600.0; // Pulse width in µs for 100% speed / 180 degrees
+const PWM_FREQUENCY_MOTOR: f32 = 60.0; // How many pulses per second (Hz)
+
+impl PCAActuator {
+    fn set_motor_speed(&amp;mut self, channel: Channel, angle: f32) {
+        // 1. Map angle (0-180) to pulse width (e.g., 600-2600 µs)
+        let pulse_width = MIN_PULSE + (angle / 180.0) * (MAX_PULSE - MIN_PULSE);
+
+        // 2. Calculate the PCA9685 duty cycle (0-4095) based on pulse width and frequency
+        let on = 0; // Start the pulse at the beginning of the cycle
+        let off = ((pulse_width * PWM_FREQUENCY_MOTOR * 4096.0 * 1e-6) as u16)
+                    .clamp(0, 4095); // Ensure value is within 0-4095
+
+        // 3. Send command to the PCA9685 library
+        self.pwm.set_channel_on_off(channel, on, off).unwrap();
+    }
+
+    // set_servo_speed is very similar, but might use different MIN/MAX_PULSE values
+    fn set_servo_speed(&amp;mut self, channel: Channel, angle: f32) {
+        // ... calculations similar to set_motor_speed ...
+        // ... may use MIN_PULSE_SERVO, MAX_PULSE_SERVO constants ...
+        let on = 0;
+        let off = /* calculated duty cycle */ ;
+        self.pwm.set_channel_on_off(channel, on, off).unwrap();
+    }
+    // ... other functions ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>These functions contain the core translation logic. They convert a simple input <code>angle</code> (representing speed for motors or position for servos, usually mapped 0-180) into the specific <code>on</code> and <code>off</code> values (duty cycle) needed by the PCA9685 chip. The <code>clamp(0, 4095)</code> ensures we don't send invalid values to the chip.</p>
+<p><strong>Actuating (<code>actuate</code>)</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified from src/lib/blimp.rs
+impl PCAActuator {
+    pub fn actuate(&amp;mut self, act: Actuations) {
+        // Call set_motor_speed for each motor channel
+        self.set_motor_speed(Channel::C0, act.m1); // Motor 1 on Channel 0
+        self.set_motor_speed(Channel::C1, act.m2); // Motor 2 on Channel 1
+        self.set_motor_speed(Channel::C2, act.m3); // Motor 3 on Channel 2
+        self.set_motor_speed(Channel::C3, act.m4); // Motor 4 on Channel 3
+
+        // Call set_servo_speed for each servo channel
+        self.set_servo_speed(Channel::C4, act.s1); // Servo 1 on Channel 4
+        self.set_servo_speed(Channel::C5, act.s2); // Servo 2 on Channel 5
+        self.set_servo_speed(Channel::C6, act.s3); // Servo 3 on Channel 6
+        self.set_servo_speed(Channel::C7, act.s4); // Servo 4 on Channel 7
+    }
+    // ... other functions ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>This function simply takes the <code>Actuations</code> struct and calls the appropriate <code>set_..._speed</code> function for each motor and servo value, associating it with the correct hardware channel (C0, C1, C4, etc.) on the PCA9685 board.</p>
+<h2 id="conclusion"><a class="header" href="#conclusion">Conclusion</a></h2>
+<p>We've now seen how the <code>PCAActuator</code> acts as the vital link between the software decisions made by <code>Flappy</code> and the physical hardware of the blimp.</p>
+<ul>
+<li>It uses the <strong>PCA9685 chip</strong> to generate precise <strong>PWM</strong> signals.</li>
+<li>It translates abstract commands (<code>Actuations</code>) into these electrical signals.</li>
+<li>It handles the necessary <strong>ESC initialization</strong> sequence for the motors.</li>
+<li>The <code>actuate()</code> function is the main way <code>Flappy</code> commands the hardware to move.</li>
+</ul>
+<p>You now understand how the blimp's "brain" (<code>Flappy</code>) talks to its "nervous system" (<code>PCAActuator</code>) to control its "muscles" (motors and servos)!</p>
+<p>But wait, how does the <code>PCAActuator</code> know things like the correct PWM frequency, or the exact pulse widths (MIN_PULSE, MAX_PULSE) for our specific motors and servos? And how does <code>Flappy</code> know which joystick axis controls which movement? These details often need to be configured.</p>
+<p>In the next chapter, we'll explore how we manage settings and parameters using the configuration system. Let's dive into <a href="03_configuration___config__.html">Chapter 3: Configuration (<code>Config</code>)</a>!</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="01_blimp_control___blimp__trait____flappy__implementation_.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="03_configuration___config__.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="01_blimp_control___blimp__trait____flappy__implementation_.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="03_configuration___config__.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="mermaid.min.js"></script>
+        <script src="mermaid-init.js"></script>
+
+
+    </div>
+    </body>
+</html>

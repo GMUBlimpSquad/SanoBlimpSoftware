@@ -1,0 +1,461 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Image Processing - SanoBlimp Documentation</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="01_blimp_control___blimp__trait____flappy__implementation_.html"><strong aria-hidden="true">2.</strong> Blimp Control</a></li><li class="chapter-item expanded "><a href="02_hardware_actuation___pcaactuator__.html"><strong aria-hidden="true">3.</strong> Hardware Actuation</a></li><li class="chapter-item expanded "><a href="03_configuration___config__.html"><strong aria-hidden="true">4.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="04_object_detection___detection__.html"><strong aria-hidden="true">5.</strong> Object Detection</a></li><li class="chapter-item expanded "><a href="05_sensor_input_state__conceptual_.html"><strong aria-hidden="true">6.</strong> Sensor Input</a></li><li class="chapter-item expanded "><a href="06_autonomous_control___autonomous__.html"><strong aria-hidden="true">7.</strong> Autonomous Control</a></li><li class="chapter-item expanded "><a href="07_image_processing___streaming.html" class="active"><strong aria-hidden="true">8.</strong> Image Processing</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">SanoBlimp Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="chapter-7-image-processing--streaming"><a class="header" href="#chapter-7-image-processing--streaming">Chapter 7: Image Processing &amp; Streaming</a></h1>
+<p>Welcome back! In <a href="06_autonomous_control___autonomous__.html">Chapter 6: Autonomous Control (<code>Autonomous</code>)</a>, we saw how the blimp uses its "brain" – the <code>Autonomous</code> module with its PID controller – to decide how to fly towards a target based on information from its sensors and vision system. We know the <code>Detection</code> module finds the target's coordinates (<code>cx</code>, <code>cy</code>).</p>
+<p>But wouldn't it be great if we could <em>see</em> what the blimp is seeing while it flies? Can we get a live video feed, maybe even with the detected objects highlighted, so we know what the blimp is focusing on?</p>
+<p>This chapter covers <strong>Image Processing &amp; Streaming</strong>. This capability, mostly happening inside the <a href="04_object_detection___detection__.html">Object Detection (<code>Detection</code>)</a> module, is like setting up a live video call from the blimp back to our control station (our laptop). It takes the raw picture from the camera, draws helpful information on it, and sends it over the network.</p>
+<p><strong>Our Use Case:</strong> We want to watch the blimp fly autonomously from our laptop. We need a live video stream showing the blimp's camera view. Crucially, we want to see boxes drawn around the objects the blimp detects, and maybe a red circle around the specific target it's currently flying towards, just to confirm it's working correctly.</p>
+<h2 id="key-concepts"><a class="header" href="#key-concepts">Key Concepts</a></h2>
+<p>Let's break down how the blimp becomes a video streamer:</p>
+<h3 id="1-getting-the-picture-decoding-base64"><a class="header" href="#1-getting-the-picture-decoding-base64">1. Getting the Picture: Decoding Base64</a></h3>
+<p>Remember in <a href="04_object_detection___detection__.html">Chapter 4: Object Detection (<code>Detection</code>)</a>, the camera system sends its findings as JSON messages? Inside that JSON, the actual image data is encoded as a long string of text using <strong>Base64</strong>. Think of Base64 as a way to disguise picture data as plain text so it can travel easily inside the JSON message.</p>
+<p>The first step is to <strong>decode</strong> this Base64 string back into its original form: raw image bytes, the actual data representing the picture.</p>
+<h3 id="2-understanding-the-picture-loading-into-memory"><a class="header" href="#2-understanding-the-picture-loading-into-memory">2. Understanding the Picture: Loading into Memory</a></h3>
+<p>Once we have the raw image bytes, the computer needs to understand it as a picture. We use a Rust library called <code>image</code> to load these bytes and turn them into an image object in the computer's memory. This object represents the picture as a grid of pixels, where each pixel has a color.</p>
+<h3 id="3-drawing-on-the-picture-annotation"><a class="header" href="#3-drawing-on-the-picture-annotation">3. Drawing on the Picture: Annotation</a></h3>
+<p>This is where we add helpful visuals! If the <code>Detection</code> module found our target marker, we want to highlight it. We use another Rust library called <code>imageproc</code> (image processing) which provides tools like virtual pens and shape tools. We can:</p>
+<ul>
+<li>Draw a rectangle (bounding box) around detected objects.</li>
+<li>Draw a filled circle at the center of the main target.</li>
+<li>Write text labels (like the object's class ID or confidence score) directly onto the image.</li>
+</ul>
+<p>This process is called <strong>annotation</strong>. We're adding notes and drawings to the original picture.</p>
+<h3 id="4-preparing-for-sending-resizing-and-encoding"><a class="header" href="#4-preparing-for-sending-resizing-and-encoding">4. Preparing for Sending: Resizing and Encoding</a></h3>
+<p>Raw, high-resolution images can be quite large, making them slow to send over a network. To speed things up, we often <strong>resize</strong> the annotated image to make it smaller (e.g., 180x180 pixels). This reduces the amount of data we need to send.</p>
+<p>After resizing, we need to convert the image object (which is now stored in the computer's memory in a specific way) back into a standard format that can be easily sent and displayed. We <strong>encode</strong> it, often into a format like <strong>PNG</strong>. Encoding is like saving the picture to a file, but instead of saving to disk, we save the resulting bytes into a temporary storage area (a buffer) in memory.</p>
+<h3 id="5-sending-the-picture-udp-streaming"><a class="header" href="#5-sending-the-picture-udp-streaming">5. Sending the Picture: UDP Streaming</a></h3>
+<p>Now we have the final, annotated, resized, and PNG-encoded image bytes ready to go. How do we send them? We use <strong>UDP (User Datagram Protocol)</strong>.</p>
+<p>Think of UDP like sending postcards:</p>
+<ul>
+<li>It's fast because you just write the address and drop it in the mailbox. You don't wait for confirmation that it arrived.</li>
+<li>Sometimes, a postcard might get lost or arrive out of order, but for live video, losing an occasional frame isn't usually a disaster. We prioritize speed over guaranteed delivery.</li>
+</ul>
+<p>Our <code>Detection</code> module uses a <strong>UDP socket</strong> (like a dedicated mailbox) to send these image bytes as a packet over the network to a specific address and port (e.g., <code>192.168.8.194:54321</code>), where our laptop can be listening to receive and display them.</p>
+<h2 id="how-we-use-image-streaming"><a class="header" href="#how-we-use-image-streaming">How We Use Image Streaming</a></h2>
+<p>The good news is, you don't need to call a separate function just for streaming! This image processing and streaming happens automatically <em>inside</em> the <code>Detection::detect</code> method we already learned about in <a href="04_object_detection___detection__.html">Chapter 4: Object Detection (<code>Detection</code>)</a>.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Remember this from Chapter 4 / Chapter 6?
+// Simplified loop from src/main.rs
+loop {
+    // ... (other logic) ...
+
+    if !blimp.is_manual() {
+        // Autonomous Mode
+        // Calling detect() finds the target AND streams the image!
+        let det_result = detection.detect(target_classes);
+
+        if !det_result.is_empty() {
+            // Use cx, cy for autonomous control...
+            let cx = det_result[0] as f32;
+            let cy = det_result[1] as f32;
+            let auto_input = auto.position(-1.0, cx, cy);
+            blimp.update_input(auto_input);
+            // ... (mix and actuate) ...
+        } else {
+            // Target not found...
+        }
+    }
+    // ... (delay) ...
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Every time the loop calls <code>detection.detect(...)</code> in autonomous mode:</p>
+<ol>
+<li>It reads the serial port for JSON data.</li>
+<li>It processes the image (decode, annotate, resize, encode).</li>
+<li>It <strong>sends the processed image via UDP</strong> to the configured destination.</li>
+<li>It returns the target coordinates <code>[cx, cy]</code> (or an empty vector).</li>
+</ol>
+<p>So, just by running the normal autonomous loop, the annotated video stream is automatically being sent out! You just need another program on your laptop (listening at the correct UDP address and port) to catch these image packets and display them.</p>
+<h2 id="under-the-hood-image-handling-in-detect"><a class="header" href="#under-the-hood-image-handling-in-detect">Under the Hood: Image Handling in <code>detect()</code></a></h2>
+<p>Let's trace the journey of an image specifically through the processing and streaming steps within the <code>Detection::detect</code> function:</p>
+<ol>
+<li><strong>Get Base64:</strong> The function receives the JSON and extracts the Base64-encoded image string (e.g., <code>"aGVsbG8gd29ybGQ=..."</code>).</li>
+<li><strong>Decode:</strong> It uses the <code>base64::decode()</code> function to convert this text string back into raw image bytes.</li>
+<li><strong>Load:</strong> It uses <code>image::load_from_memory()</code> to interpret these bytes and create a <code>DynamicImage</code> object.</li>
+<li><strong>Find Target:</strong> It calls <code>get_largest()</code> to find the bounding box <code>[x, y, w, h, conf, cls]</code> of the best target.</li>
+<li><strong>Prepare for Drawing:</strong> It converts the <code>DynamicImage</code> into an <code>RgbaImage</code> format, which is easier to draw on (it ensures every pixel has Red, Green, Blue, and Alpha/transparency values).</li>
+<li><strong>Annotate (if target found):</strong>
+<ul>
+<li><code>draw_hollow_rect_mut()</code>: Draws a green rectangle using <code>x, y, w, h</code>.</li>
+<li><code>draw_filled_circle_mut()</code>: Draws a red circle at the center <code>(cx, cy)</code>.</li>
+<li><code>draw_text_mut()</code>: Draws the label (e.g., "cls=5 conf=95") above the box.</li>
+</ul>
+</li>
+<li><strong>Resize:</strong> It uses <code>resize()</code> to scale the (possibly annotated) <code>RgbaImage</code> down to 180x180 pixels using a fast method (<code>Nearest</code>).</li>
+<li><strong>Encode:</strong> It uses <code>write_to()</code> with <code>ImageFormat::Png</code> to convert the resized <code>RgbaImage</code> into PNG-formatted bytes, storing them in a temporary buffer (<code>img_buf</code>).</li>
+<li><strong>Send UDP:</strong> It calls <code>self.udp_socket.send_to(&amp;img_buf, udp_dest)</code> to send the PNG bytes over the network to the destination address (e.g., <code>"192.168.8.194:54321"</code>).</li>
+</ol>
+<p>Here's a simplified diagram focusing on these steps:</p>
+<pre class="mermaid">sequenceDiagram
+    participant Detect as Detection.detect()
+    participant Base64Lib as base64 Library
+    participant ImageLib as image Library
+    participant ImageProcLib as imageproc Library
+    participant UDPSocket as UDP Socket
+
+    Note over Detect: Has Base64 image string from JSON
+    Detect-&gt;&gt;Base64Lib: decode(base64_string)
+    Base64Lib--&gt;&gt;Detect: Return raw image bytes
+    Detect-&gt;&gt;ImageLib: load_from_memory(bytes)
+    ImageLib--&gt;&gt;Detect: Return DynamicImage object
+    Note over Detect: Find target box [x,y,w,h,...]
+    Detect-&gt;&gt;ImageLib: Convert to RgbaImage
+    ImageLib--&gt;&gt;Detect: Return RgbaImage object
+    Detect-&gt;&gt;ImageProcLib: draw_hollow_rect_mut(...)
+    Detect-&gt;&gt;ImageProcLib: draw_filled_circle_mut(...)
+    Detect-&gt;&gt;ImageProcLib: draw_text_mut(...)
+    Note over Detect: Image is now annotated
+    Detect-&gt;&gt;ImageLib: resize(180, 180)
+    ImageLib--&gt;&gt;Detect: Return resized RgbaImage
+    Detect-&gt;&gt;ImageLib: write_to(buffer, PngFormat)
+    ImageLib--&gt;&gt;Detect: Fill buffer with PNG bytes
+    Detect-&gt;&gt;UDPSocket: send_to(PNG bytes, destination)
+    Note over Detect: Image frame sent!
+</pre>
+<h2 id="code-dive-image-operations-in-object_detectionrs"><a class="header" href="#code-dive-image-operations-in-object_detectionrs">Code Dive: Image Operations in <code>object_detection.rs</code></a></h2>
+<p>Let's look at the specific code snippets within <code>src/lib/object_detection.rs</code> that perform these image operations.</p>
+<p><strong>Decoding Base64:</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Inside detect() function:
+let image_b64 = data_field["image"].as_str().unwrap_or("");
+// ... error check if image_b64 is empty ...
+
+// Decode base64
+let image_bytes = match base64::decode(image_b64) {
+    Ok(bytes) =&gt; bytes, // Success! We have the raw image bytes.
+    Err(e) =&gt; {
+        eprintln!("Error decoding base64: {:?}", e);
+        return vec![]; // Stop if decoding fails
+    }
+};
+<span class="boring">}</span></code></pre></pre>
+<p>This uses the <code>base64</code> crate's <code>decode</code> function to turn the text string into usable image data.</p>
+<p><strong>Loading the Image:</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Inside detect() function, after getting image_bytes:
+let dyn_img = match image::load_from_memory(&amp;image_bytes) {
+    Ok(img) =&gt; img, // Success! We have an image object.
+    Err(e) =&gt; {
+        eprintln!("Error decoding image: {:?}", e);
+        return vec![]; // Stop if loading fails
+    }
+};
+// Convert to RGBA format for drawing
+let mut rgba_img: RgbaImage = dyn_img.to_rgba8();
+<span class="boring">}</span></code></pre></pre>
+<p>This uses the <code>image</code> crate to load the bytes into a <code>DynamicImage</code> and then converts it to <code>RgbaImage</code> stored in <code>rgba_img</code>, ready for annotation.</p>
+<p><strong>Drawing Annotations (Example: Rectangle and Circle):</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Inside detect(), after finding the target box [x, y, w, h, ...]
+use image::{Rgba}; // Need Rgba for color definitions
+use imageproc::rect::Rect; // Need Rect for drawing rectangles
+
+// Define colors (Red, Green, Blue, Alpha)
+let green = Rgba([0, 255, 0, 255]); // Opaque green
+let red = Rgba([255, 0, 0, 255]); // Opaque red
+
+// 1) Draw a green rectangle
+let rect = Rect::at(x, y).of_size(w as u32, h as u32);
+draw_hollow_rect_mut(&amp;mut rgba_img, rect, green);
+
+// 2) Draw a filled red circle at the center (cx, cy)
+let radius = 20; // Circle size
+draw_filled_circle_mut(&amp;mut rgba_img, (cx, cy), radius, red);
+
+// (Drawing text is similar using draw_text_mut)
+<span class="boring">}</span></code></pre></pre>
+<p>These calls to functions from the <code>imageproc</code> crate modify the <code>rgba_img</code> object by drawing shapes directly onto its pixel data.</p>
+<p><strong>Resizing and Encoding to PNG:</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Inside detect(), after annotations are drawn on rgba_img:
+use image::{DynamicImage, ImageFormat};
+use std::io::Cursor; // Needed for writing to a memory buffer
+
+let mut img_buf = Vec::new(); // Create an empty buffer to hold PNG bytes
+{ // Use a block to manage the Cursor's lifetime
+    let mut cursor = Cursor::new(&amp;mut img_buf); // Point the cursor to our buffer
+    DynamicImage::ImageRgba8(rgba_img) // Wrap our image
+        .resize(180, 180, image::imageops::FilterType::Nearest) // Resize it
+        .write_to(&amp;mut cursor, ImageFormat::Png) // Encode as PNG into the buffer
+        .expect("Failed to write image to buffer");
+}
+// img_buf now contains the bytes of the resized, annotated PNG image.
+<span class="boring">}</span></code></pre></pre>
+<p>This code resizes the <code>rgba_img</code> and uses the <code>image</code> crate's <code>write_to</code> function to encode it as a PNG directly into the <code>img_buf</code> vector.</p>
+<p><strong>Sending via UDP:</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Inside detect(), after img_buf is filled with PNG bytes:
+let udp_dest = "192.168.8.194:54321"; // Target IP and port
+
+// Send the buffer content using the UDP socket created in Detection::new()
+if let Err(e) = self.udp_socket.send_to(&amp;img_buf, udp_dest) {
+    eprintln!("UDP send error: {:?}", e);
+    // Don't stop the whole program, just log the error
+}
+// The image packet has been sent (or an error logged).
+<span class="boring">}</span></code></pre></pre>
+<p>This final step takes the <code>img_buf</code> (containing the PNG data) and sends it as a single UDP packet to the specified network destination using the <code>udp_socket</code> that was set up when the <code>Detection</code> object was created.</p>
+<h2 id="conclusion"><a class="header" href="#conclusion">Conclusion</a></h2>
+<p>Congratulations! You've reached the end of this tutorial series on the core concepts of <code>SanoBlimpSoftware</code>. In this final chapter, we learned about <strong>Image Processing &amp; Streaming</strong>:</p>
+<ul>
+<li>Raw images (decoded from <strong>Base64</strong>) are loaded into memory.</li>
+<li>Libraries like <code>imageproc</code> allow us to <strong>annotate</strong> these images by drawing shapes (rectangles, circles) and text.</li>
+<li>Images are often <strong>resized</strong> to reduce data size.</li>
+<li>The processed image is <strong>encoded</strong> into a standard format like PNG.</li>
+<li>These image bytes are <strong>streamed</strong> over the network using <strong>UDP</strong> for fast, real-time viewing.</li>
+<li>This entire process happens within the <code>Detection::detect</code> method, providing both detection results and a visual feed simultaneously.</li>
+</ul>
+<p>You now have a good understanding of the key software modules that make the SanoBlimp fly:</p>
+<ul>
+<li>How it's controlled (<a href="01_blimp_control___blimp__trait____flappy__implementation_.html">Chapter 1: Blimp Control (<code>Blimp</code> Trait / <code>Flappy</code> Implementation)</a>)</li>
+<li>How software commands move the hardware (<a href="02_hardware_actuation___pcaactuator__.html">Chapter 2: Hardware Actuation (<code>PCAActuator</code>)</a>)</li>
+<li>How its behavior is tuned (<a href="03_configuration___config__.html">Chapter 3: Configuration (<code>Config</code>)</a>)</li>
+<li>How it sees targets (<a href="04_object_detection___detection__.html">Chapter 4: Object Detection (<code>Detection</code>)</a>)</li>
+<li>How it senses its own state (<a href="05_sensor_input_state__conceptual_.html">Chapter 5: Sensor Input/State (Conceptual)</a>)</li>
+<li>How its autopilot works (<a href="06_autonomous_control___autonomous__.html">Chapter 6: Autonomous Control (<code>Autonomous</code>)</a>)</li>
+<li>And how we can watch it remotely (<a href="07_image_processing___streaming.html">Chapter 7: Image Processing &amp; Streaming</a>)</li>
+</ul>
+<p>We hope this tour helps you understand, use, and contribute to the <code>SanoBlimpSoftware</code> project. Happy flying!</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="06_autonomous_control___autonomous__.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="06_autonomous_control___autonomous__.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="mermaid.min.js"></script>
+        <script src="mermaid-init.js"></script>
+
+
+    </div>
+    </body>
+</html>

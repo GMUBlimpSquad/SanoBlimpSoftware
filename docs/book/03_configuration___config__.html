@@ -1,0 +1,460 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Configuration - SanoBlimp Documentation</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="01_blimp_control___blimp__trait____flappy__implementation_.html"><strong aria-hidden="true">2.</strong> Blimp Control</a></li><li class="chapter-item expanded "><a href="02_hardware_actuation___pcaactuator__.html"><strong aria-hidden="true">3.</strong> Hardware Actuation</a></li><li class="chapter-item expanded "><a href="03_configuration___config__.html" class="active"><strong aria-hidden="true">4.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="04_object_detection___detection__.html"><strong aria-hidden="true">5.</strong> Object Detection</a></li><li class="chapter-item expanded "><a href="05_sensor_input_state__conceptual_.html"><strong aria-hidden="true">6.</strong> Sensor Input</a></li><li class="chapter-item expanded "><a href="06_autonomous_control___autonomous__.html"><strong aria-hidden="true">7.</strong> Autonomous Control</a></li><li class="chapter-item expanded "><a href="07_image_processing___streaming.html"><strong aria-hidden="true">8.</strong> Image Processing</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">SanoBlimp Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="chapter-3-configuration-config"><a class="header" href="#chapter-3-configuration-config">Chapter 3: Configuration (<code>Config</code>)</a></h1>
+<p>Welcome back! In <a href="02_hardware_actuation___pcaactuator__.html">Chapter 2: Hardware Actuation (<code>PCAActuator</code>)</a>, we learned how the <code>PCAActuator</code> takes commands from our software pilot (<code>Flappy</code>) and turns them into electrical signals to move the blimp's motors and servos.</p>
+<p>But how fast should motor 1 spin compared to motor 2? How aggressively should the blimp try to correct its course when flying autonomously? These are examples of settings or <strong>parameters</strong> that we might want to adjust frequently as we test and improve the blimp.</p>
+<p>Imagine tuning a guitar. You don't rebuild the guitar every time you need to adjust the tuning pegs! Similarly, we don't want to rewrite and recompile our entire software project just to make the blimp turn a little faster or slower.</p>
+<p>This chapter introduces the <strong>Configuration (<code>Config</code>)</strong> system – our way of keeping these adjustable settings separate from the main code, making it easy to tune the blimp's behavior.</p>
+<h2 id="why-do-we-need-configuration"><a class="header" href="#why-do-we-need-configuration">Why Do We Need Configuration?</a></h2>
+<p>Think about the settings menu on your phone or computer. You can change the screen brightness, Wi-Fi password, or notification sounds without needing to be a programmer or reinstalling the operating system.</p>
+<p>Our blimp needs a similar "settings menu". Here's why:</p>
+<ol>
+<li><strong>Easy Tuning:</strong> We often need to tweak parameters like:
+<ul>
+<li>How much power goes to each motor (maybe one motor is slightly stronger than another).</li>
+<li>How sensitive the autonomous control is (the PID controller gains we'll see in <a href="06_autonomous_control___autonomous__.html">Chapter 6: Autonomous Control (<code>Autonomous</code>)</a>).</li>
+</ul>
+</li>
+<li><strong>Adaptability:</strong> Different blimps might use slightly different hardware, or we might fly in different conditions (indoors vs. outdoors). Configuration files let us adapt without changing the core code.</li>
+<li><strong>No Recompiling:</strong> Changing a setting in a configuration file is much faster than changing the code, recompiling everything, and restarting.</li>
+</ol>
+<p><strong>Our Use Case:</strong> Let's say the blimp is flying autonomously, but it's reacting too slowly when it drifts off course. We want to increase its responsiveness by adjusting a setting called <code>kp_x</code> (a "Proportional gain" for the controller, which we'll learn more about later). Using the configuration system, we can just change a number in a text file and restart the program!</p>
+<h2 id="key-concepts"><a class="header" href="#key-concepts">Key Concepts</a></h2>
+<p>How do we make this "settings menu" work?</p>
+<h3 id="1-the-settings-file-configtoml"><a class="header" href="#1-the-settings-file-configtoml">1. The Settings File (<code>config.toml</code>)</a></h3>
+<p>We store our settings in a separate text file called <code>config.toml</code>. This file uses a simple format called <strong>TOML</strong> (Tom's Obvious, Minimal Language), which is designed to be easy for humans to read.</p>
+<p>It uses <code>key = value</code> pairs, often grouped into sections using <code>[section_name]</code>.</p>
+<p>Here's a small example of what <code>config.toml</code> might look like:</p>
+<pre><code class="language-toml"># Example config.toml
+
+[server]
+host = "0.0.0.0"
+port = 8080
+
+[motor]
+# Multipliers to adjust power scaling for each motor
+m1_mul = 1.0
+m2_mul = 1.0
+m3_mul = 0.95 # Maybe motor 3 needs slightly less power
+m4_mul = 1.0
+
+[controller]
+# Gains for the PID controller (used in autonomous mode)
+kp_x = 0.8  # Proportional gain for X-axis (sideways)
+kp_y = 0.7  # Proportional gain for Y-axis (forward/backward)
+kp_z = 1.2  # Proportional gain for Z-axis (up/down)
+kd_x = 0.1  # Derivative gain for X-axis
+kd_y = 0.1  # Derivative gain for Y-axis
+kd_z = 0.2  # Derivative gain for Z-axis
+</code></pre>
+<p>You can see settings for the network server, adjustments for individual motors (<code>m*_mul</code>), and tuning parameters (<code>kp_*</code>, <code>kd_*</code>) for the autonomous controller.</p>
+<h3 id="2-the-config-struct-in-rust"><a class="header" href="#2-the-config-struct-in-rust">2. The <code>Config</code> Struct in Rust</a></h3>
+<p>Okay, we have the settings in a file. How does our Rust code read and understand them? We define a special structure (a <code>struct</code>) in our code that exactly mirrors the structure of the <code>config.toml</code> file.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// From src/main.rs
+
+// Automatically generate code to load data into this struct
+use serde::Deserialize;
+
+// Top-level structure matching the config file
+#[derive(Deserialize, Debug)]
+struct Config {
+    motor: Motor,         // Matches the [motor] section
+    controller: Controller, // Matches the [controller] section
+    server: Server,       // Matches the [server] section
+}
+
+// Structure for the [motor] section
+#[derive(Deserialize, Debug)]
+struct Motor {
+    m1_mul: f32, // f32 means a decimal number
+    m2_mul: f32,
+    m3_mul: f32,
+    m4_mul: f32,
+}
+
+// Structure for the [controller] section
+#[derive(Deserialize, Debug)]
+struct Controller {
+    kp_x: f32,
+    kp_y: f32,
+    kp_z: f32,
+    kd_x: f32,
+    kd_y: f32,
+    kd_z: f32,
+}
+
+// Structure for the [server] section (example)
+#[derive(Deserialize, Debug)]
+struct Server {
+    host: String, // String means text
+    port: u16,    // u16 means a whole number (port number)
+}
+<span class="boring">}</span></code></pre></pre>
+<ul>
+<li>We define structs (<code>Config</code>, <code>Motor</code>, <code>Controller</code>, <code>Server</code>) whose fields match the keys in the <code>config.toml</code> file.</li>
+<li>The magic <code>#[derive(Deserialize)]</code> line uses a Rust library called <code>serde</code> to automatically generate the code needed to read data from the TOML format and fill in these structs. We don't have to write the parsing code ourselves!</li>
+<li><code>Debug</code> is added to allow printing the struct easily for debugging.</li>
+</ul>
+<h3 id="3-loading-the-configuration-read_config"><a class="header" href="#3-loading-the-configuration-read_config">3. Loading the Configuration (<code>read_config</code>)</a></h3>
+<p>We need a function that actually reads the <code>config.toml</code> file from the disk and uses <code>serde</code> to "deserialize" it (turn the text into our Rust <code>Config</code> struct).</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified from src/main.rs
+use std::fs; // File System access
+use toml; // TOML parsing library
+
+fn read_config() -&gt; Config {
+    // 1. Read the entire content of "config.toml" into a text string
+    let conf_str = fs::read_to_string("config.toml")
+        .expect("Failed to read config file"); // Crash if file not found
+
+    // 2. Parse the text string using the TOML library,
+    //    filling a 'Config' struct.
+    let config: Config = toml::from_str(&amp;conf_str)
+        .expect("Failed to parse config file"); // Crash if format is wrong
+
+    // 3. Return the filled 'Config' struct
+    config
+}
+<span class="boring">}</span></code></pre></pre>
+<p>This simple function does two main things:</p>
+<ol>
+<li>Reads the text content of <code>config.toml</code>.</li>
+<li>Uses <code>toml::from_str</code> (powered by <code>serde</code>) to automatically parse that text and create a <code>Config</code> object filled with the values from the file.</li>
+</ol>
+<h2 id="how-we-use-the-configuration"><a class="header" href="#how-we-use-the-configuration">How We Use the Configuration</a></h2>
+<p>Now let's see how the main program uses this.</p>
+<ol>
+<li>
+<p><strong>Read at Startup:</strong> When the program starts, the first thing it does is load the configuration.</p>
+<pre><pre class="playground"><code class="language-rust">// From src/main.rs
+#[tokio::main]
+async fn main() {
+    // Load all settings from config.toml into the 'conf' variable
+    let conf = read_config();
+    println!("Loaded configuration: {:?}", conf); // Print for debugging
+
+    // ... rest of the setup ...
+}</code></pre></pre>
+<p>The <code>conf</code> variable now holds all the settings loaded from the file.</p>
+</li>
+<li>
+<p><strong>Pass Settings to Components:</strong> We then use the values stored in <code>conf</code> when creating other parts of our system. For example, when setting up the autonomous controller:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// From src/main.rs (inside main function, after reading conf)
+use lib::autonomous::Autonomous;
+
+// Create the autonomous controller
+let mut auto = Autonomous::new(
+    // Pass the PID gains directly from the loaded config!
+    conf.controller.kp_x,
+    conf.controller.kp_y,
+    conf.controller.kp_z,
+    conf.controller.kd_x,
+    conf.controller.kd_y,
+    conf.controller.kd_z,
+    0.0, // Another parameter (perhaps Ki, set to 0 here)
+);
+
+// Use motor multipliers (Example - actual use might be inside Flappy or PCAActuator)
+// let motor_1_power = raw_motor_power * conf.motor.m1_mul;
+
+// ... rest of the program loop ...
+<span class="boring">}</span></code></pre></pre>
+<p>Notice how we access the values using <code>conf.controller.kp_x</code>, <code>conf.motor.m1_mul</code>, etc. This directly uses the settings loaded from <code>config.toml</code>.</p>
+</li>
+</ol>
+<p><strong>Tuning Example:</strong></p>
+<p>Remember our use case? The blimp reacts too slowly. We think <code>kp_x</code> (sideways responsiveness) is too low.</p>
+<ol>
+<li>Open <code>config.toml</code> in a text editor.</li>
+<li>Find the line <code>kp_x = 0.8</code> under <code>[controller]</code>.</li>
+<li>Change it to <code>kp_x = 1.1</code> (or some other value).</li>
+<li>Save the <code>config.toml</code> file.</li>
+<li>Stop the blimp software (if it's running).</li>
+<li>Restart the blimp software.</li>
+</ol>
+<p>Now, when <code>read_config()</code> runs, it will load <code>1.1</code> into <code>conf.controller.kp_x</code>. When the <code>Autonomous</code> controller is created, it will receive this new, higher value, making the blimp react more aggressively to sideways movement. We successfully tuned the blimp without touching the main Rust code!</p>
+<h2 id="under-the-hood-the-loading-process"><a class="header" href="#under-the-hood-the-loading-process">Under the Hood: The Loading Process</a></h2>
+<p>Let's visualize the step-by-step process when <code>read_config()</code> is called:</p>
+<pre class="mermaid">sequenceDiagram
+    participant Main as main() function
+    participant ReadConfig as read_config()
+    participant FileSys as File System
+    participant TomlLib as TOML Library (serde)
+    participant ConfigStruct as Config Struct
+
+    Main-&gt;&gt;ReadConfig: Call read_config()
+    ReadConfig-&gt;&gt;FileSys: Ask to read &quot;config.toml&quot;
+    FileSys--&gt;&gt;ReadConfig: Return file content (text)
+    ReadConfig-&gt;&gt;TomlLib: Parse this text using Config structure
+    TomlLib--&gt;&gt;ConfigStruct: Create and fill Config struct instance
+    ConfigStruct--&gt;&gt;ReadConfig: Return filled struct
+    ReadConfig--&gt;&gt;Main: Return the Config struct instance
+</pre>
+<ol>
+<li><code>main()</code> calls <code>read_config()</code>.</li>
+<li><code>read_config()</code> asks the operating system's <strong>File System</strong> to read the contents of <code>config.toml</code>.</li>
+<li>The File System provides the text content.</li>
+<li><code>read_config()</code> passes this text to the <strong>TOML Library</strong> (specifically <code>toml::from_str</code>, which uses <code>serde</code>). It tells the library to try and fit this text into the shape defined by our <code>Config</code> struct.</li>
+<li>The TOML library parses the text, identifies the <code>[sections]</code> and <code>key = value</code> pairs, and creates a new <strong><code>Config</code> Struct</strong> instance, filling its fields (<code>motor</code>, <code>controller</code>, <code>server</code>, and their sub-fields) with the corresponding values.</li>
+<li>The filled <code>Config</code> struct is returned to <code>read_config()</code>, which then returns it to <code>main()</code>.</li>
+</ol>
+<p>The key players are the file system access (<code>std::fs</code>) and the TOML parsing library (<code>toml</code> powered by <code>serde</code>), which handle the translation from a text file to a usable Rust data structure.</p>
+<h2 id="conclusion"><a class="header" href="#conclusion">Conclusion</a></h2>
+<p>We've learned about the crucial role of the <strong>Configuration (<code>Config</code>)</strong> system in <code>SanoBlimpSoftware</code>.</p>
+<ul>
+<li>It allows us to define adjustable <strong>settings</strong> (like motor multipliers and controller gains) in an external file (<code>config.toml</code>).</li>
+<li>This makes it easy to <strong>tune</strong> the blimp's behavior without recompiling the code.</li>
+<li>We use Rust <strong>structs</strong> (like <code>Config</code>, <code>Motor</code>, <code>Controller</code>) that mirror the <code>.toml</code> file structure.</li>
+<li>The <code>serde</code> and <code>toml</code> libraries handle the <strong>loading and parsing</strong> of the configuration file into these structs.</li>
+<li>The main program reads this configuration at <strong>startup</strong> and uses the values to initialize components like the <code>Autonomous</code> controller.</li>
+</ul>
+<p>Now that we understand how to control the blimp (<a href="01_blimp_control___blimp__trait____flappy__implementation_.html">Chapter 1</a>), actuate its hardware (<a href="02_hardware_actuation___pcaactuator__.html">Chapter 2</a>), and configure its parameters (<a href="03_configuration___config__.html">Chapter 3</a>), how does the blimp actually <em>see</em> the world around it, especially when flying autonomously?</p>
+<p>In the next chapter, we'll explore how the blimp detects objects using its camera. Let's move on to <a href="04_object_detection___detection__.html">Chapter 4: Object Detection (<code>Detection</code>)</a>!</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="02_hardware_actuation___pcaactuator__.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="04_object_detection___detection__.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="02_hardware_actuation___pcaactuator__.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="04_object_detection___detection__.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="mermaid.min.js"></script>
+        <script src="mermaid-init.js"></script>
+
+
+    </div>
+    </body>
+</html>

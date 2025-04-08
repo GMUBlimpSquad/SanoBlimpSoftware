@@ -1,0 +1,482 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Sensor Input - SanoBlimp Documentation</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="01_blimp_control___blimp__trait____flappy__implementation_.html"><strong aria-hidden="true">2.</strong> Blimp Control</a></li><li class="chapter-item expanded "><a href="02_hardware_actuation___pcaactuator__.html"><strong aria-hidden="true">3.</strong> Hardware Actuation</a></li><li class="chapter-item expanded "><a href="03_configuration___config__.html"><strong aria-hidden="true">4.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="04_object_detection___detection__.html"><strong aria-hidden="true">5.</strong> Object Detection</a></li><li class="chapter-item expanded "><a href="05_sensor_input_state__conceptual_.html" class="active"><strong aria-hidden="true">6.</strong> Sensor Input</a></li><li class="chapter-item expanded "><a href="06_autonomous_control___autonomous__.html"><strong aria-hidden="true">7.</strong> Autonomous Control</a></li><li class="chapter-item expanded "><a href="07_image_processing___streaming.html"><strong aria-hidden="true">8.</strong> Image Processing</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">SanoBlimp Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="chapter-5-sensor-inputstate-conceptual"><a class="header" href="#chapter-5-sensor-inputstate-conceptual">Chapter 5: Sensor Input/State (Conceptual)</a></h1>
+<p>Welcome back! In <a href="04_object_detection___detection__.html">Chapter 4: Object Detection (<code>Detection</code>)</a>, we gave our blimp "eyes" to see the world around it, allowing it to find specific objects like markers.</p>
+<p>But just seeing isn't enough for stable flight. Imagine trying to walk with your eyes open, but completely losing your sense of balance or whether you're going uphill or downhill. You'd stumble and fall! Our blimp needs a sense of its own <strong>state</strong> – its orientation (which way is up?) and its altitude (how high is it?).</p>
+<p>This chapter explores the concept of <strong>Sensor Input/State</strong>. Unlike previous chapters focusing on specific code structures like <code>Flappy</code> or <code>PCAActuator</code>, this is more about <em>how the blimp perceives itself</em> using various sensors. We'll look at examples using common sensors: an IMU for balance and a pressure sensor for height. This self-awareness is absolutely vital for the blimp to fly smoothly and navigate autonomously using the logic in <a href="06_autonomous_control___autonomous__.html">Chapter 6: Autonomous Control (<code>Autonomous</code>)</a>.</p>
+<p><strong>Our Use Case:</strong> Imagine the blimp needs to fly autonomously towards the marker it detected in Chapter 4, but it must stay perfectly level and maintain a constant height of 2 meters above the ground while doing so. It needs sensors to constantly check: "Am I tilted?" and "Am I at the right height?".</p>
+<h2 id="key-concepts"><a class="header" href="#key-concepts">Key Concepts</a></h2>
+<p>Let's break down how the blimp achieves this self-awareness.</p>
+<h3 id="1-self-awareness-the-blimps-inner-senses"><a class="header" href="#1-self-awareness-the-blimps-inner-senses">1. Self-Awareness: The Blimp's Inner Senses</a></h3>
+<p>Humans have an inner ear for balance and a sense of our body's position. Our blimp needs similar "inner senses" provided by electronic sensors. This information tells the control system (especially the autonomous part) about the blimp's current condition, allowing it to make corrections.</p>
+<h3 id="2-orientation-the-inner-ear-the-imu-bno055"><a class="header" href="#2-orientation-the-inner-ear-the-imu-bno055">2. Orientation (The Inner Ear): The IMU (BNO055)</a></h3>
+<ul>
+<li><strong>What is it?</strong> An <strong>IMU (Inertial Measurement Unit)</strong> is a small chip packed with sensors (like accelerometers and gyroscopes) that can figure out its orientation in 3D space. Think of it as the blimp's electronic inner ear, responsible for its sense of balance. The BNO055 is a popular IMU chip that even does some clever calculations onboard (sensor fusion) to give a stable orientation reading.</li>
+<li><strong>What does it measure?</strong> It tells us how the blimp is tilted:
+<ul>
+<li><strong>Roll:</strong> Tilting side to side (like an airplane banking).</li>
+<li><strong>Pitch:</strong> Tilting nose up or nose down.</li>
+<li><strong>Yaw:</strong> Turning left or right.</li>
+</ul>
+</li>
+<li><strong>How is the data represented?</strong> Orientation can be represented as:
+<ul>
+<li><strong>Euler Angles:</strong> Three angles (roll, pitch, yaw), often in degrees. Simple to understand, but can have mathematical quirks (gimbal lock).</li>
+<li><strong>Quaternions:</strong> A more complex, 4-number representation. Mathematically more robust and often preferred for calculations, avoiding gimbal lock.</li>
+</ul>
+</li>
+<li><strong>Why is it important?</strong> The autonomous controller needs to know if the blimp is level or tilted to make corrections. If the blimp is supposed to fly straight but the IMU says it's rolling to the right, the controller knows it needs to apply counter-thrust or adjust control surfaces.</li>
+</ul>
+<h3 id="3-altitude-the-sense-of-height-the-pressure-sensor-bme280"><a class="header" href="#3-altitude-the-sense-of-height-the-pressure-sensor-bme280">3. Altitude (The Sense of Height): The Pressure Sensor (BME280)</a></h3>
+<ul>
+<li><strong>What is it?</strong> A <strong>barometric pressure sensor</strong> measures air pressure. Since air pressure generally decreases as you go higher, we can use this measurement to estimate altitude. The BME280 is a common sensor that measures pressure, temperature, and humidity.</li>
+<li><strong>How does it work?</strong> It detects the tiny changes in air pressure. By comparing the current pressure to a known reference pressure (like the pressure at ground level), we can calculate the approximate height difference.</li>
+<li><strong>Why is it important?</strong> For tasks like maintaining a specific flying height, hovering above a target, or landing gently, the blimp needs to know its altitude. The pressure sensor provides this crucial piece of information.</li>
+</ul>
+<h3 id="4-data-for-control"><a class="header" href="#4-data-for-control">4. Data for Control</a></h3>
+<p>The raw data from these sensors (like quaternion values from the IMU or pressure readings in Pascals from the BME280) isn't usually used <em>directly</em> to set motor speeds. It needs to be processed and interpreted, often by the <a href="06_autonomous_control___autonomous__.html">Autonomous Control (<code>Autonomous</code>)</a> logic.</p>
+<ul>
+<li>The <strong>IMU data</strong> helps calculate orientation errors (e.g., "I'm tilted 5 degrees left, but I should be level").</li>
+<li>The <strong>pressure data</strong> is converted into an altitude reading, which is then compared to the desired altitude to find the height error (e.g., "I'm at 1.8 meters, but I should be at 2.0 meters").</li>
+</ul>
+<p>These calculated <em>errors</em> are what the autonomous controller uses to decide how to adjust the motors and servos via the <a href="01_blimp_control___blimp__trait____flappy__implementation_.html">Blimp Control (<code>Blimp</code> Trait / <code>Flappy</code> Implementation)</a> and <a href="02_hardware_actuation___pcaactuator__.html">Hardware Actuation (<code>PCAActuator</code>)</a>.</p>
+<h2 id="how-we-use-sensor-data-conceptually"><a class="header" href="#how-we-use-sensor-data-conceptually">How We Use Sensor Data (Conceptually)</a></h2>
+<p>Integrating sensor data usually involves these steps within the main program loop:</p>
+<ol>
+<li><strong>Initialize Sensors:</strong> When the software starts, initialize the connection to each sensor (often over an I2C bus). This might involve setting the sensor's mode or performing initial calibration.</li>
+<li><strong>Read Sensors Periodically:</strong> Inside the main loop, regularly ask each sensor for its latest reading.</li>
+<li><strong>Process Data:</strong> Convert raw sensor readings into useful information (e.g., pressure to altitude, quaternion to understandable angles if needed).</li>
+<li><strong>Feed to Controller:</strong> Pass this state information (orientation, altitude) to the <code>Autonomous</code> controller.</li>
+<li><strong>Calculate Corrections:</strong> The <code>Autonomous</code> controller uses this state information, along with target information (like desired heading or altitude), to calculate the necessary adjustments.</li>
+<li><strong>Actuate:</strong> The calculated adjustments are sent to the motors/servos.</li>
+</ol>
+<p>Here's how it might look conceptually in the main loop:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// --- Conceptual Main Loop ---
+loop {
+    // --- Read Sensors ---
+    // Get orientation data (e.g., as a Quaternion) from the IMU
+    let current_orientation = read_imu_orientation(); // Hypothetical function
+
+    // Get pressure data from the pressure sensor
+    let current_pressure = read_pressure_sensor(); // Hypothetical function
+    // Convert pressure to altitude relative to ground
+    let current_altitude = pressure_to_altitude(current_pressure, ground_pressure);
+
+    // --- Object Detection (from Chapter 4) ---
+    let target_coords = detection.detect(target_classes);
+
+    // --- Control Logic ---
+    if blimp.is_manual() {
+        // Manual control based on joystick
+        blimp.update(); // Read joystick
+        blimp.manual(); // Mix and Actuate
+    } else {
+        // Autonomous Control
+        // Combine sensor state and detection results
+        let autonomous_input = auto.calculate_commands(
+            current_orientation,
+            current_altitude,
+            target_coords,
+            desired_altitude, // e.g., 2.0 meters
+            // ... other goal parameters ...
+        ); // Hypothetical function in Autonomous controller
+
+        // Send commands to blimp
+        blimp.update_input(autonomous_input);
+        let actuations = blimp.mix();
+        blimp.actuator.actuate(actuations);
+    }
+
+    // --- Delay ---
+    // sleep(Duration::from_millis(20)); // Loop delay
+}
+<span class="boring">}</span></code></pre></pre>
+<p>This pseudo-code shows the flow: read sensors, get detection results, and then, in autonomous mode, feed <em>all</em> this information into the <code>Autonomous</code> controller (<code>auto.calculate_commands(...)</code>) to figure out the next move.</p>
+<h2 id="under-the-hood-talking-to-sensors"><a class="header" href="#under-the-hood-talking-to-sensors">Under the Hood: Talking to Sensors</a></h2>
+<p>How does the code <em>actually</em> get data from a BNO055 or BME280 chip? These sensors typically communicate using a protocol called <strong>I2C</strong> (Inter-Integrated Circuit). This is a simple two-wire bus that allows the main computer (like the Raspberry Pi) to talk to multiple peripheral devices (like our sensors).</p>
+<p>Luckily, we don't usually need to handle the low-level I2C signal details ourselves. We use <strong>libraries</strong> (often called "drivers" or "HAL crates" in Rust) that provide a much friendlier interface.</p>
+<p>Let's look at simplified examples based on the code provided earlier, showing how these libraries make it easier.</p>
+<h3 id="example-interfacing-with-bme280-pressurealtitude"><a class="header" href="#example-interfacing-with-bme280-pressurealtitude">Example: Interfacing with BME280 (Pressure/Altitude)</a></h3>
+<p>The <code>bme280-rs</code> library helps us talk to the BME280 sensor.</p>
+<ol>
+<li>
+<p><strong>Initialization:</strong> We need to tell the library which I2C bus the sensor is on and its address.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified from example/bme.rs
+use bme280::i2c::BME280;
+use linux_embedded_hal::{Delay, I2cdev}; // For I2C and delay
+
+// Tell it which I2C bus (e.g., /dev/i2c-1 on Raspberry Pi)
+let i2c_bus = I2cdev::new("/dev/i2c-1").unwrap();
+// Create a delay provider (some sensors need short pauses)
+let mut delay = Delay;
+
+// Create the sensor object using its default I2C address
+let mut bme280 = BME280::new_primary(i2c_bus);
+
+// Initialize the sensor hardware
+bme280.init(&amp;mut delay).unwrap();
+<span class="boring">}</span></code></pre></pre>
+<p>This code sets up the communication channel and performs any necessary startup configuration on the sensor chip itself.</p>
+</li>
+<li>
+<p><strong>Reading Data:</strong> Once initialized, reading the sensor is straightforward.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified from example/bme.rs
+// Inside a loop...
+// Ask the sensor for the latest measurements
+let measurements = bme280.measure(&amp;mut delay).unwrap();
+
+// Extract the pressure reading
+let pressure_pascals = measurements.pressure;
+
+// (You would then convert pressure_pascals to altitude)
+println!("Pressure = {} pascals", pressure_pascals);
+<span class="boring">}</span></code></pre></pre>
+<p>Calling <code>bme280.measure()</code> triggers the sensor to take readings and return them in a convenient <code>measurements</code> struct.</p>
+</li>
+</ol>
+<h3 id="example-interfacing-with-bno055-imuorientation"><a class="header" href="#example-interfacing-with-bno055-imuorientation">Example: Interfacing with BNO055 (IMU/Orientation)</a></h3>
+<p>Similarly, the <code>bno055</code> crate simplifies interaction with the BNO055 IMU.</p>
+<ol>
+<li>
+<p><strong>Initialization:</strong> Set up I2C communication and configure the IMU's operating mode. The <code>NDOF</code> mode is often best, as it uses all onboard sensors for fused, stable orientation data.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified from example/bno055.rs
+use bno055::{BNO055OperationMode, Bno055};
+use linux_embedded_hal::{Delay, I2cdev};
+
+let dev = I2cdev::new("/dev/i2c-1").unwrap();
+let mut delay = Delay {};
+
+// Create the IMU object
+let mut imu = Bno055::new(dev);
+imu.init(&amp;mut delay).expect("IMU init failed");
+
+// Set the operating mode (NDOF is fusion mode)
+imu.set_mode(BNO055OperationMode::NDOF, &amp;mut delay)
+    .expect("IMU mode set failed");
+
+// (Optional but recommended: Wait for calibration)
+println!("Calibrating IMU...");
+// while !imu.is_fully_calibrated().unwrap() { /* wait */ }
+println!("IMU calibrated!");
+<span class="boring">}</span></code></pre></pre>
+<p>This gets the IMU ready and sets it to the desired mode. Calibration is often needed for best accuracy.</p>
+</li>
+<li>
+<p><strong>Reading Data:</strong> Reading orientation is then a simple function call. Quaternions are generally recommended for calculations.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified from example/bno055.rs
+use mint::Quaternion; // A standard way to represent quaternions
+
+// Inside a loop...
+let mut orientation_quat: Quaternion&lt;f32&gt;;
+
+match imu.quaternion() {
+    Ok(quat_reading) =&gt; {
+        orientation_quat = quat_reading;
+        println!("IMU Quaternion: {:?}", orientation_quat);
+        // Use orientation_quat in the Autonomous controller
+    }
+    Err(e) =&gt; {
+        eprintln!("Error reading IMU: {:?}", e);
+        // Handle error (e.g., use last known value)
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<p>Calling <code>imu.quaternion()</code> fetches the latest orientation reading directly from the sensor's fusion algorithm.</p>
+</li>
+</ol>
+<p>These examples show that while the underlying communication (I2C) and sensor details can be complex, well-designed libraries provide a much simpler way to get the crucial state information we need.</p>
+<pre class="mermaid">flowchart TD
+    A[Main Loop] --&gt; B{Read IMU?};
+    B -- Yes --&gt; C[IMU Library (e.g., `bno055`)];
+    C --&gt; D[I2C Communication];
+    D --&gt; E[BNO055 Chip];
+    E --&gt; D;
+    D --&gt; C;
+    C --&gt; F[Get Orientation (Quaternion)];
+    F --&gt; A;
+
+    A --&gt; G{Read Pressure Sensor?};
+    G -- Yes --&gt; H[Pressure Sensor Library (e.g., `bme280-rs`)];
+    H --&gt; I[I2C Communication];
+    I --&gt; J[BME280 Chip];
+    J --&gt; I;
+    I --&gt; H;
+    H --&gt; K[Get Pressure (Pascals)];
+    K --&gt; L[Convert Pressure to Altitude];
+    L --&gt; A;
+
+    A --&gt; M{Use Data in Autonomous?};
+    M -- Yes --&gt; N[Autonomous Controller];
+    F --&gt; N;
+    L --&gt; N;
+    N --&gt; O[Calculate Corrections];
+    O --&gt; P[Blimp Control Logic];
+    P --&gt; Q[Hardware Actuation];
+    Q --&gt; R[Motors/Servos Move];
+    R --&gt; A;
+</pre>
+<p>This diagram shows the conceptual flow: the main loop uses libraries to read sensors via I2C, processes the data (like converting pressure to altitude), and feeds the resulting state (orientation, altitude) to the autonomous controller, which then computes corrections to control the blimp.</p>
+<h2 id="conclusion"><a class="header" href="#conclusion">Conclusion</a></h2>
+<p>We've explored the crucial concept of <strong>Sensor Input/State</strong> – how the blimp perceives its own condition in the world.</p>
+<ul>
+<li>The blimp needs <strong>self-awareness</strong> (orientation and altitude) for stable and autonomous flight.</li>
+<li>An <strong>IMU</strong> (like the BNO055) acts as the "inner ear," providing <strong>orientation</strong> data (roll, pitch, yaw), often as robust quaternions.</li>
+<li>A <strong>pressure sensor</strong> (like the BME280) acts as a "sense of height," allowing <strong>altitude</strong> estimation.</li>
+<li>This sensor data is read periodically using hardware interface libraries (often abstracting <strong>I2C</strong> communication).</li>
+<li>The processed state information (current orientation, current altitude) is essential input for the <a href="06_autonomous_control___autonomous__.html">Autonomous Control (<code>Autonomous</code>)</a> system.</li>
+</ul>
+<p>Now that we understand how the blimp knows <em>where it is</em> and <em>how it's oriented</em>, how does it use this information, along with data from its "eyes" (<a href="04_object_detection___detection__.html">Chapter 4: Object Detection (<code>Detection</code>)</a>), to make intelligent decisions about where to go next?</p>
+<p>In the next chapter, we'll finally dive into the brain of the autonomous flight system! Let's move on to <a href="06_autonomous_control___autonomous__.html">Chapter 6: Autonomous Control (<code>Autonomous</code>)</a>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="04_object_detection___detection__.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="06_autonomous_control___autonomous__.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="04_object_detection___detection__.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="06_autonomous_control___autonomous__.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="mermaid.min.js"></script>
+        <script src="mermaid-init.js"></script>
+
+
+    </div>
+    </body>
+</html>

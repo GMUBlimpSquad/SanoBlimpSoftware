@@ -1,0 +1,500 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Blimp Control - SanoBlimp Documentation</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="01_blimp_control___blimp__trait____flappy__implementation_.html" class="active"><strong aria-hidden="true">2.</strong> Blimp Control</a></li><li class="chapter-item expanded "><a href="02_hardware_actuation___pcaactuator__.html"><strong aria-hidden="true">3.</strong> Hardware Actuation</a></li><li class="chapter-item expanded "><a href="03_configuration___config__.html"><strong aria-hidden="true">4.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="04_object_detection___detection__.html"><strong aria-hidden="true">5.</strong> Object Detection</a></li><li class="chapter-item expanded "><a href="05_sensor_input_state__conceptual_.html"><strong aria-hidden="true">6.</strong> Sensor Input</a></li><li class="chapter-item expanded "><a href="06_autonomous_control___autonomous__.html"><strong aria-hidden="true">7.</strong> Autonomous Control</a></li><li class="chapter-item expanded "><a href="07_image_processing___streaming.html"><strong aria-hidden="true">8.</strong> Image Processing</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">SanoBlimp Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="chapter-1-blimp-control-blimp-trait--flappy-implementation"><a class="header" href="#chapter-1-blimp-control-blimp-trait--flappy-implementation">Chapter 1: Blimp Control (<code>Blimp</code> Trait / <code>Flappy</code> Implementation)</a></h1>
+<p>Welcome to the SanoBlimpSoftware project! This is the first step in understanding how our blimp thinks and moves.</p>
+<p>Imagine you have a remote-controlled blimp. How does it know whether to go forward when you push the joystick, or how to fly on its own to a specific target? We need a "brain" or a "pilot" inside the software to handle these decisions. That's exactly what this chapter is about!</p>
+<p>We'll explore the core control system of the blimp. Think of it like the <strong>driver of a car</strong>. The driver takes input:</p>
+<ul>
+<li>From you turning the steering wheel and pressing pedals (Manual Control).</li>
+<li>Or, from a self-driving computer system (Autonomous Control).</li>
+</ul>
+<p>Based on this input, the driver decides exactly how much gas, brake, or steering to apply to make the car move. Our blimp's software pilot does the same thing for its motors and control surfaces.</p>
+<p>In our project, this "driver" concept is defined by a set of rules called the <code>Blimp</code> <strong>trait</strong>, and we have a specific driver implementation called <code>Flappy</code>.</p>
+<h2 id="key-concepts"><a class="header" href="#key-concepts">Key Concepts</a></h2>
+<p>Let's break down the main ideas:</p>
+<h3 id="1-the-blimp-trait-the-rulebook"><a class="header" href="#1-the-blimp-trait-the-rulebook">1. The <code>Blimp</code> Trait (The Rulebook)</a></h3>
+<p>In Rust (the programming language we're using), a <strong>trait</strong> is like a blueprint or a contract. It defines a set of actions or capabilities that <em>any</em> blimp controller <em>must</em> have. It doesn't say <em>how</em> to do those actions, just <em>what</em> actions must be supported.</p>
+<p>Think of it like the basic requirements for being a "driver": a driver must be able to <code>steer</code>, <code>accelerate</code>, and <code>brake</code>. The <code>Blimp</code> trait defines similar core actions for our software pilot:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified view from src/lib/blimp.rs
+pub trait Blimp {
+    // Update internal state, like reading controller input
+    fn update(&amp;mut self);
+
+    // Calculate motor/servo commands based on current input
+    fn mix(&amp;mut self) -&gt; Actuations; // Returns motor/servo settings
+
+    // Allow autonomous system to provide input
+    fn update_input(&amp;mut self, input: (f32, f32, f32));
+}
+<span class="boring">}</span></code></pre></pre>
+<ul>
+<li><code>update()</code>: This function is like the driver checking their surroundings or listening for commands. It's used to refresh the controller's state, often by reading the latest joystick inputs.</li>
+<li><code>mix()</code>: This is where the main decision-making happens. It takes the desired movement (e.g., "go forward", "turn left", "go up") and "mixes" these commands into specific instructions for each motor or servo on the blimp. It returns an <code>Actuations</code> value, which holds all these specific instructions.</li>
+<li><code>update_input()</code>: This allows an <em>external</em> system (like our autonomous flight computer) to tell the blimp what to do, instead of relying on the joystick.</li>
+</ul>
+<p>Any code that wants to act as the blimp's main controller <em>must</em> provide these three functions.</p>
+<h3 id="2-the-flappy-implementation-a-specific-driver"><a class="header" href="#2-the-flappy-implementation-a-specific-driver">2. The <code>Flappy</code> Implementation (A Specific Driver)</a></h3>
+<p>While the <code>Blimp</code> trait is the rulebook, <code>Flappy</code> is a <em>specific</em> implementation – it's <em>one way</em> to follow those rules. We could have other implementations later (like <code>SanoBlimp</code> which is also in the code, or maybe <code>SuperStableBlimp</code>), but <code>Flappy</code> is one concrete "driver" we can use.</p>
+<p>The name <code>Flappy</code> might suggest it's designed for a blimp that uses flapping mechanisms for propulsion or control, but the key takeaway is that it <em>implements the <code>Blimp</code> trait</em>.</p>
+<p>Here's a peek at its structure (simplified):</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified view from src/lib/blimp.rs
+pub struct Flappy {
+    // Stores current desired movement (e.g., from joystick)
+    input: (f32, f32, f32), // (forward/backward, turn, up/down)
+
+    // Interface for reading joystick input
+    gilrs: Gilrs, // Gamepad Input Library
+
+    // Connection to the hardware controller
+    pub actuator: PCAActuator, // We'll cover this next!
+
+    // Is the blimp being flown manually or autonomously?
+    manual: bool,
+}
+<span class="boring">}</span></code></pre></pre>
+<p><code>Flappy</code> keeps track of:</p>
+<ul>
+<li><code>input</code>: The desired movement commands (like forward speed, turning speed, up/down speed).</li>
+<li><code>gilrs</code>: A library to read inputs from a physical gamepad/joystick.</li>
+<li><code>actuator</code>: The component that <em>actually</em> sends signals to the motors and servos. We'll learn about this in <a href="02_hardware_actuation___pcaactuator__.html">Chapter 2: Hardware Actuation (<code>PCAActuator</code>)</a>.</li>
+<li><code>manual</code>: A simple flag (<code>true</code> or <code>false</code>) to know if we should listen to the joystick (<code>true</code>) or the autonomous system (<code>false</code>).</li>
+</ul>
+<h3 id="3-input-where-do-commands-come-from"><a class="header" href="#3-input-where-do-commands-come-from">3. Input: Where do commands come from?</a></h3>
+<p>The blimp needs instructions! These can come from:</p>
+<ul>
+<li><strong>Manual Control:</strong> A human using a gamepad or joystick. The <code>Flappy</code> structure uses the <code>gilrs</code> library to listen for button presses and joystick movements.</li>
+<li><strong>Autonomous Control:</strong> A separate piece of software that calculates where the blimp should go based on sensors or mission goals. This system uses the <code>update_input</code> function to feed commands to <code>Flappy</code>. We'll explore this more in <a href="06_autonomous_control___autonomous__.html">Chapter 6: Autonomous Control (<code>Autonomous</code>)</a>.</li>
+</ul>
+<h3 id="4-mixing-from-desire-to-action"><a class="header" href="#4-mixing-from-desire-to-action">4. Mixing: From Desire to Action</a></h3>
+<p>The <code>mix()</code> function is crucial. It translates high-level desires like "go forward fast" or "turn sharp left" into low-level commands like "set motor 1 to 70% power", "set motor 2 to 50% power", "angle servo 3 to 45 degrees".</p>
+<p>Different blimp designs will need different mixing logic. A blimp with propellers might mix inputs differently than one with flapping wings (like <code>Flappy</code> might be intended for).</p>
+<h3 id="5-manual-vs-autonomous-mode"><a class="header" href="#5-manual-vs-autonomous-mode">5. Manual vs. Autonomous Mode</a></h3>
+<p>Our blimp needs to switch between being flown by a person and flying itself. <code>Flappy</code> handles this with the <code>manual</code> flag. Typically, a specific button on the controller (like the 'Start' button) is used to toggle this flag. The main program loop checks this flag to decide whether to use joystick input or commands from the autonomous system.</p>
+<h2 id="how-we-use-flappy"><a class="header" href="#how-we-use-flappy">How We Use <code>Flappy</code></a></h2>
+<p>Let's look at how the main program (<code>src/main.rs</code>) uses the <code>Flappy</code> controller.</p>
+<ol>
+<li>
+<p><strong>Create the Controller:</strong>
+First, we create an instance of our <code>Flappy</code> driver.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// From src/main.rs
+use lib::blimp::{self, Blimp}; // Import necessary items
+
+// Create a new Flappy controller instance
+let mut blimp = blimp::Flappy::new();
+<span class="boring">}</span></code></pre></pre>
+<p>This sets up <code>Flappy</code> with its initial state, ready to control the blimp, likely starting in manual mode.</p>
+</li>
+<li>
+<p><strong>The Main Loop:</strong>
+The program then enters a continuous loop, repeatedly checking inputs and updating the blimp.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Simplified loop from src/main.rs
+loop {
+    // 1. Check for new joystick/gamepad input
+    blimp.update();
+
+    // 2. Check if we are in manual mode
+    if blimp.is_manual() {
+        // 3a. Manual Control: Mix joystick input and actuate
+        blimp.manual(); // Internally calls mix() then actuator.actuate()
+
+    } else {
+        // 3b. Autonomous Control
+        // (Simplified - Get autonomous command)
+        let auto_input = calculate_autonomous_command(); // e.g., (0.5, 0.0, 0.1)
+
+        // Send command to the blimp controller
+        blimp.update_input(auto_input);
+
+        // Mix the autonomous input and actuate
+        let actuations = blimp.mix();
+        blimp.actuator.actuate(actuations);
+    }
+
+    // (Small delay usually happens here)
+}
+<span class="boring">}</span></code></pre></pre>
+<ul>
+<li><code>blimp.update()</code>: Reads the latest joystick events via <code>gilrs</code>.</li>
+<li><code>blimp.is_manual()</code>: Checks the <code>manual</code> flag.</li>
+<li>If <code>manual</code>: It calls <code>blimp.manual()</code>, a helper function in <code>Flappy</code> that internally calls <code>mix()</code> to get motor commands based on the joystick input stored in <code>self.input</code>, and then sends these commands to the hardware using <code>actuator.actuate()</code>.</li>
+<li>If <em>not</em> <code>manual</code> (autonomous): The code gets commands from the autonomous system (we'll cover this in <a href="06_autonomous_control___autonomous__.html">Chapter 6</a>), uses <code>blimp.update_input(...)</code> to feed these commands into <code>Flappy</code>, then calls <code>blimp.mix()</code> to translate these commands into motor/servo settings, and finally <code>blimp.actuator.actuate(...)</code> to send them to the hardware.</li>
+</ul>
+</li>
+</ol>
+<p>This loop continuously pilots the blimp based on the selected control mode.</p>
+<h2 id="under-the-hood-how-flappy-works"><a class="header" href="#under-the-hood-how-flappy-works">Under the Hood: How <code>Flappy</code> Works</a></h2>
+<p>Let's trace the flow for <strong>Manual Control</strong>:</p>
+<ol>
+<li><strong>You move the joystick.</strong></li>
+<li>The <code>gilrs</code> library detects this physical movement as an event.</li>
+<li>Inside the main loop, <code>blimp.update()</code> is called. <code>Flappy</code>'s <code>update</code> function checks <code>gilrs</code> for new events.</li>
+<li><code>Flappy</code> sees the joystick event and updates its internal <code>self.input</code> variable (e.g., <code>self.input = (0.8, 0.2, 0.0)</code> meaning "go forward quite fast and turn slightly right").</li>
+<li>The loop checks <code>blimp.is_manual()</code> which returns <code>true</code>.</li>
+<li><code>blimp.manual()</code> is called.</li>
+<li>Inside <code>manual()</code>, <code>self.mix()</code> is called.</li>
+<li>The <code>mix()</code> function reads <code>self.input</code> (the <code>(0.8, 0.2, 0.0)</code> we stored). It performs calculations based on the <code>Flappy</code> logic (which might involve flapping calculations) to determine the exact settings needed for each motor and servo.</li>
+<li><code>mix()</code> returns an <code>Actuations</code> struct containing these settings (e.g., <code>m1: 120.0, m2: 110.0, s1: 90.0, ...</code>).</li>
+<li>Still inside <code>manual()</code>, <code>self.actuator.actuate(actuations)</code> is called, passing the calculated settings.</li>
+<li>The <code>actuator</code> (which we'll discuss next) takes these values and sends the corresponding electrical signals (PWM) to the actual hardware (motors/servos).</li>
+<li>The blimp moves!</li>
+</ol>
+<p>Here's a diagram showing this flow:</p>
+<pre class="mermaid">sequenceDiagram
+    participant User
+    participant Gamepad
+    participant GilrsLib as Gilrs Library
+    participant FlappyBlimp as Flappy Blimp
+    participant Mixer as Flappy.mix()
+    participant Actuator as PCAActuator
+
+    User-&gt;&gt;Gamepad: Moves Joystick
+    Gamepad-&gt;&gt;GilrsLib: Sends Event Signal
+    Note over FlappyBlimp: Loop calls update()
+    FlappyBlimp-&gt;&gt;GilrsLib: Checks for new events (gilrs.next_event())
+    GilrsLib--&gt;&gt;FlappyBlimp: Returns Joystick Event
+    FlappyBlimp-&gt;&gt;FlappyBlimp: Updates internal 'input' state
+    Note over FlappyBlimp: Loop sees manual=true, calls manual()
+    FlappyBlimp-&gt;&gt;Mixer: Calls mix()
+    Mixer-&gt;&gt;FlappyBlimp: Reads 'input' state
+    Mixer--&gt;&gt;FlappyBlimp: Returns calculated Actuations
+    FlappyBlimp-&gt;&gt;Actuator: Calls actuate(Actuations)
+    Actuator-&gt;&gt;+Hardware: Sends signals (PWM)
+    Hardware--&gt;&gt;-Actuator: Motors/Servos react
+</pre>
+<h3 id="code-dive-flappys-implementation"><a class="header" href="#code-dive-flappys-implementation">Code Dive: <code>Flappy</code>'s Implementation</a></h3>
+<p>Let's look briefly at the code within <code>src/lib/blimp.rs</code> that makes <code>Flappy</code> work.</p>
+<p><strong>The <code>update()</code> method:</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Inside `impl Blimp for Flappy` in src/lib/blimp.rs
+fn update(&amp;mut self) {
+    // Check for any new events from the gamepad library
+    while let Some(Event { event, .. }) = self.gilrs.next_event() {
+        match event {
+            // If a joystick axis moved...
+            gilrs::EventType::AxisChanged(axis, pos, _) =&gt; match axis {
+                gilrs::Axis::LeftStickY =&gt; self.input.0 = pos, // Forward/backward
+                gilrs::Axis::RightStickY =&gt; self.input.2 = pos, // Up/down
+                gilrs::Axis::RightStickX =&gt; self.input.1 = pos, // Turning
+                _ =&gt; {} // Ignore other axes
+            },
+            // If a button was pressed...
+            gilrs::EventType::ButtonPressed(button, code) =&gt; match button {
+                // Toggle manual/autonomous mode on Start button press
+                gilrs::Button::Start =&gt; self.manual = !self.manual,
+                _ =&gt; {} // Ignore other buttons
+            },
+            _ =&gt; {} // Ignore other event types
+        }
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<p>This function simply checks for new gamepad events using <code>self.gilrs.next_event()</code> and updates <code>self.input</code> or toggles <code>self.manual</code> accordingly.</p>
+<p><strong>The <code>mix()</code> method (Conceptual):</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Inside `impl Blimp for Flappy` in src/lib/blimp.rs
+fn mix(&amp;mut self) -&gt; Actuations {
+    // Get the current desired movement
+    let (x, y, z) = self.input; // (forward, turn, up/down)
+
+    // --- Complex Flappy-Specific Logic ---
+    // This part calculates servo angles (s1, s2, s3, s4)
+    // based on input x, y, z, potentially using
+    // oscillating functions like `self.oscillate_wing(...)`
+    // to simulate flapping.
+    // --- End of Complex Logic ---
+
+    // For Flappy, motors might not be used directly, or are set to 0.
+    // Servos (s1..s4) would contain the calculated flapping angles.
+    let s1_angle = calculate_servo1_angle(x, y, z);
+    let s2_angle = calculate_servo2_angle(x, y, z);
+    // ... calculate s3, s4 ...
+
+    // Return the final commands for all actuators
+    Actuations {
+        m1: 0.0, // Example: Flappy might not use these motors
+        m2: 0.0,
+        m3: 0.0,
+        m4: 0.0,
+        s1: s1_angle.clamp(0.0, 180.0), // Ensure angle is valid
+        s2: s2_angle.clamp(0.0, 180.0),
+        s3: calculate_servo3_angle(x, y, z).clamp(0.0, 180.0),
+        s4: calculate_servo4_angle(x, y, z).clamp(0.0, 180.0),
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<p>The key idea here is that <code>mix</code> takes the simple <code>(x, y, z)</code> input and converts it into potentially complex <code>Actuations</code> specific to the <code>Flappy</code> blimp's hardware setup (likely focusing on servos <code>s1</code> to <code>s4</code>). The <code>clamp(0.0, 180.0)</code> ensures the calculated values stay within the valid range for typical servos.</p>
+<p><strong>The <code>update_input()</code> method:</strong></p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Inside `impl Blimp for Flappy` in src/lib/blimp.rs
+fn update_input(&amp;mut self, input: (f32, f32, f32)) {
+    // Simply overwrite the internal input state
+    self.input = input;
+}
+<span class="boring">}</span></code></pre></pre>
+<p>This is straightforward: it allows the autonomous controller to directly set the desired movement commands, bypassing the joystick input read in <code>update()</code>.</p>
+<h2 id="conclusion"><a class="header" href="#conclusion">Conclusion</a></h2>
+<p>Great job making it through the first chapter! We've learned about the core "brain" of the SanoBlimpSoftware:</p>
+<ul>
+<li>The <code>Blimp</code> <strong>trait</strong> acts as a rulebook, defining <em>what</em> any blimp controller must do (<code>update</code>, <code>mix</code>, <code>update_input</code>).</li>
+<li><code>Flappy</code> is a specific <strong>implementation</strong> of <code>Blimp</code>, acting like a driver that follows these rules.</li>
+<li><code>Flappy</code> handles <strong>inputs</strong> from joysticks (<code>gilrs</code>) or autonomous systems.</li>
+<li>It <strong>mixes</strong> these high-level inputs into low-level commands (<code>Actuations</code>) for motors and servos.</li>
+<li>It manages switching between <strong>manual</strong> and <strong>autonomous</strong> control modes.</li>
+</ul>
+<p>We saw how <code>Flappy</code> takes desired movements and calculates the necessary <code>Actuations</code>. But how do these calculated values actually make the motors spin or servos turn? That's where our hardware interface comes in.</p>
+<p>In the next chapter, we'll dive into how the blimp translates these software commands into real-world actions using the <code>PCAActuator</code>.</p>
+<p>Ready to see how the signals get sent? Let's move on to <a href="02_hardware_actuation___pcaactuator__.html">Chapter 2: Hardware Actuation (<code>PCAActuator</code>)</a>!</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="02_hardware_actuation___pcaactuator__.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="02_hardware_actuation___pcaactuator__.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="mermaid.min.js"></script>
+        <script src="mermaid-init.js"></script>
+
+
+    </div>
+    </body>
+</html>

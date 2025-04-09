@@ -16,7 +16,12 @@ struct Config {
     motor: Motor,
     controller: Controller,
     server: Server,
+    //blimp: Blimp,
 }
+//
+//struct Blimp {
+//    blimp_type: String,
+//}
 
 #[derive(Deserialize, Debug)]
 struct Server {
@@ -53,7 +58,14 @@ fn read_config() -> Config {
 async fn main() {
     let conf = read_config();
 
+    //let mut blimp = match conf.blimp.blimp_type {
+    //    String::from("flappy") => blimp::Flappy::new(),
+    //    String::from("sano") => blimp::SanoBlimp::new(),
+    //    _ => blimp::SanoBlimp::new(),
+    //};
+    //
     let mut blimp = blimp::Flappy::new();
+
     let mut detection = Detection::new();
 
     let mut time_p = std::time::Instant::now();
@@ -67,6 +79,7 @@ async fn main() {
         conf.controller.kd_z,
         0.0,
     );
+    blimp.rail_init();
 
     // The big event loop
     loop {

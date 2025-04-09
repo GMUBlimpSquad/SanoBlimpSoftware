@@ -3,12 +3,17 @@ use core::f64;
 use gilrs::{Button, Event, GamepadId, Gilrs};
 use linux_embedded_hal::I2cdev;
 use pwm_pca9685::{Address, Channel, Pca9685};
+use rppal::gpio::{self, Gpio, Trigger};
+use std::fs::{File, OpenOptions};
 use std::thread::sleep;
 use std::time::{self, Duration};
 use tokio::spawn;
-use tokio::sync::mpsc::UnboundedReceiver;
+use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver};
+
+use std::sync::{Arc, Mutex};
 
 use super::object_detection::Detection;
+use std::io::{self, Write};
 
 // TODO Make these a config file, and will depend on the blimp's hardware
 
@@ -34,6 +39,71 @@ pub trait Blimp {
 
 pub struct Sensors {
     pressure: f32,
+    rail_pos: i8,
+    rail_direction: i8,
+}
+
+impl Sensors {
+    pub fn new() -> Self {
+        // Read the last rail data from a file
+        //let mut file = File::open("rail.pos").unwrap();
+        let content = std::fs::read_to_string("rail.pos").unwrap();
+
+        let rail_pos = match content.parse::<i8>() {
+            Ok(res) => res,
+            Err(e) => 0,
+        };
+
+        Sensors {
+            pressure: 0.0,
+            rail_pos: rail_pos,
+            rail_direction: 1,
+        }
+    }
+
+    fn input_callback(&self, event: gpio::Event) {
+        let content = std::fs::read_to_string("rail.pos").unwrap();
+
+        let mut rail_pos = match content.parse::<i8>() {
+            Ok(res) => res,
+            Err(e) => 0,
+        };
+
+        rail_pos += self.rail_direction;
+        println!(" I am here");
+
+        let mut file = OpenOptions::new().write(true).open("rail.pos").unwrap();
+        writeln!(file, "{}", rail_pos);
+    }
+
+    pub fn update_reading(&self) {
+        // Create a channel that receives the gpio reading and updates the pos
+        println!("I am here");
+        let mut input_pin = Gpio::new().unwrap().get(23).unwrap().into_input_pullup();
+        println!("{:?}", input_pin.read());
+        //let self_ref = unsafe { &*(self as *const Self) };
+        input_pin
+            .set_async_interrupt(
+                Trigger::RisingEdge,
+                Some(Duration::from_millis(50)),
+                move |event| {
+                    println!("I am here");
+                    //self_ref.input_callback(event);
+                },
+            )
+            .unwrap();
+    }
+
+    pub fn get_rail_pos(&self) -> i8 {
+        let content = std::fs::read_to_string("rail.pos").unwrap();
+
+        let rail_pos = match content.parse::<i8>() {
+            Ok(res) => res,
+            Err(e) => 0,
+        };
+
+        rail_pos
+    }
 }
 
 pub struct PCAActuator {
@@ -134,6 +204,7 @@ pub struct Flappy {
     active_gamepad: Option<GamepadId>,
     pub actuator: PCAActuator,
     manual: bool,
+    sensor: Sensors,
 }
 
 impl Flappy {
@@ -145,11 +216,13 @@ impl Flappy {
             active_gamepad: None,
             actuator: PCAActuator::new(),
             manual: true,
+            sensor: Sensors::new(),
         }
     }
 
-    fn oscillate_wing(self, direction: f64, freq: f64) -> f64 {
-        direction
+    fn oscillate_wing(&self, direction: f64, freq: f64) -> f64 {
+        90.0 + 90.0
+            * direction
             * f64::sin(
                 (2.0 * freq * f64::consts::PI as f64)
                     * time::SystemTime::now()
@@ -164,6 +237,10 @@ impl Flappy {
         self.update();
 
         //std::thread::sleep(std::time::Duration::from_millis(20));
+    }
+
+    pub fn rail_init(&self) {
+        self.sensor.update_reading();
     }
 
     pub fn manual(&mut self) {
@@ -197,6 +274,7 @@ impl Blimp for Flappy {
                 _ => {}
             }
         }
+        //self.sensor.update_reading();
     }
     //Takes in inputs and converts them into actuations
     //Options Teleop to autonomy
@@ -210,6 +288,7 @@ impl Blimp for Flappy {
         let mut s2_ac = 90.0;
         let mut s3_ac = 90.0;
         let mut s_cg_ac = 95.0;
+
         if x > 0.1 {
             s1_ac = self.oscillate_wing(-1.0, freq);
             s2_ac = self.oscillate_wing(1.0, freq);
@@ -217,7 +296,7 @@ impl Blimp for Flappy {
 
         if y > 0.2 {
             s2_ac = 90.0;
-            //s1_ac = self.oscillate_wing(-1, freq)
+            s1_ac = self.oscillate_wing(-1.0, freq);
             s3_ac = 180.0;
         }
         if y < -0.2 {
@@ -238,10 +317,10 @@ impl Blimp for Flappy {
             m2: 0.0,
             m3: 0.0,
             m4: 0.0,
-            s1: 0.0, // Keep neutral if not controlled
-            s2: 0.0,
-            s3: 0.0,
-            s4: 0.0,
+            s1: s1_ac as f32, // Keep neutral if not controlled
+            s2: s2_ac as f32,
+            s3: s3_ac as f32,
+            s4: s_cg_ac as f32,
         }
     }
 }

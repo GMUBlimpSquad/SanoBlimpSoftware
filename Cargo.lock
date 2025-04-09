@@ -23,6 +23,7 @@ dependencies = [
  "linux-embedded-hal",
  "mint",
  "pwm-pca9685",
+ "rppal",
  "serde",
  "serde_json",
  "serialport",
@@ -1885,6 +1886,15 @@ name = "rgb"
 version = "0.8.50"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "57397d16646700483b67d2dd6511d79318f9d057fdbd21a4066aeac8b41d310a"
+
+[[package]]
+name = "rppal"
+version = "0.22.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c1ce3b019009cff02cb6b0e96e7cc2e5c5b90187dc1a490f8ef1521d0596b026"
+dependencies = [
+ "libc",
+]
 
 [[package]]
 name = "rustc-demangle"

@@ -22,6 +22,7 @@ path = "example/bno055.rs"
 
 [dependencies]
 ab_glyph = "0.2.29"
+anyhow = "1.0.97"
 base64 = "0.22.1"
 bluer = { version = "0.17.3", features = ["bluetoothd", "rfcomm"] }
 bme280 = { version = "0.5.1", features = ["serde"] }

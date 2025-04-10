@@ -7,7 +7,7 @@ use ab_glyph::{FontRef, PxScale};
 use base64;
 use image::{DynamicImage, GenericImageView, ImageFormat, Rgba, RgbaImage};
 use imageproc::drawing::{
-    draw_filled_circle_mut, draw_hollow_rect_mut, draw_line_segment_mut, draw_text_mut,
+    draw_filled_circle_mut, draw_hollow_rect_mut, draw_line_segment_mut, draw_text_mut, Canvas,
 };
 use imageproc::rect::Rect;
 use serde_json::Value;
@@ -66,7 +66,7 @@ impl Detection {
                 // Check if this detection's class is in our target list
                 if target.contains(&cls) {
                     let area = w * h;
-                    if area > largest_area && conf < 60 {
+                    if area > largest_area {
                         largest_area = area;
                         largest_bb = vec![x, y, w, h, conf, cls];
                     }
@@ -82,7 +82,7 @@ impl Detection {
     /// an empty Vec if not found or if an error occurs.
     pub fn detect(&mut self, target: Vec<i32>) -> Vec<i32> {
         // Adjust this to your actual destination
-        let udp_dest = "192.168.1.56:54321";
+        let udp_dest = "192.168.8.195:54321";
 
         // Embed the font file in the binary
         let font_data: &[u8] = include_bytes!("FiraCode-Regular.ttf");
@@ -188,19 +188,21 @@ impl Detection {
             // 2) Draw a filled circle at the center
             draw_filled_circle_mut(&mut rgba_img, (cx, cy), 20, Rgba([255, 0, 0, 255]));
 
-            // 3) Draw two line segments
+            println!("height: {}, width: {}", rgba_img.height(), rgba_img.width());
+
+            //3) Draw two line segments
             draw_line_segment_mut(
                 &mut rgba_img,
                 (cx as f32, cy as f32),
-                ((300) as f32, 150 as f32),
+                ((160) as f32, cy as f32),
                 Rgba([255, 0, 0, 255]),
             );
-            // draw_line_segment_mut(
-            //     &mut rgba_img,
-            //     (cx as f32, cy as f32),
-            //     (cx as f32, (150) as f32),
-            //     Rgba([255, 0, 0, 255]),
-            // );
+            draw_line_segment_mut(
+                &mut rgba_img,
+                (cx as f32, cy as f32),
+                (cx as f32, (120) as f32),
+                Rgba([255, 0, 0, 255]),
+            );
 
             // 4) Draw a label above the rectangle
             let label = format!("cls={cls} conf={conf}");

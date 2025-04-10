@@ -64,7 +64,7 @@ async fn main() {
     //    _ => blimp::SanoBlimp::new(),
     //};
     //
-    let mut blimp = blimp::Flappy::new();
+    let mut blimp = blimp::SanoBlimp::new();
 
     let mut detection = Detection::new();
 
@@ -79,12 +79,12 @@ async fn main() {
         conf.controller.kd_z,
         0.0,
     );
-    blimp.rail_init();
+    //blimp.rail_init();
 
     // The big event loop
     loop {
         blimp.update();
-        let det = detection.detect(vec![2, 4, 5, 6, 7, 8, 9, 10]);
+        let det = detection.detect(vec![4, 6]);
         if blimp.is_manual() {
             // Manual control
             blimp.manual();
@@ -98,11 +98,17 @@ async fn main() {
                 blimp.actuator.actuate(acc);
                 time_p = std::time::Instant::now();
             } else {
-                blimp.update_input((0.0, 0.0, 0.0));
-                // Search
-                println!("Searching");
+                let mut desired_altitude = 5.0;
 
-                if time_p.elapsed() > std::time::Duration::from_millis(1000) {
+                let z = match auto.altitude_hold(blimp.sensor.get_altitude(), desired_altitude) {
+                    Ok(z) => z,
+                    Err(e) => 0.0,
+                };
+
+                println!("{}", z);
+
+                if time_p.elapsed() > std::time::Duration::from_secs(1) {
+                    blimp.update_input((0.0, 0.0, 0.0));
                     let acc = blimp.mix();
                     blimp.actuator.actuate(acc);
                 }

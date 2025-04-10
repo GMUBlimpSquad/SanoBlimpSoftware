@@ -2,6 +2,7 @@ import socket
 import cv2
 import numpy as np
 
+
 def main():
     udp_ip = "0.0.0.0"  # Listen on all available interfaces
     udp_port = 54321
@@ -18,6 +19,7 @@ def main():
             # Convert the bytes to a NumPy array and decode as a JPEG image
             nparr = np.frombuffer(data, np.uint8)
             img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            # img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
             if img is not None:
                 cv2.imshow("Received Image", img)
                 # Press 'q' to quit the viewer
@@ -28,6 +30,7 @@ def main():
 
     sock.close()
     cv2.destroyAllWindows()
+
 
 if __name__ == "__main__":
     main()

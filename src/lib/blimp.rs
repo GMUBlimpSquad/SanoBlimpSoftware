@@ -1,15 +1,19 @@
 // use bme280::i2c::BME280;
+use bno055::{BNO055OperationMode, Bno055};
 use core::f64;
 use gilrs::{Button, Event, GamepadId, Gilrs};
-use linux_embedded_hal::I2cdev;
+use linux_embedded_hal::{Delay, I2cdev, SpidevDevice};
+use mint::{EulerAngles, Quaternion};
 use pwm_pca9685::{Address, Channel, Pca9685};
-use rppal::gpio::{self, Gpio, Trigger};
+use rppal::gpio::{self, Gpio, InputPin, Trigger};
 use std::fs::{File, OpenOptions};
 use std::thread::sleep;
 use std::time::{self, Duration};
 use tokio::spawn;
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver};
 
+use bme280::spi::BME280;
+use shared_bus::{self, BusManager, I2cProxy, NullMutex}; // Import the shared-bus crate
 use std::sync::{Arc, Mutex};
 
 use super::object_detection::Detection;
@@ -27,7 +31,12 @@ const MIN_PULSE: f32 = 600.0; // Minimum pulse width in µs (ESC arming)
 const MAX_PULSE: f32 = 2600.0; // Maximum pulse width in µs (Full throttle)
 const MID_PULSE: f32 = 1500.0; // Neutral (90° equivalent)
                                // const NEUTRAL_ANGLE_MOTOR: f32 = 83.0; // Neutral position for motors and servos
-const NEUTRAL_ANGLE_MOTOR: f32 = 90.0; // Neutral position for motors and servos
+const NEUTRAL_ANGLE_MOTOR: f32 = 80.0; // Neutral position for motors and servos
+
+// Constants for the ISA barometric formula (altitude in meters, pressure in Pascals)
+const ALTITUDE_FACTOR: f32 = 44330.0; // Corresponds to meters
+const ISA_EXPONENT: f32 = 1.0 / 5.255; // Approximately 0.190294957
+const STANDARD_SEA_LEVEL_PRESSURE_PA: f32 = 101325.0; // Pa
 
 /// Every blimp needs the following trait
 pub trait Blimp {
@@ -41,6 +50,15 @@ pub struct Sensors {
     pressure: f32,
     rail_pos: i8,
     rail_direction: i8,
+    rail_pin: Arc<Mutex<InputPin>>,
+    altitude: f32,
+    euler_angles: EulerAngles<f32, ()>, // = EulerAngles::<f32, ()>::from([0.0, 0.0, 0.0]);
+    quaternion: Quaternion<f32>,        // = Quaternion::<f32>::from([0.0, 0.0, 0.0, 0.0]);
+    pub imu: Bno055<I2cdev>,
+    bme: BME280<SpidevDevice>,
+    //ground_pressure: f32,
+    delay: Delay,
+    //dev: Arc<Mutex<I2cdev>>,
 }
 
 impl Sensors {
@@ -54,44 +72,133 @@ impl Sensors {
             Err(e) => 0,
         };
 
+        let dev = I2cdev::new("/dev/i2c-1").unwrap();
+
+        let mut delay = Delay {};
+
+        let mut imu = Bno055::new(dev).with_alternative_address();
+        imu.init(&mut delay)
+            .expect("An error occurred while building the IMU");
+
+        imu.set_mode(BNO055OperationMode::NDOF, &mut delay)
+            .expect("An error occurred while setting the IMU mode");
+
+        let mut status = imu.get_calibration_status().unwrap();
+        println!("The IMU's calibration status is: {:?}", status);
+
+        let mut spi = SpidevDevice::open("/dev/spidev0.1").unwrap();
+        let mut bme280 = BME280::new(spi).unwrap();
+
+        //bme280.init(&mut delay).unwrap();
+        //
+        //let measurements = bme280.measure(&mut delay).unwrap();
+        //
         Sensors {
+            //dev,
             pressure: 0.0,
-            rail_pos: rail_pos,
+            rail_pos,
             rail_direction: 1,
+            rail_pin: Arc::new(Mutex::new(
+                Gpio::new().unwrap().get(23).unwrap().into_input_pullup(),
+            )),
+            altitude: 0.0,
+            euler_angles: EulerAngles::<f32, ()>::from([0.0, 0.0, 0.0]),
+            quaternion: Quaternion::<f32>::from([0.0, 0.0, 0.0, 0.0]),
+            imu,
+            bme: bme280,
+            delay,
+            //ground_pressure: measurements.pressure,
         }
     }
 
-    fn input_callback(&self, event: gpio::Event) {
-        let content = std::fs::read_to_string("rail.pos").unwrap();
+    pub fn update_reading(&mut self) {
+        // Create a channel that receives the gpio reading and updates the pos
 
-        let mut rail_pos = match content.parse::<i8>() {
-            Ok(res) => res,
-            Err(e) => 0,
-        };
+        let inpin = self.rail_pin.clone();
 
-        rail_pos += self.rail_direction;
-        println!(" I am here");
+        let mut pin = inpin.lock().unwrap();
 
-        let mut file = OpenOptions::new().write(true).open("rail.pos").unwrap();
-        writeln!(file, "{}", rail_pos);
+        pin.set_async_interrupt(
+            Trigger::RisingEdge,
+            Some(Duration::from_millis(5)),
+            move |event| {
+                let content = std::fs::read_to_string("rail.pos").unwrap();
+
+                let mut rail_pos = match content.parse::<i8>() {
+                    Ok(res) => res,
+                    Err(e) => 0,
+                };
+
+                //rail_pos += self.rail_direction;
+                println!(" I am here");
+
+                let mut file = OpenOptions::new().write(true).open("rail.pos").unwrap();
+                writeln!(file, "{}", rail_pos);
+            },
+        )
+        .unwrap();
     }
 
-    pub fn update_reading(&self) {
-        // Create a channel that receives the gpio reading and updates the pos
-        println!("I am here");
-        let mut input_pin = Gpio::new().unwrap().get(23).unwrap().into_input_pullup();
-        println!("{:?}", input_pin.read());
-        //let self_ref = unsafe { &*(self as *const Self) };
-        input_pin
-            .set_async_interrupt(
-                Trigger::RisingEdge,
-                Some(Duration::from_millis(50)),
-                move |event| {
-                    println!("I am here");
-                    //self_ref.input_callback(event);
-                },
-            )
-            .unwrap();
+    pub fn update_altitude(&mut self) {
+        // --- Get Current Pressure ---
+        // It's better practice to handle the Result properly instead of unwrapping,
+        // especially in embedded systems where panics can be problematic.
+        let measurement = match self.bme.measure(&mut self.delay) {
+            Ok(m) => m,
+            Err(_e) => {
+                // Handle the error appropriately: log it, set a default/error altitude, etc.
+                // For example:
+                // rprintln!("Error reading BME sensor: {:?}", e); // If using rtt-target
+                self.altitude = f32::NAN; // Set altitude to Not a Number to indicate an error
+                return; // Exit the function if measurement failed
+            }
+        };
+        // Assuming the pressure reading from the driver is already f32 in Pascals.
+        // If it's an integer (like u32), you'll need to cast it: measurement.pressure as f32
+        let current_pressure_pa = measurement.pressure;
+
+        // --- Get Reference Pressure ---
+        // Use the stored ground_pressure as the reference (P₀).
+        // Make sure it's a valid value.
+        //let reference_pressure_pa = self.ground_pressure;
+        let reference_pressure_pa = 0.0;
+        if reference_pressure_pa <= 0.0 {
+            // rprintln!("Invalid reference pressure: {}", reference_pressure_pa);
+            self.altitude = f32::NAN; // Indicate error
+            return;
+        }
+
+        // --- Calculate Altitude ---
+        // Formula: Altitude(m) = 44330.0 * [1 - (P / P₀)^(1 / 5.255)]
+        // Where P = current pressure, P₀ = reference pressure
+
+        // Calculate pressure ratio (P / P₀)
+        let pressure_ratio = current_pressure_pa / reference_pressure_pa;
+
+        // Calculate altitude in meters
+        let altitude_meters = ALTITUDE_FACTOR * (1.0 - pressure_ratio.powf(ISA_EXPONENT));
+
+        // --- Store Result ---
+        self.altitude = altitude_meters;
+
+        //let ground_pressure = self.ground_pressure;
+        //self.bme.measure(&mut self.delay).unwrap().pressure;
+    }
+
+    pub fn update_orientation(&mut self) {
+        match self.imu.quaternion() {
+            Ok(val) => {
+                self.quaternion = val;
+            }
+            Err(e) => {}
+        }
+    }
+
+    pub fn get_orientation(&self) -> Quaternion<f32> {
+        self.quaternion
+    }
+    pub fn get_altitude(&self) -> f32 {
+        self.altitude
     }
 
     pub fn get_rail_pos(&self) -> i8 {
@@ -194,6 +301,7 @@ pub struct SanoBlimp {
     gilrs: Gilrs,
     active_gamepad: Option<GamepadId>,
     pub actuator: PCAActuator,
+    pub sensor: Sensors,
     manual: bool,
 }
 
@@ -239,7 +347,7 @@ impl Flappy {
         //std::thread::sleep(std::time::Duration::from_millis(20));
     }
 
-    pub fn rail_init(&self) {
+    pub fn rail_init(&mut self) {
         self.sensor.update_reading();
     }
 
@@ -346,6 +454,7 @@ impl SanoBlimp {
             active_gamepad: None,
             actuator: PCAActuator::new(),
             manual: true,
+            sensor: Sensors::new(),
         }
     }
 
@@ -367,6 +476,8 @@ impl SanoBlimp {
 
 impl Blimp for SanoBlimp {
     fn update(&mut self) {
+        self.sensor.update_altitude();
+        self.sensor.update_orientation();
         // TODO Move the controller input to a saperate thread
         while let Some(Event { event, .. }) = self.gilrs.next_event() {
             match event {
@@ -387,11 +498,20 @@ impl Blimp for SanoBlimp {
 
     fn mix(&mut self) -> Actuations {
         let (x, y, z) = self.input;
+
+        //println!("{:?}", self.sensor.get_orientation());
+        //
+
+        println!("{:?}", self.sensor.imu.gyro_data());
+
         let m1_mul = 1.3;
         let m2_mul = 1.0;
 
         let mut m1 = NEUTRAL_ANGLE_MOTOR - (x * 5.0) * m1_mul; // Map movement to a range (0-180°)
         let mut m2 = NEUTRAL_ANGLE_MOTOR - (x * 5.0) * m2_mul;
+
+        m1 += self.sensor.imu.gyro_data().unwrap().y;
+        m2 -= self.sensor.imu.gyro_data().unwrap().y;
 
         if z > 0.1 {
             m1 -= z * 6.0;

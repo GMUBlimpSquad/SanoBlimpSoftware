@@ -84,24 +84,18 @@ impl Autonomous {
     /// Compute the normalized altitude error relative to a desired altitude (offset from ground).
     ///
     /// Returns a value in [-1.0, 1.0].
-    pub fn goal_height(&self, desired_altitude: f32) -> Result<f32, AltitudeError> {
-        let ground_alt = match self.ground_altitude {
-            Some(alt) => alt,
-            None => {
-                return Err(AltitudeError(
-                    "Ground altitude not set. Call set_ground() first.",
-                ));
-            }
-        };
-
+    pub fn altitude_hold(
+        &self,
+        current_altitude: f32,
+        desired_altitude: f32,
+    ) -> Result<f32, AltitudeError> {
         // Hypothetical current altitude reading:
         // In real code, read from sensor. Here, we mock 102.5 for demonstration.
-        let current_altitude = 102.5_f32;
 
         // Our target height = ground + desired offset
-        let target_height = ground_alt + desired_altitude;
+        //let target_height = ground_alt + desired_altitude;
         // Altitude error = current - target
-        let altitude_error = current_altitude - target_height;
+        let altitude_error = current_altitude - desired_altitude;
 
         // Map the error from [-10, 10] to [-1, 1]
         let mapped = self.map_value(altitude_error, -10.0, 10.0, -1.0, 1.0);
@@ -174,7 +168,9 @@ mod tests {
         println!("Ground altitude set to: {}", ground);
 
         // Check goal_height
-        let alt_error = auto.goal_height(5.0).expect("No ground altitude set");
+        let alt_error = auto
+            .altitude_hold(5.0, 10.0)
+            .expect("No ground altitude set");
         println!("Altitude error (normalized) = {}", alt_error);
 
         // Position control

@@ -10,7 +10,7 @@ use std::fs::{File, OpenOptions};
 use std::thread::sleep;
 use std::time::{self, Duration};
 use tokio::spawn;
-use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver};
+use tokio::sync::mpsc::{UnboundedReceiver, unbounded_channel};
 
 use bme280::spi::BME280;
 use shared_bus::{self, BusManager, I2cProxy, NullMutex}; // Import the shared-bus crate
@@ -25,12 +25,12 @@ const PWM_FREQUENCY: f32 = 60.0; // Hz for motors and servos
 const MIN_PULSE_SERVO: f32 = 500.0; // Minimum pulse width in µs (ESC arming)
 const MAX_PULSE_SERVO: f32 = 2500.0; // Maximum pulse width in µs (Full throttle)
 const NEUTRAL_ANGLE: f32 = 90.0; // Neutral position for motors and servos
-                                 //
+//
 const PWM_FREQUENCY_MOTOR: f32 = 60.0; // Hz for motors and servos
 const MIN_PULSE: f32 = 600.0; // Minimum pulse width in µs (ESC arming)
 const MAX_PULSE: f32 = 2600.0; // Maximum pulse width in µs (Full throttle)
 const MID_PULSE: f32 = 1500.0; // Neutral (90° equivalent)
-                               // const NEUTRAL_ANGLE_MOTOR: f32 = 83.0; // Neutral position for motors and servos
+// const NEUTRAL_ANGLE_MOTOR: f32 = 83.0; // Neutral position for motors and servos
 const NEUTRAL_ANGLE_MOTOR: f32 = 80.0; // Neutral position for motors and servos
 
 // Constants for the ISA barometric formula (altitude in meters, pressure in Pascals)
@@ -54,7 +54,7 @@ pub struct Sensors {
     altitude: f32,
     euler_angles: EulerAngles<f32, ()>, // = EulerAngles::<f32, ()>::from([0.0, 0.0, 0.0]);
     quaternion: Quaternion<f32>,        // = Quaternion::<f32>::from([0.0, 0.0, 0.0, 0.0]);
-    pub imu: Bno055<I2cdev>,
+    //pub imu: Bno055<I2cdev>,
     bme: BME280<SpidevDevice>,
     //ground_pressure: f32,
     delay: Delay,
@@ -71,20 +71,21 @@ impl Sensors {
             Ok(res) => res,
             Err(e) => 0,
         };
-
+        //New I2C device from linux to path /dev - directory in linux
+        // /i2c-1 specific i2c bus
         let dev = I2cdev::new("/dev/i2c-1").unwrap();
 
         let mut delay = Delay {};
 
-        let mut imu = Bno055::new(dev).with_alternative_address();
-        imu.init(&mut delay)
-            .expect("An error occurred while building the IMU");
+        //let mut imu = Bno055::new(dev).with_alternative_address();
+        //imu.init(&mut delay)
+        //    .expect("An error occurred while building the IMU");
 
-        imu.set_mode(BNO055OperationMode::NDOF, &mut delay)
-            .expect("An error occurred while setting the IMU mode");
+        //imu.set_mode(BNO055OperationMode::NDOF, &mut delay)
+        //    .expect("An error occurred while setting the IMU mode");
 
-        let mut status = imu.get_calibration_status().unwrap();
-        println!("The IMU's calibration status is: {:?}", status);
+        //let mut status = imu.get_calibration_status().unwrap();
+        //println!("The IMU's calibration status is: {:?}", status);
 
         let mut spi = SpidevDevice::open("/dev/spidev0.1").unwrap();
         let mut bme280 = BME280::new(spi).unwrap();
@@ -104,7 +105,7 @@ impl Sensors {
             altitude: 0.0,
             euler_angles: EulerAngles::<f32, ()>::from([0.0, 0.0, 0.0]),
             quaternion: Quaternion::<f32>::from([0.0, 0.0, 0.0, 0.0]),
-            imu,
+            //imu,
             bme: bme280,
             delay,
             //ground_pressure: measurements.pressure,
@@ -185,14 +186,14 @@ impl Sensors {
         //self.bme.measure(&mut self.delay).unwrap().pressure;
     }
 
-    pub fn update_orientation(&mut self) {
-        match self.imu.quaternion() {
-            Ok(val) => {
-                self.quaternion = val;
-            }
-            Err(e) => {}
-        }
-    }
+    // pub fn update_orientation(&mut self) {
+    //     match self.imu.quaternion() {
+    //         Ok(val) => {
+    //             self.quaternion = val;
+    //         }
+    //         Err(e) => {}
+    //     }
+    // }
 
     pub fn get_orientation(&self) -> Quaternion<f32> {
         self.quaternion
@@ -312,7 +313,7 @@ pub struct Flappy {
     active_gamepad: Option<GamepadId>,
     pub actuator: PCAActuator,
     manual: bool,
-    sensor: Sensors,
+    pub sensor: Sensors,
 }
 
 impl Flappy {
@@ -391,6 +392,7 @@ impl Blimp for Flappy {
         let (x, y, z) = self.input;
 
         let freq = 0.7;
+        let turn_freq = 0.9;
 
         let mut s1_ac = 90.0;
         let mut s2_ac = 90.0;
@@ -404,12 +406,12 @@ impl Blimp for Flappy {
 
         if y > 0.2 {
             s2_ac = 90.0;
-            s1_ac = self.oscillate_wing(-1.0, freq);
+            s1_ac = self.oscillate_wing(-1.0, turn_freq);
             s3_ac = 180.0;
         }
         if y < -0.2 {
             s1_ac = 90.0;
-            s2_ac = self.oscillate_wing(1.0, freq);
+            s2_ac = self.oscillate_wing(1.0, turn_freq);
             s3_ac = 0.0;
         }
 
@@ -445,116 +447,116 @@ pub struct Actuations {
     s4: f32,
 }
 
-impl SanoBlimp {
-    pub fn new() -> Self {
-        SanoBlimp {
-            state: Vec::new(),
-            input: (0.0_f32, 0.0_f32, 0.0_f32),
-            gilrs: Gilrs::new().expect("Failed to initialize Gilrs"),
-            active_gamepad: None,
-            actuator: PCAActuator::new(),
-            manual: true,
-            sensor: Sensors::new(),
-        }
-    }
+// impl SanoBlimp {
+//     pub fn new() -> Self {
+//         SanoBlimp {
+//             state: Vec::new(),
+//             input: (0.0_f32, 0.0_f32, 0.0_f32),
+//             gilrs: Gilrs::new().expect("Failed to initialize Gilrs"),
+//             active_gamepad: None,
+//             actuator: PCAActuator::new(),
+//             manual: true,
+//             sensor: Sensors::new(),
+//         }
+//     }
 
-    pub fn run(&mut self) {
-        self.update();
+//     pub fn run(&mut self) {
+//         self.update();
 
-        //std::thread::sleep(std::time::Duration::from_millis(20));
-    }
+//         //std::thread::sleep(std::time::Duration::from_millis(20));
+//     }
 
-    pub fn manual(&mut self) {
-        let act = self.mix();
-        self.actuator.actuate(act);
-    }
+//     pub fn manual(&mut self) {
+//         let act = self.mix();
+//         self.actuator.actuate(act);
+//     }
 
-    pub fn is_manual(&self) -> bool {
-        self.manual
-    }
-}
+//     pub fn is_manual(&self) -> bool {
+//         self.manual
+//     }
+// }
 
-impl Blimp for SanoBlimp {
-    fn update(&mut self) {
-        self.sensor.update_altitude();
-        self.sensor.update_orientation();
-        // TODO Move the controller input to a saperate thread
-        while let Some(Event { event, .. }) = self.gilrs.next_event() {
-            match event {
-                gilrs::EventType::AxisChanged(axis, pos, _) => match axis {
-                    gilrs::Axis::LeftStickY => self.input.0 = pos, // Forward/backward
-                    gilrs::Axis::RightStickY => self.input.2 = pos, // Up/down
-                    gilrs::Axis::RightStickX => self.input.1 = pos, // Turning
-                    _ => {}
-                },
-                gilrs::EventType::ButtonPressed(button, code) => match button {
-                    gilrs::Button::Start => self.manual = !self.manual,
-                    _ => {}
-                },
-                _ => {}
-            }
-        }
-    }
+// impl Blimp for SanoBlimp {
+//     fn update(&mut self) {
+//         self.sensor.update_altitude();
+//         self.sensor.update_orientation();
+//         // TODO Move the controller input to a saperate thread
+//         while let Some(Event { event, .. }) = self.gilrs.next_event() {
+//             match event {
+//                 gilrs::EventType::AxisChanged(axis, pos, _) => match axis {
+//                     gilrs::Axis::LeftStickY => self.input.0 = pos, // Forward/backward
+//                     gilrs::Axis::RightStickY => self.input.2 = pos, // Up/down
+//                     gilrs::Axis::RightStickX => self.input.1 = pos, // Turning
+//                     _ => {}
+//                 },
+//                 gilrs::EventType::ButtonPressed(button, code) => match button {
+//                     gilrs::Button::Start => self.manual = !self.manual,
+//                     _ => {}
+//                 },
+//                 _ => {}
+//             }
+//         }
+//     }
 
-    fn mix(&mut self) -> Actuations {
-        let (x, y, z) = self.input;
+//     fn mix(&mut self) -> Actuations {
+//         let (x, y, z) = self.input;
 
-        //println!("{:?}", self.sensor.get_orientation());
-        //
+//         //println!("{:?}", self.sensor.get_orientation());
+//         //
 
-        println!("{:?}", self.sensor.imu.gyro_data());
+//         println!("{:?}", self.sensor.imu.gyro_data());
 
-        let m1_mul = 1.3;
-        let m2_mul = 1.0;
+//         let m1_mul = 1.3;
+//         let m2_mul = 1.0;
 
-        let mut m1 = NEUTRAL_ANGLE_MOTOR - (x * 5.0) * m1_mul; // Map movement to a range (0-180°)
-        let mut m2 = NEUTRAL_ANGLE_MOTOR - (x * 5.0) * m2_mul;
+//         let mut m1 = NEUTRAL_ANGLE_MOTOR - (x * 5.0) * m1_mul; // Map movement to a range (0-180°)
+//         let mut m2 = NEUTRAL_ANGLE_MOTOR - (x * 5.0) * m2_mul;
 
-        m1 += self.sensor.imu.gyro_data().unwrap().y;
-        m2 -= self.sensor.imu.gyro_data().unwrap().y;
+//         m1 += self.sensor.imu.gyro_data().unwrap().y;
+//         m2 -= self.sensor.imu.gyro_data().unwrap().y;
 
-        if z > 0.1 {
-            m1 -= z * 6.0;
-            m2 -= z * 6.0;
-        }
-        if z < -0.1 {
-            m1 += z * 6.0;
-            m2 += z * 6.0;
-        }
+//         if z > 0.1 {
+//             m1 -= z * 6.0;
+//             m2 -= z * 6.0;
+//         }
+//         if z < -0.1 {
+//             m1 += z * 6.0;
+//             m2 += z * 6.0;
+//         }
 
-        let mut s3 = NEUTRAL_ANGLE - (90.0 * z);
-        let mut s4 = NEUTRAL_ANGLE + (90.0 * z);
+//         let mut s3 = NEUTRAL_ANGLE - (90.0 * z);
+//         let mut s4 = NEUTRAL_ANGLE + (90.0 * z);
 
-        if y < -0.1 {
-            m1 += y * 6.0;
-            m2 -= y * 6.0;
-        }
-        if y > 0.1 {
-            m1 += y * 6.0;
-            m2 -= y * 6.0;
-        }
+//         if y < -0.1 {
+//             m1 += y * 6.0;
+//             m2 -= y * 6.0;
+//         }
+//         if y > 0.1 {
+//             m1 += y * 6.0;
+//             m2 -= y * 6.0;
+//         }
 
-        if z < -0.2 || z > 0.2 {
-            if y < -0.2 {
-                s4 = NEUTRAL_ANGLE;
-            } else if y > 0.2 {
-                s3 = NEUTRAL_ANGLE;
-            }
-        }
+//         if z < -0.2 || z > 0.2 {
+//             if y < -0.2 {
+//                 s4 = NEUTRAL_ANGLE;
+//             } else if y > 0.2 {
+//                 s3 = NEUTRAL_ANGLE;
+//             }
+//         }
 
-        Actuations {
-            m1: m1.clamp(0.0, 180.0),
-            m2: m2.clamp(0.0, 180.0),
-            m3: m1.clamp(0.0, 180.0),
-            m4: m2.clamp(0.0, 180.0),
-            s1: NEUTRAL_ANGLE, // Keep neutral if not controlled
-            s2: NEUTRAL_ANGLE,
-            s3: s3.clamp(0.0, 180.0),
-            s4: s4.clamp(0.0, 180.0),
-        }
-    }
+//         Actuations {
+//             m1: m1.clamp(0.0, 180.0),
+//             m2: m2.clamp(0.0, 180.0),
+//             m3: m1.clamp(0.0, 180.0),
+//             m4: m2.clamp(0.0, 180.0),
+//             s1: NEUTRAL_ANGLE, // Keep neutral if not controlled
+//             s2: NEUTRAL_ANGLE,
+//             s3: s3.clamp(0.0, 180.0),
+//             s4: s4.clamp(0.0, 180.0),
+//         }
+//     }
 
-    fn update_input(&mut self, input: (f32, f32, f32)) {
-        self.input = input;
-    }
-}
+//     fn update_input(&mut self, input: (f32, f32, f32)) {
+//         self.input = input;
+//     }
+// }

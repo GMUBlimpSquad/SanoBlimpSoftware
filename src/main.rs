@@ -84,7 +84,7 @@ async fn main() {
     // The big event loop
     loop {
         blimp.update();
-        let det = detection.detect(vec![4, 6]);
+        let det = detection.detect(vec![2, 3]);
         if blimp.is_manual() {
             // Manual control
             blimp.manual();
@@ -95,7 +95,7 @@ async fn main() {
                 println!("{:?}", auto_input);
                 blimp.update_input(auto_input);
                 let acc = blimp.mix();
-                blimp.actuator.actuate(acc);
+                // blimp.actuator.actuate(acc);
                 time_p = std::time::Instant::now();
             } else {
                 let mut desired_altitude = 5.0;

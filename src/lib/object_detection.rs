@@ -7,7 +7,7 @@ use ab_glyph::{FontRef, PxScale};
 use base64;
 use image::{DynamicImage, GenericImageView, ImageFormat, Rgba, RgbaImage};
 use imageproc::drawing::{
-    draw_filled_circle_mut, draw_hollow_rect_mut, draw_line_segment_mut, draw_text_mut, Canvas,
+    Canvas, draw_filled_circle_mut, draw_hollow_rect_mut, draw_line_segment_mut, draw_text_mut,
 };
 use imageproc::rect::Rect;
 use serde_json::Value;
@@ -82,7 +82,7 @@ impl Detection {
     /// an empty Vec if not found or if an error occurs.
     pub fn detect(&mut self, target: Vec<i32>) -> Vec<i32> {
         // Adjust this to your actual destination
-        let udp_dest = "192.168.8.195:54321";
+        let udp_dest = "192.168.1.9:54321";
 
         // Embed the font file in the binary
         let font_data: &[u8] = include_bytes!("FiraCode-Regular.ttf");

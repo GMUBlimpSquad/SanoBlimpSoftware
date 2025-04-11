@@ -7,14 +7,14 @@ use mint::{EulerAngles, Quaternion};
 use pwm_pca9685::{Address, Channel, Pca9685};
 use rppal::gpio::{self, Gpio, InputPin, Trigger};
 use std::fs::{File, OpenOptions};
+use std::sync::{Arc, Mutex};
 use std::thread::sleep;
 use std::time::{self, Duration};
 use tokio::spawn;
-use tokio::sync::mpsc::{UnboundedReceiver, unbounded_channel};
+use tokio::sync::mpsc::{UnboundedReceiver, unbounded_channel}; //Arc Mutex is added for the rail
 
 use bme280::spi::BME280;
 use shared_bus::{self, BusManager, I2cProxy, NullMutex}; // Import the shared-bus crate
-use std::sync::{Arc, Mutex};
 
 use super::object_detection::Detection;
 use std::io::{self, Write};
@@ -38,6 +38,10 @@ const ALTITUDE_FACTOR: f32 = 44330.0; // Corresponds to meters
 const ISA_EXPONENT: f32 = 1.0 / 5.255; // Approximately 0.190294957
 const STANDARD_SEA_LEVEL_PRESSURE_PA: f32 = 101325.0; // Pa
 
+// Define Rail Limits (adjust these values as needed)
+const MAX_RAIL_POS: i8 = 10;
+const MIN_RAIL_POS: i8 = -10;
+
 /// Every blimp needs the following trait
 pub trait Blimp {
     fn update(&mut self);
@@ -48,9 +52,10 @@ pub trait Blimp {
 
 pub struct Sensors {
     pressure: f32,
-    rail_pos: i8,
-    rail_direction: i8,
-    rail_pin: Arc<Mutex<InputPin>>,
+    //rail_pos: i8,
+    //rail_direction: i8,
+    rail_pos: Arc<Mutex<i8>>, // Use Arc<Mutex> for shared state
+    rail_pin_trigger: Arc<Mutex<InputPin>>, // Keep using Arc<Mutex> for pin
     altitude: f32,
     euler_angles: EulerAngles<f32, ()>, // = EulerAngles::<f32, ()>::from([0.0, 0.0, 0.0]);
     quaternion: Quaternion<f32>,        // = Quaternion::<f32>::from([0.0, 0.0, 0.0, 0.0]);
@@ -65,12 +70,12 @@ impl Sensors {
     pub fn new() -> Self {
         // Read the last rail data from a file
         //let mut file = File::open("rail.pos").unwrap();
-        let content = std::fs::read_to_string("rail.pos").unwrap();
-
-        let rail_pos = match content.parse::<i8>() {
-            Ok(res) => res,
-            Err(e) => 0,
+        let initial_rail_pos = match std::fs::read_to_string("rail.pos") {
+            Ok(content) => content.trim().parse::<i8>().unwrap_or(0), // Default to 0 on error/empty
+            Err(_) => 0, // Default to 0 if file doesn't exist
         };
+        println!("Initialized rail position: {}", initial_rail_pos);
+
         //New I2C device from linux to path /dev - directory in linux
         // /i2c-1 specific i2c bus
         let dev = I2cdev::new("/dev/i2c-1").unwrap();
@@ -90,54 +95,114 @@ impl Sensors {
         let mut spi = SpidevDevice::open("/dev/spidev0.1").unwrap();
         let mut bme280 = BME280::new(spi).unwrap();
 
+        // Initialize the GPIO pin within an Arc<Mutex>
+        let gpio = Gpio::new().expect("Failed to initialize GPIO");
+        let input_pin = gpio
+            .get(23) // Using GPIO Pin 23 as before
+            .expect("Failed to get GPIO pin 23")
+            .into_input_pullup(); // Use pull-up resistor
         //bme280.init(&mut delay).unwrap();
         //
         //let measurements = bme280.measure(&mut delay).unwrap();
         //
         Sensors {
-            //dev,
             pressure: 0.0,
-            rail_pos,
-            rail_direction: 1,
-            rail_pin: Arc::new(Mutex::new(
-                Gpio::new().unwrap().get(23).unwrap().into_input_pullup(),
-            )),
+            rail_pos: Arc::new(Mutex::new(initial_rail_pos)), // Initialize Arc<Mutex>
+            rail_pin_trigger: Arc::new(Mutex::new(input_pin)), // Initialize Arc<Mutex> for pin
             altitude: 0.0,
             euler_angles: EulerAngles::<f32, ()>::from([0.0, 0.0, 0.0]),
             quaternion: Quaternion::<f32>::from([0.0, 0.0, 0.0, 0.0]),
-            //imu,
             bme: bme280,
             delay,
-            //ground_pressure: measurements.pressure,
         }
     }
 
+    // Modify get_rail_pos to work with Arc<Mutex>
+    pub fn get_rail_pos(&self) -> i8 {
+        match self.rail_pos.lock() {
+            Ok(pos) => *pos, // Dereference the MutexGuard to get the i8 value
+            Err(e) => {
+                eprintln!("ERROR: Failed to lock rail_pos mutex: {:?}", e);
+                0 // Return default on error
+            }
+        }
+        // Note: Reading the file here is redundant if the Arc<Mutex> holds the state
+        // let content = std::fs::read_to_string("rail.pos").unwrap();
+        // let rail_pos = match content.parse::<i8>() { /* ... */ };
+        // rail_pos
+    }
     pub fn update_reading(&mut self) {
-        // Create a channel that receives the gpio reading and updates the pos
+        // Clone the Arcs to move into the closure
+        let rail_pos_clone = Arc::clone(&self.rail_pos);
+        let pin_clone = Arc::clone(&self.rail_pin_trigger);
 
-        let inpin = self.rail_pin.clone();
+        // Lock the pin mutex once to set the interrupt
+        let mut locked_pin = pin_clone.lock().expect("Failed to lock rail pin mutex");
 
-        let mut pin = inpin.lock().unwrap();
+        locked_pin
+            .set_async_interrupt(
+                Trigger::RisingEdge,             // Trigger on rising edge
+                Some(Duration::from_millis(20)), // Debounce timeout (adjust if needed)
+                move |_level| {
+                    // Closure now takes the level (unused here)
+                    // --- Start of Interrupt Handler ---
 
-        pin.set_async_interrupt(
-            Trigger::RisingEdge,
-            Some(Duration::from_millis(5)),
-            move |event| {
-                let content = std::fs::read_to_string("rail.pos").unwrap();
+                    // Lock the shared position state
+                    let mut current_pos = rail_pos_clone
+                        .lock()
+                        .expect("Failed to lock rail_pos in interrupt");
 
-                let mut rail_pos = match content.parse::<i8>() {
-                    Ok(res) => res,
-                    Err(e) => 0,
-                };
+                    // **** ASSUMPTION: Rising edge means move in positive direction ****
+                    // **** You MUST adapt this if you need bidirectional counting ****
+                    let direction_increment: i8 = 1; // Hardcoded direction
 
-                //rail_pos += self.rail_direction;
-                println!(" I am here");
+                    // Perform the count update
+                    *current_pos += direction_increment;
 
-                let mut file = OpenOptions::new().write(true).open("rail.pos").unwrap();
-                writeln!(file, "{}", rail_pos);
-            },
-        )
-        .unwrap();
+                    // Clamp the value to prevent exceeding limits (optional but good practice)
+                    *current_pos = current_pos.clamp(MIN_RAIL_POS - 1, MAX_RAIL_POS + 1); // Allow one step past for detection
+
+                    // Print the updated position
+                    println!("Rail Interrupt! New Position: {}", *current_pos);
+
+                    // !!!!! WARNING: FILE I/O IN INTERRUPT IS BAD PRACTICE !!!!!
+                    // This can block the system and cause delays or instability.
+                    // It's better to have a separate task that periodically saves
+                    // the value from the Arc<Mutex> or saves on shutdown.
+                    // Leaving it here for now as requested, but it should be moved.
+                    match OpenOptions::new()
+                        .write(true)
+                        .truncate(true)
+                        .create(true)
+                        .open("rail.pos")
+                    {
+                        Ok(mut file) => {
+                            if let Err(e) = writeln!(file, "{}", *current_pos) {
+                                eprintln!(
+                                    "ERROR: Failed to write to rail.pos in interrupt: {:?}",
+                                    e
+                                );
+                            }
+                        }
+                        Err(e) => {
+                            eprintln!(
+                                "ERROR: Failed to open rail.pos for writing in interrupt: {:?}",
+                                e
+                            );
+                        }
+                    }
+                    // !!!!! END WARNING !!!!!
+
+                    // MutexGuard (`current_pos`) is automatically dropped here, releasing the lock.
+
+                    // --- End of Interrupt Handler ---
+                },
+            )
+            .expect("Failed to set async interrupt");
+
+        println!("Rail position interrupt handler set up on pin 23.");
+        // Drop the lock on the pin after setting the interrupt
+        // The lock is implicitly dropped when locked_pin goes out of scope
     }
 
     pub fn update_altitude(&mut self) {
@@ -200,17 +265,6 @@ impl Sensors {
     }
     pub fn get_altitude(&self) -> f32 {
         self.altitude
-    }
-
-    pub fn get_rail_pos(&self) -> i8 {
-        let content = std::fs::read_to_string("rail.pos").unwrap();
-
-        let rail_pos = match content.parse::<i8>() {
-            Ok(res) => res,
-            Err(e) => 0,
-        };
-
-        rail_pos
     }
 }
 
@@ -313,11 +367,15 @@ pub struct Flappy {
     active_gamepad: Option<GamepadId>,
     pub actuator: PCAActuator,
     manual: bool,
-    pub sensor: Sensors,
+    pub sensor: Sensors, // Holds the sensors including rail_pos Arc
 }
 
 impl Flappy {
     pub fn new() -> Self {
+        let mut sensors = Sensors::new();
+        // Call update_reading to set up the interrupt *after* Sensors is created
+        sensors.update_reading(); // Setup the interrupt handler
+
         Flappy {
             state: Vec::new(),
             input: (0.0_f32, 0.0_f32, 0.0_f32),
@@ -325,7 +383,7 @@ impl Flappy {
             active_gamepad: None,
             actuator: PCAActuator::new(),
             manual: true,
-            sensor: Sensors::new(),
+            sensor: sensors, // Move the sensors struct here
         }
     }
 
@@ -360,6 +418,16 @@ impl Flappy {
     pub fn is_manual(&self) -> bool {
         self.manual
     }
+    fn map_range(
+        &self,
+        value: f32,
+        from_low: f32,
+        from_high: f32,
+        to_low: f32,
+        to_high: f32,
+    ) -> f32 {
+        (value - from_low) / (from_high - from_low) * (to_high - to_low) + to_low
+    }
 }
 
 impl Blimp for Flappy {
@@ -385,41 +453,76 @@ impl Blimp for Flappy {
         }
         //self.sensor.update_reading();
     }
+
     //Takes in inputs and converts them into actuations
     //Options Teleop to autonomy
     //in my temrinal type "scp targets/Georgie
     fn mix(&mut self) -> Actuations {
-        let (x, y, z) = self.input;
+        let (x, y, z) = self.input; // x=LeftY (Forward), y=RightX (Turn), z=RightY (Up/Down)
+        let freq = 1.1;
 
-        let freq = 0.7;
-        let turn_freq = 0.9;
+        let mut s1_ac = 90.0; // Servo 1 (Left Wing?)
+        let mut s2_ac = 90.0; // Servo 2 (Right Wing?)
+        let mut s3_ac = 90.0; // Servo 3 (Tail/Rudder?)
+        let mut s_cg_ac = 95.0; // Servo 4 (CG / Z-movement on rail) - Default slightly off center
 
-        let mut s1_ac = 90.0;
-        let mut s2_ac = 90.0;
-        let mut s3_ac = 90.0;
-        let mut s_cg_ac = 95.0;
+        // --- Get Current Rail Position ---
+        let current_rail_pos = self.sensor.get_rail_pos();
 
+        // --- Determine Z-Movement Permissions based on Rail Limits ---
+        let mut allow_z_positive = true; // Allow moving towards positive counts (assume this is z > 0.1)
+        let mut allow_z_negative = true; // Allow moving towards negative counts (assume this is z < -0.1)
+
+        if current_rail_pos >= MAX_RAIL_POS {
+            allow_z_positive = false; // At positive end, block further positive Z movement
+            // Optional: Print warning only once or less frequently if needed
+            // println!("WARN: Rail at positive limit ({})! Blocking positive Z.", current_rail_pos);
+        }
+        if current_rail_pos <= MIN_RAIL_POS {
+            allow_z_negative = false; // At negative end, block further negative Z movement
+            // Optional: Print warning only once or less frequently if needed
+            // println!("WARN: Rail at negative limit ({})! Blocking negative Z.", current_rail_pos);
+        }
+
+        // --- Apply Controls ---
+
+        // Forward Movement (x)
         if x > 0.1 {
             s1_ac = self.oscillate_wing(-1.0, freq);
             s2_ac = self.oscillate_wing(1.0, freq);
         }
 
+        // Turning Movement (y)
         if y > 0.2 {
+            // Turn Right?
             s2_ac = 90.0;
-            s1_ac = self.oscillate_wing(-1.0, turn_freq);
+            s1_ac = self.oscillate_wing(-1.0, freq);
             s3_ac = 180.0;
         }
         if y < -0.2 {
+            // Turn Left?
             s1_ac = 90.0;
-            s2_ac = self.oscillate_wing(1.0, turn_freq);
+            s2_ac = self.oscillate_wing(1.0, freq);
             s3_ac = 0.0;
         }
 
-        if z > 0.1 {
-            s_cg_ac = 180.0
-        }
-        if z < -0.1 {
-            s_cg_ac = 0.0
+        // Vertical / Rail Movement (z) - Apply Limits Check
+        if z > 0.1 && allow_z_positive {
+            // Assuming z > 0.1 corresponds to moving towards positive rail counts
+            s_cg_ac = 180.0;
+        } else if z < -0.1 && allow_z_negative {
+            // Assuming z < -0.1 corresponds to moving towards negative rail counts
+            s_cg_ac = 0.0;
+        } else {
+            // If input is neutral OR movement is blocked by limits, keep CG servo neutral
+            s_cg_ac = 95.0; // Or 90.0 if that's the true neutral for this servo
+            if (z > 0.1 && !allow_z_positive) || (z < -0.1 && !allow_z_negative) {
+                // Optionally print that movement was actively blocked
+                println!(
+                    "INFO: Z movement blocked by rail limit (Pos: {}, Z: {:.2})",
+                    current_rail_pos, z
+                );
+            }
         }
 
         Actuations {
@@ -427,10 +530,10 @@ impl Blimp for Flappy {
             m2: 0.0,
             m3: 0.0,
             m4: 0.0,
-            s1: s1_ac as f32, // Keep neutral if not controlled
+            s1: s1_ac as f32,
             s2: s2_ac as f32,
             s3: s3_ac as f32,
-            s4: s_cg_ac as f32,
+            s4: s_cg_ac as f32, // Updated CG servo value
         }
     }
 }

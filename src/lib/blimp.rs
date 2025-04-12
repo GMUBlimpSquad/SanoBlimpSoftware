@@ -12,12 +12,11 @@ use std::time::{self, Duration};
 use tokio::spawn;
 use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver};
 
+use super::object_detection::Detection;
 use bme280::spi::BME280;
 use shared_bus::{self, BusManager, I2cProxy, NullMutex}; // Import the shared-bus crate
-use std::sync::{Arc, Mutex};
-
-use super::object_detection::Detection;
 use std::io::{self, Write};
+use std::sync::{Arc, Mutex};
 
 // TODO Make these a config file, and will depend on the blimp's hardware
 
@@ -31,7 +30,7 @@ const MIN_PULSE: f32 = 600.0; // Minimum pulse width in µs (ESC arming)
 const MAX_PULSE: f32 = 2600.0; // Maximum pulse width in µs (Full throttle)
 const MID_PULSE: f32 = 1500.0; // Neutral (90° equivalent)
                                // const NEUTRAL_ANGLE_MOTOR: f32 = 83.0; // Neutral position for motors and servos
-const NEUTRAL_ANGLE_MOTOR: f32 = 80.0; // Neutral position for motors and servos
+const NEUTRAL_ANGLE_MOTOR: f32 = 83.0; // Neutral position for motors and servos
 
 // Constants for the ISA barometric formula (altitude in meters, pressure in Pascals)
 const ALTITUDE_FACTOR: f32 = 44330.0; // Corresponds to meters
@@ -54,7 +53,7 @@ pub struct Sensors {
     altitude: f32,
     euler_angles: EulerAngles<f32, ()>, // = EulerAngles::<f32, ()>::from([0.0, 0.0, 0.0]);
     quaternion: Quaternion<f32>,        // = Quaternion::<f32>::from([0.0, 0.0, 0.0, 0.0]);
-    pub imu: Bno055<I2cdev>,
+    //pub imu: Bno055<I2cdev>,
     bme: BME280<SpidevDevice>,
     //ground_pressure: f32,
     delay: Delay,
@@ -72,20 +71,20 @@ impl Sensors {
             Err(e) => 0,
         };
 
-        let dev = I2cdev::new("/dev/i2c-1").unwrap();
-
+        //let dev = I2cdev::new("/dev/i2c-1").unwrap();
+        //
         let mut delay = Delay {};
+        //
+        //let mut imu = Bno055::new(dev).with_alternative_address();
+        //imu.init(&mut delay)
+        //    .expect("An error occurred while building the IMU");
+        //
+        //imu.set_mode(BNO055OperationMode::NDOF, &mut delay)
+        //    .expect("An error occurred while setting the IMU mode");
 
-        let mut imu = Bno055::new(dev).with_alternative_address();
-        imu.init(&mut delay)
-            .expect("An error occurred while building the IMU");
-
-        imu.set_mode(BNO055OperationMode::NDOF, &mut delay)
-            .expect("An error occurred while setting the IMU mode");
-
-        let mut status = imu.get_calibration_status().unwrap();
-        println!("The IMU's calibration status is: {:?}", status);
-
+        //let mut status = imu.get_calibration_status().unwrap();
+        //println!("The IMU's calibration status is: {:?}", status);
+        //
         let mut spi = SpidevDevice::open("/dev/spidev0.1").unwrap();
         let mut bme280 = BME280::new(spi).unwrap();
 
@@ -104,7 +103,7 @@ impl Sensors {
             altitude: 0.0,
             euler_angles: EulerAngles::<f32, ()>::from([0.0, 0.0, 0.0]),
             quaternion: Quaternion::<f32>::from([0.0, 0.0, 0.0, 0.0]),
-            imu,
+            //imu,
             bme: bme280,
             delay,
             //ground_pressure: measurements.pressure,
@@ -185,14 +184,14 @@ impl Sensors {
         //self.bme.measure(&mut self.delay).unwrap().pressure;
     }
 
-    pub fn update_orientation(&mut self) {
-        match self.imu.quaternion() {
-            Ok(val) => {
-                self.quaternion = val;
-            }
-            Err(e) => {}
-        }
-    }
+    //pub fn update_orientation(&mut self) {
+    //    match self.imu.quaternion() {
+    //        Ok(val) => {
+    //            self.quaternion = val;
+    //        }
+    //        Err(e) => {}
+    //    }
+    //}
 
     pub fn get_orientation(&self) -> Quaternion<f32> {
         self.quaternion
@@ -303,6 +302,10 @@ pub struct SanoBlimp {
     pub actuator: PCAActuator,
     pub sensor: Sensors,
     manual: bool,
+    score: bool,
+    score_time: std::time::Instant,
+    m1_mul: f32,
+    m2_mul: f32,
 }
 
 pub struct Flappy {
@@ -446,7 +449,7 @@ pub struct Actuations {
 }
 
 impl SanoBlimp {
-    pub fn new() -> Self {
+    pub fn new(m1_mul: f32, m2_mul: f32) -> Self {
         SanoBlimp {
             state: Vec::new(),
             input: (0.0_f32, 0.0_f32, 0.0_f32),
@@ -455,6 +458,10 @@ impl SanoBlimp {
             actuator: PCAActuator::new(),
             manual: true,
             sensor: Sensors::new(),
+            score: false,
+            score_time: std::time::Instant::now(),
+            m1_mul,
+            m2_mul,
         }
     }
 
@@ -466,6 +473,9 @@ impl SanoBlimp {
 
     pub fn manual(&mut self) {
         let act = self.mix();
+        if self.score {
+            return;
+        }
         self.actuator.actuate(act);
     }
 
@@ -477,7 +487,37 @@ impl SanoBlimp {
 impl Blimp for SanoBlimp {
     fn update(&mut self) {
         self.sensor.update_altitude();
-        self.sensor.update_orientation();
+        //self.sensor.update_orientation();
+
+        if self.score {
+            self.actuator.actuate(Actuations {
+                m1: NEUTRAL_ANGLE_MOTOR - 15.0,
+                m2: NEUTRAL_ANGLE_MOTOR - 15.0,
+                m3: NEUTRAL_ANGLE_MOTOR + 30.0,
+                m4: NEUTRAL_ANGLE_MOTOR + 30.0,
+                s1: NEUTRAL_ANGLE,
+                s2: NEUTRAL_ANGLE,
+                s3: NEUTRAL_ANGLE,
+                s4: NEUTRAL_ANGLE,
+            });
+
+            if self.score_time.elapsed() > std::time::Duration::from_secs(5) {
+                println!("Scoring stopped");
+                self.score = false;
+
+                self.actuator.actuate(Actuations {
+                    m1: NEUTRAL_ANGLE_MOTOR,
+                    m2: NEUTRAL_ANGLE_MOTOR,
+                    m3: NEUTRAL_ANGLE_MOTOR,
+                    m4: NEUTRAL_ANGLE_MOTOR,
+                    s1: NEUTRAL_ANGLE,
+                    s2: NEUTRAL_ANGLE,
+                    s3: NEUTRAL_ANGLE,
+                    s4: NEUTRAL_ANGLE,
+                });
+            }
+        }
+
         // TODO Move the controller input to a saperate thread
         while let Some(Event { event, .. }) = self.gilrs.next_event() {
             match event {
@@ -489,6 +529,10 @@ impl Blimp for SanoBlimp {
                 },
                 gilrs::EventType::ButtonPressed(button, code) => match button {
                     gilrs::Button::Start => self.manual = !self.manual,
+                    gilrs::Button::East => {
+                        self.score = true;
+                        self.score_time = std::time::Instant::now();
+                    }
                     _ => {}
                 },
                 _ => {}
@@ -502,16 +546,16 @@ impl Blimp for SanoBlimp {
         //println!("{:?}", self.sensor.get_orientation());
         //
 
-        println!("{:?}", self.sensor.imu.gyro_data());
+        //println!("{:?}", self.sensor.imu.gyro_data());
 
-        let m1_mul = 1.3;
-        let m2_mul = 1.0;
+        let m1_mul = self.m1_mul;
+        let m2_mul = self.m2_mul;
 
         let mut m1 = NEUTRAL_ANGLE_MOTOR - (x * 5.0) * m1_mul; // Map movement to a range (0-180°)
         let mut m2 = NEUTRAL_ANGLE_MOTOR - (x * 5.0) * m2_mul;
 
-        m1 += self.sensor.imu.gyro_data().unwrap().y;
-        m2 -= self.sensor.imu.gyro_data().unwrap().y;
+        //m1 += self.sensor.imu.gyro_data().unwrap().y;
+        //m2 -= self.sensor.imu.gyro_data().unwrap().y;
 
         if z > 0.1 {
             m1 -= z * 6.0;
@@ -545,8 +589,8 @@ impl Blimp for SanoBlimp {
         Actuations {
             m1: m1.clamp(0.0, 180.0),
             m2: m2.clamp(0.0, 180.0),
-            m3: m1.clamp(0.0, 180.0),
-            m4: m2.clamp(0.0, 180.0),
+            m3: NEUTRAL_ANGLE_MOTOR,
+            m4: NEUTRAL_ANGLE_MOTOR,
             s1: NEUTRAL_ANGLE, // Keep neutral if not controlled
             s2: NEUTRAL_ANGLE,
             s3: s3.clamp(0.0, 180.0),

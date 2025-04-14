@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-// use bme280::i2c::BME280; // Original BME280 import (SPI is used below)
+// use bme280::i2c::BME280;
 use bno055::{BNO055OperationMode, Bno055};
 use core::f64;
 use gilrs::{Button, Event, GamepadId, Gilrs, PowerInfo};
@@ -15,22 +14,12 @@ use std::time::{self, Duration};
 // use tokio::spawn; // Not actively used in this snippet
 // use tokio::sync::mpsc::{UnboundedReceiver, unbounded_channel}; // Not actively used
 
-<<<<<<< HEAD
-use bme280::spi::BME280; // Using SPI version of BME280 driver
-// use shared_bus::{self, BusManager, I2cProxy, NullMutex}; // Not used in this snippet
-
-// Assuming object_detection is in the parent module or defined elsewhere
-// use super::object_detection::Detection;
-use std::io::{self, Write};
-=======
 use super::object_detection::Detection;
 use shared_bus::{self, BusManager, I2cProxy, NullMutex}; // Import the shared-bus crate
 use std::io::{self, Write};
-use std::sync::{Arc, Mutex};
 
-use crate::driver::bme280::{self, Bme280, Bme280Measurements};
-use crate::{lib::base_station::communication::*, BlimpSensorData, States};
->>>>>>> main
+use crate::driver::bme280::{self, Bme280, Bme280Measurements, DEFAULT_SEA_LEVEL_HPA};
+use crate::{BlimpSensorData, States, lib::base_station::communication::*};
 
 // TODO Make these a config file, and will depend on the blimp's hardware
 
@@ -43,13 +32,9 @@ const PWM_FREQUENCY_MOTOR: f32 = 60.0; // Hz for motors and servos
 const MIN_PULSE: f32 = 600.0; // Minimum pulse width in µs (ESC arming)
 const MAX_PULSE: f32 = 2600.0; // Maximum pulse width in µs (Full throttle)
 const MID_PULSE: f32 = 1500.0; // Neutral (90° equivalent)
-<<<<<<< HEAD
-// const NEUTRAL_ANGLE_MOTOR: f32 = 83.0; // Neutral position for motors and servos
-const NEUTRAL_ANGLE_MOTOR: f32 = 80.0; // Neutral position for motors and servos
-=======
-                               // const self.neutral_angle_motor: f32 = 83.0; // Neutral position for motors and servos
-                               //const self.neutral_angle_motor: f32 = 83.0; // Neutral position for motors and servos
->>>>>>> main
+
+// const self.neutral_angle_motor: f32 = 83.0; // Neutral position for motors and servos
+//const self.neutral_angle_motor: f32 = 83.0; // Neutral position for motors and servos
 
 // Constants for the ISA barometric formula (altitude in meters, pressure in Pascals)
 const ALTITUDE_FACTOR: f32 = 44330.0; // Corresponds to meters
@@ -62,9 +47,6 @@ const MIN_RAIL_POS: i8 = -3;
 
 /// Every blimp needs the following trait
 pub trait Blimp {
-<<<<<<< HEAD
-    fn update(&mut self);
-=======
     fn update(
         &mut self,
         state: Arc<Mutex<States>>,
@@ -72,7 +54,6 @@ pub trait Blimp {
         save_image: &mut bool,
     ) -> BlimpSensorData;
 
->>>>>>> main
     fn mix(&mut self) -> Actuations;
     fn update_input(&mut self, input: (f32, f32, f32));
 }
@@ -85,15 +66,9 @@ pub struct Sensors {
     altitude: f32,
     euler_angles: EulerAngles<f32, ()>, // = EulerAngles::<f32, ()>::from([0.0, 0.0, 0.0]);
     quaternion: Quaternion<f32>,        // = Quaternion::<f32>::from([0.0, 0.0, 0.0, 0.0]);
-<<<<<<< HEAD
-    //pub imu: Bno055<I2cdev>, // IMU is commented out
-    bme: BME280<SpidevDevice>, // BME280 pressure sensor via SPI
-    //ground_pressure: f32, // Needs proper implementation
-=======
     pub imu: Bno055<I2cdev>,
     bme: Bme280,
-    ground_altitude: f32,
->>>>>>> main
+    // ground_altitude: f32,
     delay: Delay,
     //dev: Arc<Mutex<I2cdev>>, // Not used
 }
@@ -107,20 +82,12 @@ impl Sensors {
         };
         println!("Initialized rail position: {}", initial_rail_pos);
 
-<<<<<<< HEAD
-        //New I2C device from linux to path /dev - directory in linux
-        // /i2c-1 specific i2c bus
-        let dev = I2cdev::new("/dev/i2c-1").unwrap(); // Used by PCA9685 later, maybe IMU if uncommented
-
-=======
         let dev = I2cdev::new("/dev/i2c-1").unwrap();
         //
->>>>>>> main
         let mut delay = Delay {};
         //
         let mut imu = Bno055::new(dev);
 
-<<<<<<< HEAD
         //let mut imu = Bno055::new(dev).with_alternative_address(); // IMU commented out
         //imu.init(&mut delay)
         //    .expect("An error occurred while building the IMU");
@@ -132,9 +99,10 @@ impl Sensors {
         //println!("The IMU's calibration status is: {:?}", status);
 
         // Initialize SPI for BME280
-        let spi = SpidevDevice::open("/dev/spidev0.1").unwrap();
-        let mut bme280 = BME280::new(spi).unwrap();
+        // let spi = SpidevDevice::open("/dev/spidev0.1").unwrap();
+        // let mut bme280 = BME280::new(spi).unwrap();
         // bme280.init(&mut delay).unwrap(); // Initialization might be needed depending on driver version/settings
+        let mut bme280 = Bme280::new("/dev/spidev0.0", DEFAULT_SEA_LEVEL_HPA).unwrap();
 
         // Initialize the GPIO pin for rail interrupt within an Arc<Mutex>
         let gpio = Gpio::new().expect("Failed to initialize GPIO");
@@ -145,26 +113,6 @@ impl Sensors {
 
         // let measurements = bme280.measure(&mut delay).unwrap(); // Initial measurement if needed
 
-=======
-        match imu.init(&mut delay) {
-            Ok(a) => {
-                imu.set_mode(BNO055OperationMode::NDOF, &mut delay)
-                    .expect("An error occurred while setting the IMU mode");
-            }
-            Err(e) => {}
-        }
-
-        //let mut status = imu.get_calibration_status().unwrap();
-        //println!("The IMU's calibration status is: {:?}", status);
-
-        let mut bme280 = Bme280::new("/dev/spidev0.0", bme280::DEFAULT_SEA_LEVEL_HPA).unwrap();
-
-        let meas = bme280.read().unwrap();
-        //bme280.init(&mut delay).unwrap();
-        //
-        //let measurements = bme280.measure(&mut delay).unwrap();
-        //
->>>>>>> main
         Sensors {
             pressure: 0.0,
             rail_pos: Arc::new(Mutex::new(initial_rail_pos)), // Initialize Arc<Mutex> for position
@@ -173,17 +121,11 @@ impl Sensors {
             altitude: 0.0,
             euler_angles: EulerAngles::<f32, ()>::from([0.0, 0.0, 0.0]),
             quaternion: Quaternion::<f32>::from([0.0, 0.0, 0.0, 0.0]),
-<<<<<<< HEAD
-            // imu, // Add if uncommented
-            bme: bme280,
-            delay,
-=======
             imu: imu,
             bme: bme280,
             delay,
-            ground_altitude: meas.altitude_m,
-            //ground_pressure: measurements.pressure,
->>>>>>> main
+            // ground_altitude: ,
+            // ground_pressure: measurements.pressure,
         }
     }
 
@@ -328,12 +270,6 @@ impl Sensors {
 
     pub fn update_altitude(&mut self) {
         // --- Get Current Pressure ---
-<<<<<<< HEAD
-        let measurement = match self.bme.measure(&mut self.delay) {
-            Ok(m) => m,
-            Err(_e) => {
-                // eprintln!("Error reading BME sensor: {:?}", e); // Use eprintln for standard error
-=======
         // It's better practice to handle the Result properly instead of unwrapping,
         // especially in embedded systems where panics can be problematic.
         let measurement = match self.bme.read() {
@@ -342,43 +278,13 @@ impl Sensors {
                 // Handle the error appropriately: log it, set a default/error altitude, etc.
                 // For example:
                 eprintln!("Error reading BME sensor: {:?}", e); // If using rtt-target
->>>>>>> main
                 self.altitude = f32::NAN; // Set altitude to Not a Number to indicate an error
                 return; // Exit the function if measurement failed
             }
         };
-<<<<<<< HEAD
-        let current_pressure_pa = measurement.pressure;
-
-        // --- Get Reference Pressure (Needs Implementation) ---
-        // This needs to be set somehow, e.g., calibration at startup
-        // let reference_pressure_pa = self.ground_pressure; // If you add ground_pressure field
-        let reference_pressure_pa = STANDARD_SEA_LEVEL_PRESSURE_PA; // <<< TEMP: Using standard sea level - REPLACE with calibrated ground pressure
-        if reference_pressure_pa <= 0.0 {
-            // eprintln!("Invalid reference pressure: {}", reference_pressure_pa);
-            self.altitude = f32::NAN; // Indicate error
-            return;
-        }
-
-        // --- Calculate Altitude ---
-        let pressure_ratio = current_pressure_pa / reference_pressure_pa;
-
-        // Prevent issues with log/powf if ratio is non-positive
-        if pressure_ratio <= 0.0 {
-            self.altitude = f32::NAN;
-            return;
-        }
-
-        let altitude_meters = ALTITUDE_FACTOR * (1.0 - pressure_ratio.powf(ISA_EXPONENT));
-
-        // --- Store Result ---
-        self.altitude = altitude_meters;
-        self.pressure = current_pressure_pa; // Store current pressure too if needed
-=======
         //println!("{:?}", measurement);
         // --- Store Result ---
-        self.altitude = measurement.altitude_m - self.ground_altitude;
->>>>>>> main
+        // self.altitude = measurement.altitude_m - self.ground_altitude;
     }
 
     // pub fn update_orientation(&mut self) { // If IMU is uncommented
@@ -408,17 +314,10 @@ pub struct PCAActuator {
 }
 
 impl PCAActuator {
-<<<<<<< HEAD
-    pub fn new() -> Self {
-        let dev = I2cdev::new("/dev/i2c-1").expect("Failed to initialize I2C device for PCA9685");
-        let address = Address::default(); // Default address 0x40
-        // let address = Address::from(0x55); // Use if address is changed
-=======
     pub fn new(neutral_angle_motor: f32) -> Self {
         let dev = I2cdev::new("/dev/i2c-1").expect("Failed to initialize I2C device");
         let address = Address::default();
         //let address = Address::from(0x55);
->>>>>>> main
         let mut pwm = Pca9685::new(dev, address).expect("Failed to create PCA9685 instance");
 
         // Calculate prescale for desired frequency (adjust formula if needed based on PCA9685 datasheet/driver)
@@ -432,16 +331,10 @@ impl PCAActuator {
         pwm.set_prescale(prescale).expect("Failed to set prescale");
         pwm.enable().expect("Failed to enable PCA9685");
 
-<<<<<<< HEAD
-        let mut actuator = PCAActuator { pwm };
-        // init_escs might not be strictly needed if Flappy only uses servos,
-        // but doesn't hurt if channels 0-3 are unused servos.
-=======
         let mut actuator = PCAActuator {
             pwm,
             neutral_angle_motor,
         };
->>>>>>> main
         actuator.init_escs();
         actuator
     }
@@ -481,7 +374,7 @@ impl PCAActuator {
         println!("Initializing ESCs (sending arming sequence)...");
 
         // Use NEUTRAL_ANGLE_MOTOR for the neutral point during init
-        let neutral_angle = NEUTRAL_ANGLE_MOTOR; // e.g., 80.0
+        // let neutral_angle = NEUTRAL_ANGLE_MOTOR; // e.g., 80.0
         let min_angle = 0.0; // Corresponds to MIN_PULSE
         let max_angle = 180.0; // Corresponds to MAX_PULSE
 
@@ -501,22 +394,12 @@ impl PCAActuator {
         self.set_motor_speed(Channel::C3, min_angle);
         sleep(Duration::from_secs(2)); // Wait longer for arming confirmation beep usually
 
-<<<<<<< HEAD
-        // Step 3: Optionally move to neutral throttle (some protocols might prefer this)
-        println!("Setting ESCs to neutral angle ({})", neutral_angle);
-        self.set_motor_speed(Channel::C0, neutral_angle);
-        self.set_motor_speed(Channel::C1, neutral_angle);
-        self.set_motor_speed(Channel::C2, neutral_angle);
-        self.set_motor_speed(Channel::C3, neutral_angle);
-        sleep(Duration::from_millis(500));
-=======
         // Step 3: Move to neutral throttle (ready to receive commands)
         println!("Setting ESCs to neutral");
         self.set_motor_speed(Channel::C0, self.neutral_angle_motor);
         self.set_motor_speed(Channel::C1, self.neutral_angle_motor);
         self.set_motor_speed(Channel::C2, self.neutral_angle_motor);
         self.set_motor_speed(Channel::C3, self.neutral_angle_motor);
->>>>>>> main
 
         println!("ESC initialization sequence complete!");
     }
@@ -536,10 +419,6 @@ impl PCAActuator {
     }
 } // end impl PCAActuator
 
-<<<<<<< HEAD
-// SanoBlimp struct commented out - keeping Flappy as primary
-// pub struct SanoBlimp { ... }
-=======
 pub struct SanoBlimp {
     state: Vec<f32>,
     input: (f32, f32, f32),
@@ -555,7 +434,6 @@ pub struct SanoBlimp {
     neutral_angle_motor: f32,
     controller_battery: f32,
 }
->>>>>>> main
 
 pub struct Flappy {
     state: Vec<f32>,        // Currently unused
@@ -563,18 +441,16 @@ pub struct Flappy {
     gilrs: Gilrs,
     active_gamepad: Option<GamepadId>,
     pub actuator: PCAActuator,
-<<<<<<< HEAD
     pub sensor: Sensors, // Holds the sensors including rail state and direction intent
-    manual: bool,        // Mode flag
-=======
     manual: bool,
-    sensor: Sensors,
     controller_battery: f32,
->>>>>>> main
+    pub score: bool,
+    pub score_time: std::time::Instant,
+    neutral_angle_motor: f32,
 }
 
 impl Flappy {
-    pub fn new() -> Self {
+    pub fn new(neutral_angle_motor: f32) -> Self {
         println!("Initializing Flappy...");
         let mut sensors = Sensors::new(); // Create sensors first
         // Call update_reading to set up the interrupt *after* Sensors is created
@@ -582,14 +458,9 @@ impl Flappy {
 
         Flappy {
             state: Vec::new(),
-<<<<<<< HEAD
-            input: (0.0_f32, 0.0_f32, 0.0_f32), // Initial input state
-            gilrs: Gilrs::new().expect("Failed to initialize Gilrs gamepad library"),
-            active_gamepad: None,         // Will be populated when events occur
-            actuator: PCAActuator::new(), // Initialize actuators (includes ESC init)
-            manual: true,                 // Start in manual mode
-            sensor: sensors,              // Move the initialized sensors struct here
-=======
+            score: false,
+            score_time: std::time::Instant::now(),
+            neutral_angle_motor,
             input: (0.0_f32, 0.0_f32, 0.0_f32),
             gilrs: Gilrs::new().expect("Failed to initialize Gilrs"),
             active_gamepad: None,
@@ -597,7 +468,6 @@ impl Flappy {
             manual: true,
             sensor: Sensors::new(),
             controller_battery: 0.0,
->>>>>>> main
         }
     }
 
@@ -621,11 +491,7 @@ impl Flappy {
 
     /// Call this in the main loop to handle updates and actuation.
     pub fn run(&mut self) {
-<<<<<<< HEAD
-        self.update(); // Process inputs and update sensor direction intent
-=======
         // self.update();
->>>>>>> main
 
         // Add sensor reads here if needed in main loop (like altitude)
         // self.sensor.update_altitude(); // Example: Read altitude periodically
@@ -697,14 +563,7 @@ impl Blimp for Flappy {
         }
         self.sensor.set_intended_rail_direction(intended_direction);
     }
-<<<<<<< HEAD
 
-    /// Processes gamepad input and updates internal state, including rail direction intent.
-    fn update(&mut self) {
-        // Process all available gamepad events
-        while let Some(Event { id, event, .. }) = self.gilrs.next_event() {
-            self.active_gamepad = Some(id); // Store active gamepad id
-=======
     //This takes controller input and updates the blimp's state
     fn update(
         &mut self,
@@ -713,14 +572,13 @@ impl Blimp for Flappy {
         save_image: &mut bool,
     ) -> BlimpSensorData {
         let mut rng = rand::thread_rng(); // Use thread_rng() correctly
-                                          //
-                                          //let mut controller_battery = 0.0;
+        //
+        //let mut controller_battery = 0.0;
         while let Some(Event { event, id, .. }) = self.gilrs.next_event() {
             match self.gilrs.gamepad(id).power_info() {
                 PowerInfo::Discharging(lvl) => self.controller_battery = lvl as f32,
                 _ => (),
             };
->>>>>>> main
             match event {
                 gilrs::EventType::AxisChanged(axis, pos, _) => {
                     // Deadzone check could be added here
@@ -772,11 +630,6 @@ impl Blimp for Flappy {
                 _ => {}
             }
         }
-<<<<<<< HEAD
-        // Note: Sensor reading (like altitude) could happen here or in run()
-        // self.sensor.update_altitude();
-        // Note: self.sensor.update_reading() is NOT called here - it's for setup only.
-=======
 
         let mut sensor_data = BlimpSensorData {
             battery: self.controller_battery,
@@ -789,7 +642,6 @@ impl Blimp for Flappy {
         };
         sensor_data
         //self.sensor.update_reading();
->>>>>>> main
     }
 
     /// Takes current inputs (self.input) and calculates actuator commands (servos for Flappy).
@@ -919,9 +771,6 @@ impl SanoBlimp {
             active_gamepad: None,
             actuator: PCAActuator::new(neutral_angle_motor),
             manual: true,
-<<<<<<< HEAD
-            sensor: Sensors::new(), // SanoBlimp would need its own sensor instance
-=======
             sensor: Sensors::new(),
             score: false,
             score_time: std::time::Instant::now(),
@@ -929,7 +778,6 @@ impl SanoBlimp {
             m2_mul,
             neutral_angle_motor,
             controller_battery: 0.0,
->>>>>>> main
         }
     }
 

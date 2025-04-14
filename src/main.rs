@@ -113,7 +113,7 @@ async fn main() {
     //    _ => blimp::SanoBlimp::new(),
     //};
     //
-    let mut blimp = blimp::Flappy::new();
+    let mut blimp = blimp::Flappy::new(conf.motor.midpoint_angle);
 
     // TODO Update this to take in the whole motor config
     // let mut blimp = blimp::SanoBlimp::new(

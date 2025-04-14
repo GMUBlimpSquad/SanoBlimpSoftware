@@ -53,6 +53,28 @@ impl Autonomous {
         }
     }
 
+    pub fn update_gains(
+        &mut self,
+        kp_x: f32,
+        kd_y: f32,
+        kp_z: f32,
+        kd_x: f32,
+        kp_y: f32,
+        kd_z: f32,
+        ki: f32,
+    ) {
+        self.kp_x = kp_x;
+        self.kd_x = kd_x;
+
+        self.kp_y = kp_y;
+        self.kd_y = kd_y;
+
+        self.kp_z = kp_z;
+        self.kd_z = kd_z;
+
+        self.ki = ki;
+    }
+
     /// Map a value from one numerical range to another.
     ///
     /// Equivalent to the Python `map_value` method.
@@ -105,6 +127,17 @@ impl Autonomous {
         Ok(clamped)
     }
 
+    pub fn direction_hold(&self, current_direction: f32, desired_direction: f32) -> f32 {
+        let direction_error = current_direction - desired_direction;
+
+        //let mapped = self.map_value(direction_error, -20.0, 20.0, -1.0, 1.0);
+        let mapped = direction_error / 20.0;
+
+        let clamped = mapped.clamp(-1.0, 1.0);
+
+        clamped
+    }
+
     /// Compute the PID control output based on the position error.
     ///
     /// Given the center coordinates (x, y, z) of a detected bounding box, this method computes
@@ -115,7 +148,7 @@ impl Autonomous {
         // xErr = 0 - x, yErr = 300 - y, zErr = 150 - z
         let x_err = 0.0 - x;
         let y_err = self.map_value(y - 160.0, -160.0, 160.0, -1.0, 1.0);
-        let z_err = self.map_value(120.0 - z, -120.0, 120.0, -1.0, 1.0);
+        let z_err = self.map_value(130.0 - z, -120.0, 120.0, -1.0, 1.0);
 
         // Calculate time elapsed since the last detection
         let now = Instant::now();

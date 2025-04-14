@@ -95,7 +95,8 @@ async fn main() {
                 println!("{:?}", auto_input);
                 blimp.update_input(auto_input);
                 let acc = blimp.mix();
-                // blimp.actuator.actuate(acc);
+                println!("acc: {:?}", acc);
+                blimp.actuator.actuate(acc);
                 time_p = std::time::Instant::now();
             } else {
                 let mut desired_altitude = 5.0;
@@ -105,9 +106,9 @@ async fn main() {
                     Err(e) => 0.0,
                 };
 
-                println!("{}", z);
+                // println!("{}", z);
 
-                if time_p.elapsed() > std::time::Duration::from_secs(1) {
+                if time_p.elapsed() > std::time::Duration::from_secs(2) {
                     blimp.update_input((0.0, 0.0, 0.0));
                     let acc = blimp.mix();
                     blimp.actuator.actuate(acc);

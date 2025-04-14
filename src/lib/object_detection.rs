@@ -21,14 +21,15 @@ const DEFAULT_TTY: &str = "COM1";
 // Detects objects
 pub struct Detection {
     reader: BufReader<Box<dyn SerialPort>>,
-    udp_socket: UdpSocket,
+    server_ip: String,
+    server_port: u16,
 }
 
 impl Detection {
     /// Create a new `Detection` struct by opening the serial port and binding a UDP socket.
-    pub fn new() -> Self {
-        let port_name = DEFAULT_TTY;
-        let baud_rate = 921600;
+    pub fn new(server_ip: String, server_port: u16, port_name: String, baud_rate: u32) -> Self {
+        //let port_name = DEFAULT_TTY;
+        //let baud_rate = 921600;
 
         let serial_port = serialport::new(port_name, baud_rate)
             .timeout(Duration::from_secs(1))
@@ -38,9 +39,13 @@ impl Detection {
         let reader = BufReader::new(serial_port);
 
         // Binds to an ephemeral local port
-        let udp_socket = UdpSocket::bind("0.0.0.0:0").expect("Failed to bind local UDP socket");
+        //let udp_socket = UdpSocket::bind("0.0.0.0:0").expect("Failed to bind local UDP socket");
 
-        Detection { reader, udp_socket }
+        Detection {
+            reader,
+            server_ip,
+            server_port,
+        }
     }
 
     /// Given a list of detection boxes and target classes, finds the largest bounding box
@@ -77,12 +82,21 @@ impl Detection {
         largest_bb
     }
 
+    // TODO Saperate this into two functions:
+    // detect() -> returns only the bounding box.
+    // detect_with_stream() -> returns the camera frame also
+
     /// Reads a JSON line from serial, extracts the largest bounding box for the given target classes,
     /// draws annotations on the image, and sends it out via UDP. Returns the `[cx, cy]` of the box center or
     /// an empty Vec if not found or if an error occurs.
-    pub fn detect(&mut self, target: Vec<i32>) -> Vec<i32> {
+    pub fn detect(
+        &mut self,
+        target: Vec<i32>,
+        socket: &UdpSocket,
+        save_image: &mut bool,
+    ) -> Vec<i32> {
         // Adjust this to your actual destination
-        let udp_dest = "192.168.8.195:54321";
+        let udp_dest = format!("{}:{}", self.server_ip, self.server_port);
 
         // Embed the font file in the binary
         let font_data: &[u8] = include_bytes!("FiraCode-Regular.ttf");
@@ -142,7 +156,9 @@ impl Detection {
                     return vec![];
                 }
             };
-
+            if *save_image {
+                dyn_img.save(format!("{}.png", chrono::Local::now().to_string()));
+            }
             // Find the largest bounding box of the requested classes
             let arr = self.get_largest(boxes, &target);
             if arr.len() < 6 {
@@ -153,14 +169,14 @@ impl Detection {
                 let mut img_buf = Vec::new();
                 {
                     let mut cursor = Cursor::new(&mut img_buf);
-                    DynamicImage::ImageRgba8(rgba_img)
+                    DynamicImage::ImageRgba8(rgba_img.clone())
                         .resize(180, 180, image::imageops::FilterType::Nearest)
                         .write_to(&mut cursor, ImageFormat::Png)
                         .expect("Failed to write image to buffer");
                 }
 
                 // Send via UDP
-                if let Err(e) = self.udp_socket.send_to(&img_buf, udp_dest) {
+                if let Err(e) = socket.send_to(&img_buf, udp_dest) {
                     eprintln!("UDP send error: {:?}", e);
                 }
 
@@ -187,8 +203,6 @@ impl Detection {
 
             // 2) Draw a filled circle at the center
             draw_filled_circle_mut(&mut rgba_img, (cx, cy), 20, Rgba([255, 0, 0, 255]));
-
-            println!("height: {}, width: {}", rgba_img.height(), rgba_img.width());
 
             //3) Draw two line segments
             draw_line_segment_mut(
@@ -230,12 +244,12 @@ impl Detection {
             }
 
             // Send via UDP
-            if let Err(e) = self.udp_socket.send_to(&img_buf, udp_dest) {
+            if let Err(e) = socket.send_to(&img_buf, udp_dest) {
                 eprintln!("UDP send error: {:?}", e);
             }
 
             // Return center coordinates
-            return vec![cx, cy];
+            return vec![cx, cy, w, h];
         }
 
         // If "type" != 1 or something else is off, return an empty vector

@@ -1,0 +1,12 @@
+[Unit]
+Description=SanoBlimpSoftware
+After=network-online.target
+
+[Service]
+WorkingDirectory=/home/pi
+ExecStartPre=/sbin/modprobe cdc_acm
+ExecStart=/home/pi/SanoBlimpSoftware
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

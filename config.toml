@@ -1,12 +1,14 @@
 [server]
-host = "localhost"
-port = 8080
+host = "192.168.1.156"
+port = 54321
+port_stat = 54320
 
 [motor]
 m1_mul = 1.0
 m2_mul = 1.0
 m3_mul = 1.0
 m4_mul = 1.0
+midpoint_angle = 90.0
 
 [controller]
 kp_x = 1.0

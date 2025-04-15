@@ -243,14 +243,14 @@ async fn main() {
                 time_p = std::time::Instant::now();
             } else {
                 if time_p.elapsed() > std::time::Duration::from_secs(2) {
-                    let mut desired_altitude = 5.0;
+                    let mut desired_altitude = 10.0;
                     let altitude = blimp.sensor.get_altitude();
 
                     let z = match auto.altitude_hold(altitude, desired_altitude) {
                         Ok(z) => z,
                         Err(e) => 0.0,
                     };
-                    //println!("Searching {z}");
+                    println!("Searching {z}");
 
                     //let current_direction = blimp.sensor.imu.mag_data().unwrap().x;
                     //

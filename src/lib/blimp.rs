@@ -42,8 +42,8 @@ const ISA_EXPONENT: f32 = 1.0 / 5.255; // Approximately 0.190294957
 const STANDARD_SEA_LEVEL_PRESSURE_PA: f32 = 101325.0; // Pa
 
 // Define Rail Limits (adjust these values as needed)
-const MAX_RAIL_POS: i8 = 3;
-const MIN_RAIL_POS: i8 = -3;
+const MAX_RAIL_POS: i8 = 2;
+const MIN_RAIL_POS: i8 = -4;
 
 /// Every blimp needs the following trait
 pub trait Blimp {
@@ -68,7 +68,7 @@ pub struct Sensors {
     quaternion: Quaternion<f32>,        // = Quaternion::<f32>::from([0.0, 0.0, 0.0, 0.0]);
     pub imu: Bno055<I2cdev>,
     bme: Bme280,
-    // ground_altitude: f32,
+    ground_altitude: f32,
     delay: Delay,
     //dev: Arc<Mutex<I2cdev>>, // Not used
 }
@@ -111,6 +111,7 @@ impl Sensors {
             .expect("Failed to get GPIO pin 23")
             .into_input_pullup(); // Use pull-up resistor
 
+        let meas = bme280.read().unwrap();
         // let measurements = bme280.measure(&mut delay).unwrap(); // Initial measurement if needed
 
         Sensors {
@@ -124,7 +125,7 @@ impl Sensors {
             imu: imu,
             bme: bme280,
             delay,
-            // ground_altitude: ,
+            ground_altitude: meas.altitude_m,
             // ground_pressure: measurements.pressure,
         }
     }
@@ -174,7 +175,7 @@ impl Sensors {
         locked_pin
             .set_async_interrupt(
                 Trigger::RisingEdge,             // Trigger on rising edge (adjust if sensor needs falling/both)
-                Some(Duration::from_millis(20)), // Debounce timeout (adjust if needed)
+                Some(Duration::from_millis(80)), // Debounce timeout (adjust if needed)
                 move |_level| {
                     // --- Start of Interrupt Handler ---
 
@@ -282,9 +283,9 @@ impl Sensors {
                 return; // Exit the function if measurement failed
             }
         };
-        //println!("{:?}", measurement);
+        println!("altitude: {:?}", measurement);
         // --- Store Result ---
-        // self.altitude = measurement.altitude_m - self.ground_altitude;
+        self.altitude = measurement.altitude_m - self.ground_altitude;
     }
 
     // pub fn update_orientation(&mut self) { // If IMU is uncommented
@@ -466,7 +467,7 @@ impl Flappy {
             active_gamepad: None,
             actuator: PCAActuator::new(90.0),
             manual: true,
-            sensor: Sensors::new(),
+            sensor: sensors,
             controller_battery: 0.0,
         }
     }
@@ -571,6 +572,7 @@ impl Blimp for Flappy {
         state_timer: Arc<Mutex<std::time::Instant>>,
         save_image: &mut bool,
     ) -> BlimpSensorData {
+        self.sensor.update_altitude();
         let mut rng = rand::thread_rng(); // Use thread_rng() correctly
         //
         //let mut controller_battery = 0.0;
@@ -605,10 +607,10 @@ impl Blimp for Flappy {
                             self.sensor.set_intended_rail_direction(intended_direction);
 
                             // <<< --- DEBUG PRINT 1 --- >>>
-                            println!(
-                                "[Update] z: {:.2}, Set intended_direction to: {}",
-                                current_z, intended_direction
-                            );
+                            // // println!(
+                            //      //"[Update] z: {:.2}, Set intended_direction to: {}",
+                            //      current_z, intended_direction
+                            //  );
                             // <<< --- END DEBUG PRINT --- >>>
                         }
                         gilrs::Axis::RightStickX => self.input.1 = value, // Turning ('y')

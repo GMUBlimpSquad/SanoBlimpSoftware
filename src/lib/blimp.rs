@@ -42,8 +42,8 @@ const ISA_EXPONENT: f32 = 1.0 / 5.255; // Approximately 0.190294957
 const STANDARD_SEA_LEVEL_PRESSURE_PA: f32 = 101325.0; // Pa
 
 // Define Rail Limits (adjust these values as needed)
-const MAX_RAIL_POS: i8 = 2;
-const MIN_RAIL_POS: i8 = -4;
+const MAX_RAIL_POS: i8 = 1;
+const MIN_RAIL_POS: i8 = -1;
 
 /// Every blimp needs the following trait
 pub trait Blimp {
@@ -278,12 +278,12 @@ impl Sensors {
             Err(e) => {
                 // Handle the error appropriately: log it, set a default/error altitude, etc.
                 // For example:
-                eprintln!("Error reading BME sensor: {:?}", e); // If using rtt-target
+                println!("Error reading BME sensor: {:?}", e); // If using rtt-target
                 self.altitude = f32::NAN; // Set altitude to Not a Number to indicate an error
                 return; // Exit the function if measurement failed
             }
         };
-        println!("altitude: {:?}", measurement);
+        // println!("altitude: {:?}", measurement);
         // --- Store Result ---
         self.altitude = measurement.altitude_m - self.ground_altitude;
     }
@@ -304,7 +304,7 @@ impl Sensors {
     }
 
     pub fn get_altitude(&self) -> f32 {
-        println!("{:?}", self.altitude);
+        // println!("{:?}", self.altitude);
         self.altitude
     }
 } // end impl Sensors
@@ -623,6 +623,27 @@ impl Blimp for Flappy {
                         println!("Mode switched: Manual = {}", self.manual);
                         // Optionally reset inputs or stop actuators when switching mode
                     }
+                    gilrs::Button::East => {
+                        self.score = true;
+                        self.score_time = std::time::Instant::now();
+                    }
+                    gilrs::Button::RightTrigger => {
+                        println!("Going for ball");
+                        *state.lock().unwrap() = States::Ball;
+                        *state_timer.lock().unwrap() = std::time::Instant::now();
+                    }
+
+                    gilrs::Button::LeftTrigger => {
+                        *state.lock().unwrap() = States::Goal;
+                        *state_timer.lock().unwrap() = std::time::Instant::now();
+                    }
+                    gilrs::Button::West => {
+                        //Capture image frame
+
+                        *save_image = if *save_image { false } else { true };
+                        println!("Toggle save image");
+                    }
+
                     // Add other button actions if needed (e.g., Button::Select for calibration)
                     _ => {}
                 },
@@ -633,6 +654,49 @@ impl Blimp for Flappy {
             }
         }
 
+        if self.score {
+            let flap_freq = 1.1;
+
+            if self.score_time.elapsed() > std::time::Duration::from_secs(10) {
+                self.actuator.actuate(Actuations {
+                    m1: self.neutral_angle_motor - 15.0,
+                    m2: self.neutral_angle_motor - 15.0,
+                    m3: self.neutral_angle_motor + 30.0,
+                    m4: self.neutral_angle_motor + 30.0,
+                    s1: self.oscillate_wing(-1.0, 0.7) as f32,
+                    s2: self.oscillate_wing(1.0, flap_freq) as f32,
+                    s3: self.oscillate_wing(-1.0, flap_freq) as f32,
+                    s4: NEUTRAL_ANGLE,
+                });
+            } else {
+                self.actuator.actuate(Actuations {
+                    m1: self.neutral_angle_motor - 15.0,
+                    m2: self.neutral_angle_motor - 15.0,
+                    m3: self.neutral_angle_motor + 30.0,
+                    m4: self.neutral_angle_motor + 30.0,
+                    s1: self.oscillate_wing(-1.0, 0.7) as f32,
+                    s2: self.oscillate_wing(1.0, flap_freq) as f32,
+                    s3: NEUTRAL_ANGLE,
+                    s4: NEUTRAL_ANGLE,
+                });
+            }
+
+            if self.score_time.elapsed() > std::time::Duration::from_secs(20) {
+                println!("Scoring stopped");
+                self.score = false;
+
+                self.actuator.actuate(Actuations {
+                    m1: self.neutral_angle_motor,
+                    m2: self.neutral_angle_motor,
+                    m3: self.neutral_angle_motor,
+                    m4: self.neutral_angle_motor,
+                    s1: NEUTRAL_ANGLE,
+                    s2: NEUTRAL_ANGLE,
+                    s3: NEUTRAL_ANGLE,
+                    s4: NEUTRAL_ANGLE,
+                });
+            }
+        }
         let mut sensor_data = BlimpSensorData {
             battery: self.controller_battery,
             altitude: rng.gen_range(5.0..20.0),
@@ -694,12 +758,12 @@ impl Blimp for Flappy {
             // Turn Right: Oscillate left wing, hold right neutral, deflect tail right
             //s1_ac = self.oscillate_wing(-1.0, flap_freq) as f32;
             //s2_ac = wing_servo_neutral; // Hold right wing
-            s3_ac = self.map_range(y, 0.2, 1.0, 140.0, 180.0); // Deflect tail fully right (adjust angle as needed)
+            s3_ac = self.map_range(y, 0.2, 1.0, 90.0, 180.0); // Deflect tail fully right (adjust angle as needed)
         } else if y < -0.1 {
             // Turn Left: Oscillate right wing, hold left neutral, deflect tail left
             //s1_ac = wing_servo_neutral; // Hold left wing
             //s2_ac = self.oscillate_wing(1.0, flap_freq) as f32;
-            s3_ac = self.map_range(y, -1.0, -0.2, 0.0, 40.0); // Deflect tail fully left (adjust angle as needed)
+            s3_ac = self.map_range(y, -1.0, -0.2, 0.0, 90.0); // Deflect tail fully left (adjust angle as needed)
         }
         // Note: If moving forward AND turning, the flapping (`s1_ac`/`s2_ac`) might override turn logic here.
         // Consider combining logic if simultaneous forward + turn requires different wing behavior.
@@ -708,10 +772,10 @@ impl Blimp for Flappy {
         // Apply threshold and check rail limits before commanding the SERVO
         if z > 0.2 && allow_z_positive {
             // Command servo to move towards positive end (e.g., 180 degrees)
-            s_cg_ac = 180.0;
+            s_cg_ac = self.map_range(z, 0.2, 1.0, 95.0, 180.0);
         } else if z < -0.2 && allow_z_negative {
             // Command servo to move towards negative end (e.g., 0 degrees)
-            s_cg_ac = 0.0;
+            s_cg_ac = self.map_range(z, -1.0, -0.2, 0.0, 95.0);
         } else {
             // Keep servo neutral if input is neutral OR movement direction is blocked by limits
             s_cg_ac = cg_servo_neutral;

@@ -243,7 +243,7 @@ async fn main() {
                 time_p = std::time::Instant::now();
             } else {
                 if time_p.elapsed() > std::time::Duration::from_secs(2) {
-                    let mut desired_altitude = 10.0;
+                    let mut desired_altitude = 4.0;
                     let altitude = blimp.sensor.get_altitude();
 
                     let z = match auto.altitude_hold(altitude, desired_altitude) {

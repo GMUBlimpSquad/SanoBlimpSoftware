@@ -20,7 +20,7 @@ use std::io::{self, Write};
 use std::sync::{Arc, Mutex};
 
 use crate::driver::bme280::{self, Bme280, Bme280Measurements};
-use crate::{lib::base_station::communication::*, BlimpSensorData, States};
+use crate::{lib::base_station::communication::*, BlimpSensorData};
 
 // TODO Make these a config file, and will depend on the blimp's hardware
 
@@ -45,7 +45,7 @@ const STANDARD_SEA_LEVEL_PRESSURE_PA: f32 = 101325.0; // Pa
 pub trait Blimp {
     fn update(
         &mut self,
-        state: Arc<Mutex<States>>,
+        state: Arc<Mutex<BlimpStates>>,
         state_timer: Arc<Mutex<std::time::Instant>>,
         save_image: &mut bool,
     ) -> BlimpSensorData;
@@ -84,14 +84,16 @@ impl Sensors {
         //
         let mut delay = Delay {};
         //
-        let mut imu = Bno055::new(dev);
+        let mut imu = Bno055::new(dev).with_alternative_address();
 
         match imu.init(&mut delay) {
             Ok(a) => {
                 imu.set_mode(BNO055OperationMode::NDOF, &mut delay)
                     .expect("An error occurred while setting the IMU mode");
             }
-            Err(e) => {}
+            Err(e) => {
+                println!("Error initializing imu");
+            }
         }
 
         //let mut status = imu.get_calibration_status().unwrap();
@@ -100,10 +102,7 @@ impl Sensors {
         let mut bme280 = Bme280::new("/dev/spidev0.0", bme280::DEFAULT_SEA_LEVEL_HPA).unwrap();
 
         let meas = bme280.read().unwrap();
-        //bme280.init(&mut delay).unwrap();
-        //
-        //let measurements = bme280.measure(&mut delay).unwrap();
-        //
+
         Sensors {
             //dev,
             pressure: 0.0,
@@ -366,7 +365,7 @@ impl Blimp for Flappy {
     //This takes controller input and updates the blimp's state
     fn update(
         &mut self,
-        state: Arc<Mutex<States>>,
+        state: Arc<Mutex<BlimpStates>>,
         state_timer: Arc<Mutex<std::time::Instant>>,
         save_image: &mut bool,
     ) -> BlimpSensorData {
@@ -401,6 +400,7 @@ impl Blimp for Flappy {
             yaw: rng.gen_range(0.0..360.0),
             tracking_error_x: rng.gen_range(-10.0..10.0),
             tracking_error_y: rng.gen_range(-10.0..10.0),
+            state: state.lock().unwrap().clone(),
         };
         sensor_data
         //self.sensor.update_reading();
@@ -507,25 +507,28 @@ impl SanoBlimp {
 impl Blimp for SanoBlimp {
     fn update(
         &mut self,
-        state: Arc<Mutex<States>>,
+        state: Arc<Mutex<BlimpStates>>,
         state_timer: Arc<Mutex<std::time::Instant>>,
         save_image: &mut bool,
     ) -> BlimpSensorData {
         self.sensor.update_altitude();
-        //self.sensor.update_orientation();
+        self.sensor.update_orientation();
 
         let mut rng = rand::thread_rng(); // Use thread_rng() correctly
         if self.score {
-            self.actuator.actuate(Actuations {
-                m1: self.neutral_angle_motor - 15.0,
-                m2: self.neutral_angle_motor - 15.0,
-                m3: self.neutral_angle_motor + 30.0,
-                m4: self.neutral_angle_motor + 30.0,
-                s1: NEUTRAL_ANGLE,
-                s2: NEUTRAL_ANGLE,
-                s3: NEUTRAL_ANGLE,
-                s4: NEUTRAL_ANGLE,
-            });
+            if self.score_time.elapsed() > std::time::Duration::from_secs(1) {
+                self.actuator.actuate(Actuations {
+                    m1: self.neutral_angle_motor + 7.0,
+                    m2: self.neutral_angle_motor + 7.0,
+                    m3: self.neutral_angle_motor + 25.0,
+                    m4: self.neutral_angle_motor + 25.0,
+                    s1: NEUTRAL_ANGLE,
+                    s2: NEUTRAL_ANGLE,
+                    s3: NEUTRAL_ANGLE,
+                    s4: NEUTRAL_ANGLE,
+                });
+            } else {
+            }
 
             if self.score_time.elapsed() > std::time::Duration::from_secs(3) {
                 println!("Scoring stopped");
@@ -570,18 +573,18 @@ impl Blimp for SanoBlimp {
                     }
                     gilrs::Button::RightTrigger => {
                         println!("Going for ball");
-                        *state.lock().unwrap() = States::Ball;
+                        *state.lock().unwrap() = BlimpStates::Ball;
                         *state_timer.lock().unwrap() = std::time::Instant::now();
                     }
 
                     gilrs::Button::LeftTrigger => {
-                        *state.lock().unwrap() = States::Goal;
+                        *state.lock().unwrap() = BlimpStates::Goal;
                         *state_timer.lock().unwrap() = std::time::Instant::now();
                     }
                     gilrs::Button::West => {
                         //Capture image frame
 
-                        *save_image = if *save_image { false } else { true };
+                        *save_image = true;
                         println!("Toggle save image");
                     }
 
@@ -595,9 +598,11 @@ impl Blimp for SanoBlimp {
             altitude: self.sensor.altitude,
             roll: rng.gen_range(-5.0..5.0),
             pitch: rng.gen_range(-5.0..5.0),
-            yaw: rng.gen_range(0.0..360.0),
+            //yaw: self.sensor.imu.euler_angles().unwrap().c,
+            yaw: 0.0,
             tracking_error_x: rng.gen_range(-10.0..10.0),
             tracking_error_y: rng.gen_range(-10.0..10.0),
+            state: state.lock().unwrap().clone(),
         };
 
         sensor_data
@@ -614,31 +619,31 @@ impl Blimp for SanoBlimp {
         let m1_mul = self.m1_mul;
         let m2_mul = self.m2_mul;
 
-        let mut m1 = self.neutral_angle_motor - (x * 5.0) * m1_mul; // Map movement to a range (0-180°)
-        let mut m2 = self.neutral_angle_motor - (x * 5.0) * m2_mul;
+        let mut m1 = self.neutral_angle_motor + (x * 5.5) * m1_mul; // Map movement to a range (0-180°)
+        let mut m2 = self.neutral_angle_motor + (x * 5.5) * m2_mul;
 
         //m1 += self.sensor.imu.gyro_data().unwrap().y;
         //m2 -= self.sensor.imu.gyro_data().unwrap().y;
 
         if z > 0.1 {
-            m1 -= z * 6.0;
-            m2 -= z * 6.0;
+            m1 += z * 5.0;
+            m2 += z * 5.0;
         }
         if z < -0.1 {
-            m1 += z * 6.0;
-            m2 += z * 6.0;
+            m1 -= z * 5.0;
+            m2 -= z * 5.0;
         }
 
         let mut s3 = NEUTRAL_ANGLE - (90.0 * z);
         let mut s4 = NEUTRAL_ANGLE + (90.0 * z);
 
         if y < -0.1 {
-            m1 += y * 6.0;
-            m2 -= y * 6.0;
+            m1 += y * 5.0;
+            m2 -= y * 5.0;
         }
         if y > 0.1 {
-            m1 += y * 6.0;
-            m2 -= y * 6.0;
+            m1 += y * 5.0;
+            m2 -= y * 5.0;
         }
 
         if z < -0.2 || z > 0.2 {
@@ -650,8 +655,14 @@ impl Blimp for SanoBlimp {
         }
 
         Actuations {
-            m1: m1.clamp(0.0, 180.0),
-            m2: m2.clamp(0.0, 180.0),
+            m1: m1.clamp(
+                self.neutral_angle_motor - 7.0,
+                self.neutral_angle_motor + 7.0,
+            ),
+            m2: m2.clamp(
+                self.neutral_angle_motor - 7.0,
+                self.neutral_angle_motor + 7.0,
+            ),
             m3: self.neutral_angle_motor,
             m4: self.neutral_angle_motor,
             s1: NEUTRAL_ANGLE, // Keep neutral if not controlled

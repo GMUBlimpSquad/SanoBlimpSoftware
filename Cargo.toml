@@ -21,8 +21,8 @@ path = "example/bno055.rs"
 
 
 [[bin]]
-name = "baseStation"
-path = "aux/base_station.rs"
+name = "search_sim"
+path = "aux/search_sim.rs"
 
 
 [dependencies]

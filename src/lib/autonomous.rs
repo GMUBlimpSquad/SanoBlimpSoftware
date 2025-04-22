@@ -75,6 +75,10 @@ impl Autonomous {
         self.ki = ki;
     }
 
+    pub fn print_gains(&self) {
+        println!("{}", self.kp_x);
+    }
+
     /// Map a value from one numerical range to another.
     ///
     /// Equivalent to the Python `map_value` method.
@@ -128,12 +132,13 @@ impl Autonomous {
     }
 
     pub fn direction_hold(&self, current_direction: f32, desired_direction: f32) -> f32 {
-        let direction_error = current_direction - desired_direction;
+        let direction_error = (current_direction - desired_direction) * 10.0;
 
+        println!("direction_error: {:?}", direction_error);
         //let mapped = self.map_value(direction_error, -20.0, 20.0, -1.0, 1.0);
-        let mapped = direction_error / 20.0;
+        //let mapped = direction_error / 20.0;
 
-        let clamped = mapped.clamp(-1.0, 1.0);
+        let clamped = direction_error.clamp(-1.0, 1.0);
 
         clamped
     }
@@ -148,7 +153,7 @@ impl Autonomous {
         // xErr = 0 - x, yErr = 300 - y, zErr = 150 - z
         let x_err = 0.0 - x;
         let y_err = self.map_value(y - 160.0, -160.0, 160.0, -1.0, 1.0);
-        let z_err = self.map_value(130.0 - z, -120.0, 120.0, -1.0, 1.0);
+        let z_err = self.map_value(125.0 - z, -120.0, 120.0, -1.0, 1.0);
 
         // Calculate time elapsed since the last detection
         let now = Instant::now();

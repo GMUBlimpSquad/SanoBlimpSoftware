@@ -4,7 +4,7 @@ use tokio::spawn;
 mod lib;
 use core::time;
 use gilrs::{Button, Event, GamepadId, Gilrs};
-use lib::autonomous::Autonomous;
+use lib::autonomous::{self, Autonomous};
 use lib::base_station::communication::*;
 use lib::blimp::{self, Blimp};
 use lib::object_detection::Detection;
@@ -18,6 +18,7 @@ use tokio::sync::mpsc::unbounded_channel;
 use tokio::sync::Notify;
 use tokio::time::timeout;
 
+use rand::Rng; // Use Rng trait
 mod driver;
 
 #[derive(Deserialize, Debug)]
@@ -65,17 +66,12 @@ fn read_config() -> Config {
     config
 }
 
-#[derive(PartialEq)]
-pub enum States {
-    Ball,
-    Goal,
-}
-
 #[tokio::main]
 async fn main() {
     let conf = read_config();
 
-    // start communication to the base station in a different thread
+    let mut rng = rand::thread_rng(); // Use thread_rng() correctly
+                                      // start communication to the base station in a different thread
     let stats_socket = match UdpSocket::bind("0.0.0.0:0") {
         Ok(s) => s,
         Err(e) => {
@@ -134,17 +130,17 @@ async fn main() {
 
     let mut time_p = std::time::Instant::now();
     let mut state_timer = Arc::new(Mutex::new(std::time::Instant::now()));
-    let mut state = Arc::new(Mutex::new(States::Ball));
+    let mut state = Arc::new(Mutex::new(BlimpStates::Ball));
     let mut search_timer = std::time::Instant::now();
 
     if state_timer.lock().unwrap().elapsed() > std::time::Duration::from_secs(120) {
         match *state.lock().unwrap() {
-            States::Ball => {
-                *state.lock().unwrap() = States::Goal;
+            BlimpStates::Ball => {
+                *state.lock().unwrap() = BlimpStates::Goal;
                 *state_timer.lock().unwrap() = std::time::Instant::now()
             }
-            States::Goal => {
-                *state.lock().unwrap() = States::Ball;
+            BlimpStates::Goal => {
+                *state.lock().unwrap() = BlimpStates::Ball;
                 *state_timer.lock().unwrap() = std::time::Instant::now()
             }
         }
@@ -162,6 +158,9 @@ async fn main() {
 
     //blimp.rail_init();
 
+    let mut desired_altitude = 6.0;
+
+    let mut desired_direction = 0.0;
     // The big event loop
     loop {
         let sensordat = blimp.update(state.clone(), state_timer.clone(), &mut save_image);
@@ -172,14 +171,21 @@ async fn main() {
                 .ok();
         }
 
-        let balls = vec![2, 3];
+        let balls = vec![2];
         let orange_goals = vec![5, 6, 7];
         let yellow = vec![8, 9, 10];
 
         let det = match *state.lock().unwrap() {
-            States::Ball => detection.detect(balls, &stats_socket, &mut save_image),
+            //BlimpStates::Ball => detection.detect(balls, &stats_socket, &mut save_image),
+            BlimpStates::Ball => {
+                desired_altitude = 2.0;
+                detection.detect_bb(balls)
+            }
             // TODO make the goals change read from the base station
-            States::Goal => detection.detect(orange_goals, &stats_socket, &mut save_image),
+            BlimpStates::Goal => {
+                desired_altitude = 8.0;
+                detection.detect_bb(yellow)
+            } //BlimpStates::Goal => detection.detect(orange_goals, &stats_socket, &mut save_image),
         };
 
         // Check for Commands
@@ -189,6 +195,19 @@ async fn main() {
                 if size > 0 {
                     match serde_json::from_slice::<BaseToBlimpMessage>(&command_buffer[..size]) {
                         Ok(command) => match command {
+                            BaseToBlimpMessage::UpdateConfig(config) => {
+                                println!("Updating Gains");
+                                auto.update_gains(
+                                    config.kp_x,
+                                    config.kp_yaw,
+                                    config.kp_z,
+                                    config.kd_x,
+                                    config.kd_yaw,
+                                    config.kd_z,
+                                    0.0,
+                                );
+                            }
+
                             BaseToBlimpMessage::RequestVideo { target_port } => {
                                 let target_ip = src.ip();
                                 if target_port == conf.server.port {
@@ -220,21 +239,22 @@ async fn main() {
 
             Err(e) => {}
         };
-
+        //let current_direction = blimp.sensor.imu.euler_angles().unwrap();
+        //println!("{:?}", current_direction);
         if blimp.is_manual() {
             // Manual control
             blimp.manual();
         } else {
             // Autonomous
             if det.len() > 1 {
-                let auto_input = auto.position(-1.0, det[0] as f32, det[1] as f32);
+                let auto_input = auto.position(-0.6, det[0] as f32, det[1] as f32);
                 //println!("{:?}", auto_input);
                 blimp.update_input(auto_input);
                 let acc = blimp.mix();
                 if !blimp.score {
                     blimp.actuator.actuate(acc);
                 }
-                if *state.lock().unwrap() == States::Goal {
+                if *state.lock().unwrap() == BlimpStates::Goal {
                     if det[2] > 200 || det[3] > 200 {
                         blimp.score = true;
                         blimp.score_time = std::time::Instant::now();
@@ -243,7 +263,7 @@ async fn main() {
                 time_p = std::time::Instant::now();
             } else {
                 if time_p.elapsed() > std::time::Duration::from_secs(2) {
-                    let mut desired_altitude = 5.0;
+                    // TODO make it part of the config
                     let altitude = blimp.sensor.get_altitude();
 
                     let z = match auto.altitude_hold(altitude, desired_altitude) {
@@ -252,19 +272,29 @@ async fn main() {
                     };
                     //println!("Searching {z}");
 
-                    //let current_direction = blimp.sensor.imu.mag_data().unwrap().x;
+                    //let current_direction = blimp.sensor.imu.euler_angles().unwrap().c;
+                    //let current_direction = blimp.sensor.imu.quaternion().unwrap().v.z;
+                    //println!("{:?}", current_direction);
+
+                    //if search_timer.elapsed() > std::time::Duration::from_secs(20) {
+                    //    desired_direction += 0.1;
+                    //    desired_altitude += 1.0;
+                    //    if desired_altitude >= 10.0 {
+                    //        desired_altitude = 5.0;
+                    //    }
+                    //    if desired_direction >= 9.0 {
+                    //        desired_direction *= -1.0;
+                    //    }
                     //
-                    //let mut desired_direction = 14.0;
-                    //if search_timer.elapsed() > std::time::Duration::from_secs(30) {
-                    //    desired_direction = -desired_direction;
                     //    search_timer = std::time::Instant::now();
                     //}
                     //
-                    //let y = auto.direction_hold(current_direction, desired_direction);
+                    //let y = auto.direction_hold(current_direction, 0.0);
                     //
                     //println!(" current_direction: {:?}; Y: {:?}", current_direction, y);
                     //
-                    blimp.update_input((0.6, 0.0, -z));
+                    //blimp.update_input((0.6, y, -z));
+                    blimp.update_input((0.5, 0.0, -z));
 
                     let acc = blimp.mix();
                     blimp.actuator.actuate(acc);

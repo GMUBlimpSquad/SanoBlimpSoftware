@@ -85,6 +85,89 @@ impl Detection {
     // TODO Saperate this into two functions:
     // detect() -> returns only the bounding box.
     // detect_with_stream() -> returns the camera frame also
+    //
+    //
+    /// Reads a JSON line from serial, extracts the largest bounding box for the given target classes.
+    /// Returns the `[x, y, w, h, conf, cls]` of the largest box found, or an empty Vec
+    /// if no matching box is found or if an error occurs.
+    pub fn detect_bb(
+        &mut self,
+        target: Vec<i32>,
+        // Removed socket: &UdpSocket and save_image: &mut bool
+    ) -> Vec<i32> {
+        // Read a line from serial
+        let mut line = String::new();
+        if let Err(e) = self.reader.read_line(&mut line) {
+            eprintln!("Error reading line from serial: {:?}", e);
+            return vec![];
+        }
+
+        // Parse JSON from the line
+        let trimmed = line.trim();
+        // Handle empty lines gracefully after trimming
+        if trimmed.is_empty() {
+            // eprintln!("Received empty line from serial"); // Optional: log this
+            return vec![];
+        }
+        let json_val: Value = match serde_json::from_str(trimmed) {
+            Ok(val) => val,
+            Err(e) => {
+                // It's often useful to know *what* failed to parse
+                //eprintln!("Error parsing JSON: {:?}, raw line: '{}'", e, trimmed);
+                return vec![];
+            }
+        };
+
+        // We only care about messages where "type" == 1
+        if json_val["type"].as_i64() == Some(1) {
+            let data_field = &json_val["data"];
+
+            // "boxes" must be an array
+            let boxes = match data_field["boxes"].as_array() {
+                Some(arr) => arr,
+                None => {
+                    eprintln!("data.boxes is not an array or missing in JSON: {}", trimmed);
+                    return vec![];
+                }
+            };
+
+            // Find the largest bounding box of the requested classes
+            // get_largest now returns Vec<i32> directly
+            let largest_box_data = self.get_largest(boxes, &target);
+
+            if largest_box_data.is_empty() {
+                // Could not find any bounding box matching our targets
+                // eprintln!("No bounding box found for target classes: {:?}", target); // Optional: log
+                return vec![];
+            }
+
+            // Found a box, return its data [x, y, w, h, conf, cls]
+            // Or potentially just the center as originally described?
+            // Let's return the full box data as extracted by get_largest
+            // If you strictly want [cx, cy, w, h] as per the *original* return comment/code:
+            /*
+            if largest_box_data.len() >= 4 { // Need at least x, y, w, h
+                let x = largest_box_data[0];
+                let y = largest_box_data[1];
+                let w = largest_box_data[2];
+                let h = largest_box_data[3];
+                let cx = x + w / 2;
+                let cy = y + h / 2;
+                return vec![cx, cy, w, h];
+            } else {
+                // This case shouldn't happen if get_largest returns correctly
+                 eprintln!("get_largest returned unexpected data format");
+                 return vec![];
+            }
+            */
+
+            // Returning the full [x, y, w, h, conf, cls] from get_largest:
+            return largest_box_data;
+        }
+
+        // If "type" != 1 or something else is off, return an empty vector
+        vec![]
+    }
 
     /// Reads a JSON line from serial, extracts the largest bounding box for the given target classes,
     /// draws annotations on the image, and sends it out via UDP. Returns the `[cx, cy]` of the box center or
@@ -158,6 +241,7 @@ impl Detection {
             };
             if *save_image {
                 dyn_img.save(format!("{}.png", chrono::Local::now().to_string()));
+                *save_image = false;
             }
             // Find the largest bounding box of the requested classes
             let arr = self.get_largest(boxes, &target);

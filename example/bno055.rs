@@ -49,23 +49,23 @@ fn main() {
         //}
         //
         //// Euler angles, directly read
-        //match imu.euler_angles() {
-        //    Ok(val) => {
-        //        euler_angles = val;
-        //        println!("IMU angles: {:?}", euler_angles);
-        //        std::thread::sleep(std::time::Duration::from_millis(500));
-        //    }
-        //    Err(e) => {
-        //        eprintln!("{:?}", e);
-        //    }
-        //}
-        match imu.mag_data() {
+        match imu.euler_angles() {
             Ok(val) => {
-                println!("{:?}", val);
+                euler_angles = val;
+                println!("IMU angles: {:?}", euler_angles);
+                std::thread::sleep(std::time::Duration::from_millis(500));
             }
             Err(e) => {
-                println!("{:?}", e);
+                eprintln!("{:?}", e);
             }
         }
+        //match imu.mag_data() {
+        //    Ok(val) => {
+        //        println!("{:?}", val);
+        //    }
+        //    Err(e) => {
+        //        println!("{:?}", e);
+        //    }
+        //}
     }
 }

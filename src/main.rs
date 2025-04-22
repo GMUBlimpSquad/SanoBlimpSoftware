@@ -177,9 +177,11 @@ async fn main() {
         let yellow = vec![8, 9, 10];
 
         let det = match *state.lock().unwrap() {
-            States::Ball => detection.detect(balls, &stats_socket, &mut save_image),
+            States::Ball => detection.detect_bb(balls),
+            States::Goal => detection.detect_bb(orange_goals),
+            // States::Ball => detection.detect(balls, &stats_socket, &mut save_image),
             // TODO make the goals change read from the base station
-            States::Goal => detection.detect(orange_goals, &stats_socket, &mut save_image),
+            // States::Goal => detection.detect(orange_goals, &stats_socket, &mut save_image),
         };
 
         // Check for Commands
@@ -243,7 +245,7 @@ async fn main() {
                 time_p = std::time::Instant::now();
             } else {
                 if time_p.elapsed() > std::time::Duration::from_secs(2) {
-                    let mut desired_altitude = 4.0;
+                    let mut desired_altitude = 2.0;
                     let altitude = blimp.sensor.get_altitude();
 
                     let z = match auto.altitude_hold(altitude, desired_altitude) {
@@ -264,7 +266,7 @@ async fn main() {
                     //
                     //println!(" current_direction: {:?}; Y: {:?}", current_direction, y);
                     //
-                    blimp.update_input((0.6, 0.0, -z));
+                    blimp.update_input((0.6, -0.8, -z));
                     let acc = blimp.mix();
                     blimp.actuator.actuate(acc);
                 }

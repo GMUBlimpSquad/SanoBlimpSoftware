@@ -42,8 +42,8 @@ const ISA_EXPONENT: f32 = 1.0 / 5.255; // Approximately 0.190294957
 const STANDARD_SEA_LEVEL_PRESSURE_PA: f32 = 101325.0; // Pa
 
 // Define Rail Limits (adjust these values as needed)
-const MAX_RAIL_POS: i8 = 1;
-const MIN_RAIL_POS: i8 = -1;
+const MAX_RAIL_POS: i8 = 0;
+const MIN_RAIL_POS: i8 = 0; //Negative rail position is front of blimp
 
 /// Every blimp needs the following trait
 pub trait Blimp {
@@ -175,7 +175,7 @@ impl Sensors {
         locked_pin
             .set_async_interrupt(
                 Trigger::RisingEdge,             // Trigger on rising edge (adjust if sensor needs falling/both)
-                Some(Duration::from_millis(80)), // Debounce timeout (adjust if needed)
+                Some(Duration::from_millis(1000)), // Debounce timeout (adjust if needed)
                 move |_level| {
                     // --- Start of Interrupt Handler ---
 
@@ -733,9 +733,9 @@ impl Blimp for Flappy {
 
         // --- Determine Z-Movement Permissions based on Rail Limits ---
         // Allow moving towards positive if not already AT or BEYOND the max limit
-        let allow_z_positive = current_rail_pos < MAX_RAIL_POS;
+        let allow_z_positive = current_rail_pos <= MAX_RAIL_POS;
         // Allow moving towards negative if not already AT or BEYOND the min limit
-        let allow_z_negative = current_rail_pos > MIN_RAIL_POS;
+        let allow_z_negative = current_rail_pos >= MIN_RAIL_POS;
 
         // --- Apply Controls ---
 

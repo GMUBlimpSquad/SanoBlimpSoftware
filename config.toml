@@ -1,5 +1,5 @@
 [server]
-host = "192.168.1.156"
+host = "192.168.1.9"
 port = 54321
 port_stat = 54320
 
@@ -11,9 +11,9 @@ m4_mul = 1.0
 midpoint_angle = 90.0
 
 [controller]
-kp_x = 1.0
-kp_y = 1.0
-kp_z = 1.0
-kd_x = 0.1
-kd_y = 0.1
-kd_z = 0.1
+kp_x = 1.0  #forward backwards
+kp_y = 1.2  #left right
+kp_z = 20.0 #up down
+kd_x = 0.1  #forward backwards
+kd_y = 0.8  #left right
+kd_z = 0.1  #up down

@@ -175,7 +175,7 @@ impl Sensors {
         locked_pin
             .set_async_interrupt(
                 Trigger::RisingEdge,             // Trigger on rising edge (adjust if sensor needs falling/both)
-                Some(Duration::from_millis(1000)), // Debounce timeout (adjust if needed)
+                Some(Duration::from_millis(50)), // Debounce timeout (adjust if needed)
                 move |_level| {
                     // --- Start of Interrupt Handler ---
 

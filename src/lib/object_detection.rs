@@ -1,13 +1,14 @@
 use std::error::Error;
 use std::io::{BufRead, BufReader, Cursor};
 use std::net::UdpSocket;
+use std::process::{ExitCode, exit};
 use std::time::Duration;
 
 use ab_glyph::{FontRef, PxScale};
 use base64;
 use image::{DynamicImage, GenericImageView, ImageFormat, Rgba, RgbaImage};
 use imageproc::drawing::{
-    draw_filled_circle_mut, draw_hollow_rect_mut, draw_line_segment_mut, draw_text_mut, Canvas,
+    Canvas, draw_filled_circle_mut, draw_hollow_rect_mut, draw_line_segment_mut, draw_text_mut,
 };
 use imageproc::rect::Rect;
 use serde_json::Value;
@@ -99,6 +100,7 @@ impl Detection {
         let mut line = String::new();
         if let Err(e) = self.reader.read_line(&mut line) {
             eprintln!("Error reading line from serial: {:?}", e);
+            exit(ExitCode::FAILURE);
             return vec![];
         }
 

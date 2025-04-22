@@ -14,8 +14,8 @@ use std::fs;
 use std::net::{SocketAddr, UdpSocket};
 use std::sync::{Arc, Mutex};
 use std::thread;
-use tokio::sync::mpsc::unbounded_channel;
 use tokio::sync::Notify;
+use tokio::sync::mpsc::unbounded_channel;
 use tokio::time::timeout;
 
 use rand::Rng; // Use Rng trait
@@ -71,7 +71,7 @@ async fn main() {
     let conf = read_config();
 
     let mut rng = rand::thread_rng(); // Use thread_rng() correctly
-                                      // start communication to the base station in a different thread
+    // start communication to the base station in a different thread
     let stats_socket = match UdpSocket::bind("0.0.0.0:0") {
         Ok(s) => s,
         Err(e) => {
@@ -183,7 +183,7 @@ async fn main() {
             }
             // TODO make the goals change read from the base station
             BlimpStates::Goal => {
-                desired_altitude = 8.0;
+                desired_altitude = 6.0;
                 detection.detect_bb(yellow)
             } //BlimpStates::Goal => detection.detect(orange_goals, &stats_socket, &mut save_image),
         };

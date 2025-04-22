@@ -74,6 +74,7 @@ pub enum States {
 async fn main() {
     let conf = read_config();
 
+    let mut desired_altitude = 3.0;
     // start communication to the base station in a different thread
     let stats_socket = match UdpSocket::bind("0.0.0.0:0") {
         Ok(s) => s,
@@ -177,11 +178,16 @@ async fn main() {
         let yellow = vec![8, 9, 10];
 
         let det = match *state.lock().unwrap() {
-            States::Ball => detection.detect_bb(balls),
-            States::Goal => detection.detect_bb(yellow),
-            // States::Ball => detection.detect(balls, &stats_socket, &mut save_image),
-            // TODO make the goals change read from the base station
-            // States::Goal => detection.detect(orange_goals, &stats_socket, &mut save_image),
+            States::Ball => {
+                desired_altitude = 3.0; //Ball altitude
+                detection.detect_bb(balls)
+            }
+            States::Goal => {
+                desired_altitude = 6.0; //Goal altitude
+                detection.detect_bb(yellow)
+            } // States::Ball => detection.detect(balls, &stats_socket, &mut save_image),
+              // TODO make the goals change read from the base station
+              // States::Goal => detection.detect(orange_goals, &stats_socket, &mut save_image),
         };
 
         // Check for Commands
@@ -229,7 +235,16 @@ async fn main() {
         } else {
             // Autonomous
             if det.len() > 1 {
-                let auto_input = auto.position(-1.0, det[0] as f32, det[1] as f32);
+                let mut offset = 0;
+                if *state.lock().unwrap() == States::Goal {
+                    // No offset for goal.
+                    offset = 0; // Dead center, no offset.
+                } else {
+                    // This offset is for ball
+                    offset = 11;
+                }
+
+                let auto_input = auto.position(-1.0, det[0] as f32, (det[1] + offset) as f32);
                 //println!("{:?}", auto_input);
                 blimp.update_input(auto_input);
                 let acc = blimp.mix();
@@ -245,7 +260,6 @@ async fn main() {
                 time_p = std::time::Instant::now();
             } else {
                 if time_p.elapsed() > std::time::Duration::from_secs(2) {
-                    let mut desired_altitude = 3.0;
                     let altitude = blimp.sensor.get_altitude();
 
                     let z = match auto.altitude_hold(altitude, desired_altitude) {

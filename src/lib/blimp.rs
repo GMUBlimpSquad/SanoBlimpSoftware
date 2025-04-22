@@ -141,6 +141,29 @@ impl Sensors {
         }
     }
 
+    // Resets the rail position to 0
+    pub fn reset_rail_pos(&self) {
+        match OpenOptions::new()
+            .write(true)
+            .truncate(true)
+            .create(true)
+            .open("rail.pos")
+        {
+            Ok(mut file) => {
+                if let Err(e) = writeln!(file, "{}", 0) {
+                    eprintln!("ERROR: Failed to write to rail.pos in interrupt: {:?}", e);
+                }
+            }
+            Err(e) => {
+                eprintln!(
+                    "ERROR: Failed to open rail.pos for writing in interrupt: {:?}",
+                    e
+                );
+            }
+        }
+        // !!!!! END WARNING !!!!!
+    }
+
     /// Sets the intended direction for the next rail count update via interrupt.
     /// `1` for positive direction, `-1` for negative, `0` for neutral/stop.
     pub fn set_intended_rail_direction(&self, direction: i8) {
@@ -448,6 +471,8 @@ pub struct Flappy {
     pub score: bool,
     pub score_time: std::time::Instant,
     neutral_angle_motor: f32,
+    backing_out: bool,
+    pub backing_out_timer: std::time::Instant,
 }
 
 impl Flappy {
@@ -469,6 +494,8 @@ impl Flappy {
             manual: true,
             sensor: sensors,
             controller_battery: 0.0,
+            backing_out: false,
+            backing_out_timer: std::time::Instant::now(),
         }
     }
 
@@ -488,6 +515,26 @@ impl Flappy {
             + amplitude * direction * f64::sin(2.0 * f64::consts::PI * freq * current_time_secs);
         angle.clamp(0.0, 180.0) // Ensure angle stays within valid servo range
         // angle = self.map_value(angle, 0, 180, 5, 10) // Example mapping if needed
+    }
+
+    fn backing_out(&mut self) {
+        if self.backing_out {
+            // This is a timer for turning for someone who cannot read code.
+            if self.backing_out_timer.elapsed() < std::time::Duration::from_secs(10) {
+                self.actuator.actuate(Actuations {
+                    m1: self.neutral_angle_motor,
+                    m2: self.neutral_angle_motor,
+                    m3: self.neutral_angle_motor,
+                    m4: self.neutral_angle_motor,
+                    s1: NEUTRAL_ANGLE,
+                    s2: NEUTRAL_ANGLE,
+                    s3: NEUTRAL_ANGLE,
+                    s4: self.oscillate_wing(1.0, 1.1).clamp(90.0, 180.0) as f32,
+                });
+            }
+        }
+
+        // 90 0 90 0
     }
 
     /// Call this in the main loop to handle updates and actuation.
@@ -613,6 +660,7 @@ impl Blimp for Flappy {
                             //  );
                             // <<< --- END DEBUG PRINT --- >>>
                         }
+
                         gilrs::Axis::RightStickX => self.input.1 = value, // Turning ('y')
                         _ => {}                                           // Ignore other axes
                     }
@@ -642,6 +690,15 @@ impl Blimp for Flappy {
 
                         *save_image = if *save_image { false } else { true };
                         println!("Toggle save image");
+                    }
+                    gilrs::Button::DPadDown => {
+                        // Set the rail.pos to 0;
+                        self.sensor.reset_rail_pos();
+                    }
+                    gilrs::Button::DPadRight => {
+                        self.backing_out = true;
+                        self.backing_out_timer = std::time::Instant::now();
+                        // Timer for backing out
                     }
 
                     // Add other button actions if needed (e.g., Button::Select for calibration)

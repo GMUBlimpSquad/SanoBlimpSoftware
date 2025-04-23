@@ -183,8 +183,8 @@ async fn main() {
                 detection.detect_bb(balls)
             }
             States::Goal => {
-                desired_altitude = 6.0; //Goal altitude
-                detection.detect_bb(yellow)
+                desired_altitude = 4.25; //Goal altitude
+                detection.detect_bb(orange_goals)
             } // States::Ball => detection.detect(balls, &stats_socket, &mut save_image),
               // TODO make the goals change read from the base station
               // States::Goal => detection.detect(orange_goals, &stats_socket, &mut save_image),
@@ -237,16 +237,26 @@ async fn main() {
             if det.len() > 1 {
                 let mut offset = 0;
                 if *state.lock().unwrap() == States::Goal {
-                    // No offset for goal.
-                    offset = 10; // Dead center, no offset. negative
+                    // z_err is set for ball
+                    offset = 20;
                 } else {
-                    // This offset is for ball
+                    // This offset is for ball, so 0
                     offset = 0;
                 }
+                let altitude = blimp.sensor.get_altitude();
 
-                let auto_input = auto.position(-1.0, det[0] as f32, (det[1] + offset) as f32);
+                if altitude > desired_altitude {
+                    let z = match auto.altitude_hold(altitude, desired_altitude) {
+                        Ok(z) => z,
+                        Err(e) => 0.0,
+                    };
+                    blimp.update_input((1.0, 0.0, -z));
+                } else {
+                    let auto_input = auto.position(-1.0, det[0] as f32, (det[1] + offset) as f32);
+                    blimp.update_input(auto_input);
+                }
                 //println!("{:?}", auto_input);
-                blimp.update_input(auto_input);
+
                 let acc = blimp.mix();
                 if !blimp.score {
                     blimp.actuator.actuate(acc);

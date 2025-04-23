@@ -780,7 +780,7 @@ impl Blimp for Flappy {
         let (x, y, z) = self.input; // x=LeftY (Fwd), y=RightX (Turn), z=RightY (Up/Down)
 
         // Define control parameters
-        let flap_freq = 0.8; // Flapping frequency in Hz
+        let flap_freq = 0.7; // Flapping frequency in Hz
         let cg_servo_neutral = 95.0; // Neutral position for the CG rail servo
         let wing_servo_neutral = 90.0;
         let tail_servo_neutral = 90.0;
@@ -843,7 +843,7 @@ impl Blimp for Flappy {
         // Apply threshold and check rail limits before commanding the SERVO
 
         if self.limit_switch_backup {
-            if self.limit_switch_backup_timer.elapsed() > Duration::from_secs(1) {
+            if self.limit_switch_backup_timer.elapsed() > Duration::from_millis(1500) {
                 // Reset backup timer if limit switch is still active after 1 second
                 // self.limit_switch_backup_timer.reset();
                 self.limit_switch_backup = false;

@@ -150,6 +150,7 @@ impl Autonomous {
         let y_err = self.map_value(y - 165.0, -160.0, 160.0, -1.0, 1.0); // 0 on the left
         let z_err = self.map_value(141.0 - z, -120.0, 120.0, -1.0, 1.0);
 
+        println!("y_err: {}, z_err: {}", y_err, z_err);
         // Calculate time elapsed since the last detection
         let now = Instant::now();
         let dt = if let Some(prev) = self.prev_detection {

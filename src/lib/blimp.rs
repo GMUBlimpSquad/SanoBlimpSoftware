@@ -9,7 +9,7 @@ use rand::Rng; // Use Rng trait
 use rppal::gpio::{self, Gpio, InputPin, Trigger};
 use std::fs::{File, OpenOptions};
 use std::sync::{Arc, Mutex};
-use std::thread::sleep;
+use std::thread::{current, sleep};
 use std::time::{self, Duration};
 // use tokio::spawn; // Not actively used in this snippet
 // use tokio::sync::mpsc::{UnboundedReceiver, unbounded_channel}; // Not actively used
@@ -473,6 +473,8 @@ pub struct Flappy {
     neutral_angle_motor: f32,
     backing_out: bool,
     pub backing_out_timer: std::time::Instant,
+    limit_switch_backup_timer: std::time::Instant,
+    limit_switch_backup: bool,
 }
 
 impl Flappy {
@@ -496,6 +498,8 @@ impl Flappy {
             controller_battery: 0.0,
             backing_out: false,
             backing_out_timer: std::time::Instant::now(),
+            limit_switch_backup_timer: std::time::Instant::now(),
+            limit_switch_backup: false,
         }
     }
 
@@ -528,8 +532,8 @@ impl Flappy {
                     m4: self.neutral_angle_motor,
                     s1: NEUTRAL_ANGLE,
                     s2: NEUTRAL_ANGLE,
-                    s3: NEUTRAL_ANGLE,
-                    s4: self.oscillate_wing(1.0, 1.1).clamp(90.0, 180.0) as f32,
+                    s4: NEUTRAL_ANGLE,
+                    s3: self.oscillate_wing(1.0, 1.1).clamp(90.0, 180.0) as f32,
                 });
             }
         }
@@ -620,8 +624,8 @@ impl Blimp for Flappy {
         save_image: &mut bool,
     ) -> BlimpSensorData {
         self.sensor.update_altitude();
+        self.backing_out();
         let mut rng = rand::thread_rng(); // Use thread_rng() correctly
-        //
         //let mut controller_battery = 0.0;
         while let Some(Event { event, id, .. }) = self.gilrs.next_event() {
             match self.gilrs.gamepad(id).power_info() {
@@ -702,7 +706,9 @@ impl Blimp for Flappy {
                     }
 
                     // Add other button actions if needed (e.g., Button::Select for calibration)
-                    _ => {}
+                    _ => {
+                        println!("{:?}", button);
+                    }
                 },
                 // Handle other events like connect/disconnect if needed
                 gilrs::EventType::Connected => println!("Gamepad {:?} connected", id),
@@ -774,7 +780,7 @@ impl Blimp for Flappy {
         let (x, y, z) = self.input; // x=LeftY (Fwd), y=RightX (Turn), z=RightY (Up/Down)
 
         // Define control parameters
-        let flap_freq = 1.1; // Flapping frequency in Hz
+        let flap_freq = 0.8; // Flapping frequency in Hz
         let cg_servo_neutral = 95.0; // Neutral position for the CG rail servo
         let wing_servo_neutral = 90.0;
         let tail_servo_neutral = 90.0;
@@ -784,15 +790,23 @@ impl Blimp for Flappy {
         let mut s2_ac = wing_servo_neutral; // Servo 2 (Right Wing?)
         let mut s3_ac = tail_servo_neutral; // Servo 3 (Tail/Rudder?)
         let mut s_cg_ac = cg_servo_neutral; // Servo 4 (CG / Z-movement on rail)
-
-        // --- Get Current Rail Position for Limit Checking ---
-        let current_rail_pos = self.sensor.get_rail_pos();
-
+        let mut current_rail_pos = 0;
+        if !self.limit_switch_backup {
+            // --- Get Current Rail Position for Limit Checking ---
+            current_rail_pos = self.sensor.get_rail_pos();
+        }
         // --- Determine Z-Movement Permissions based on Rail Limits ---
         // Allow moving towards positive if not already AT or BEYOND the max limit
         let allow_z_positive = current_rail_pos <= MAX_RAIL_POS;
         // Allow moving towards negative if not already AT or BEYOND the min limit
         let allow_z_negative = current_rail_pos >= MIN_RAIL_POS;
+
+        if current_rail_pos != 0 {
+            // Handle negative movement restrictions
+            // For example, stop or reverse direction
+            self.limit_switch_backup = true;
+            self.limit_switch_backup_timer = std::time::Instant::now();
+        }
 
         // --- Apply Controls ---
 
@@ -827,26 +841,64 @@ impl Blimp for Flappy {
 
         // Vertical / Rail Servo Movement (z) - Right Stick Y
         // Apply threshold and check rail limits before commanding the SERVO
-        if z > 0.2 && allow_z_positive {
-            // Command servo to move towards positive end (e.g., 180 degrees)
-            s_cg_ac = self.map_range(z, 0.2, 1.0, 95.0, 180.0);
-        } else if z < -0.2 && allow_z_negative {
-            // Command servo to move towards negative end (e.g., 0 degrees)
-            s_cg_ac = self.map_range(z, -1.0, -0.2, 0.0, 95.0);
+
+        if self.limit_switch_backup {
+            if self.limit_switch_backup_timer.elapsed() > Duration::from_secs(1) {
+                // Reset backup timer if limit switch is still active after 1 second
+                // self.limit_switch_backup_timer.reset();
+                self.limit_switch_backup = false;
+                *self.sensor.rail_pos.lock().unwrap() = 0;
+                s_cg_ac = 95.0;
+                println!("Stopping going back");
+                match OpenOptions::new()
+                    .write(true)
+                    .truncate(true)
+                    .create(true)
+                    .open("rail.pos")
+                {
+                    Ok(mut file) => {
+                        if let Err(e) = writeln!(file, "{}", 0) {
+                            eprintln!("ERROR: Failed to write to rail.pos in interrupt: {:?}", e);
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!(
+                            "ERROR: Failed to open rail.pos for writing in interrupt: {:?}",
+                            e
+                        );
+                    }
+                }
+            } else {
+                println!("Going back");
+                s_cg_ac = if self.sensor.get_rail_pos() > 0 {
+                    0.0
+                } else {
+                    180.0
+                };
+            }
         } else {
-            // Keep servo neutral if input is neutral OR movement direction is blocked by limits
-            s_cg_ac = cg_servo_neutral;
-            // Optional: Log if movement was attempted but blocked
-            if (z > 0.1 && !allow_z_positive) || (z < -0.1 && !allow_z_negative) {
-                println!(
-                    "INFO: Z servo command ({:.2}) blocked by rail limit (Pos: {})",
-                    z, current_rail_pos
-                );
+            if z > 0.2 && allow_z_positive {
+                // Command servo to move towards positive end (e.g., 180 degrees)
+                // println!("going back");
+                s_cg_ac = self.map_range(z, 0.2, 1.0, 95.0, 180.0);
+            } else if z < -0.2 && allow_z_negative {
+                // Command servo to move towards negative end (e.g., 0 degrees)
+                s_cg_ac = self.map_range(z, -1.0, -0.2, 0.0, 95.0);
+            } else {
+                // Keep servo neutral if input is neutral OR movement direction is blocked by limits
+                s_cg_ac = cg_servo_neutral;
+                // Optional: Log if movement was attempted but blocked
+                if (z > 0.1 && !allow_z_positive) || (z < -0.1 && !allow_z_negative) {
+                    println!(
+                        "INFO: Z servo command ({:.2}) blocked by rail limit (Pos: {})",
+                        z, current_rail_pos
+                    );
+                }
             }
         }
         // The actual rail position *counting* uses the `intended_direction` set in `update()`.
         // This `mix` function determines the *servo command* based on input and limits.
-
+        println!("CG acctuation {}", s_cg_ac);
         // Construct the Actuations struct
         Actuations {
             m1: 0.0, // Flappy doesn't use motors

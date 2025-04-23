@@ -173,7 +173,7 @@ async fn main() {
                 .ok();
         }
 
-        let balls = vec![2]; //purple balls are [2 , 3]
+        let balls = vec![2, 3]; //purple balls are [2 , 3]
         let orange_goals = vec![5, 6, 7];
         let yellow = vec![8, 9, 10];
 
@@ -238,10 +238,10 @@ async fn main() {
                 let mut offset = 0;
                 if *state.lock().unwrap() == States::Goal {
                     // No offset for goal.
-                    offset = 0; // Dead center, no offset.
+                    offset = 10; // Dead center, no offset. negative
                 } else {
                     // This offset is for ball
-                    offset = 11;
+                    offset = 0;
                 }
 
                 let auto_input = auto.position(-1.0, det[0] as f32, (det[1] + offset) as f32);

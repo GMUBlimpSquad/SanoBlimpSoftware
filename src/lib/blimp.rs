@@ -195,11 +195,16 @@ impl Sensors {
             .lock()
             .expect("Failed to lock rail pin mutex for setup");
 
+        // if locked_pin.is_high(){
+
+        // }
+        println!("No");
         locked_pin
             .set_async_interrupt(
-                Trigger::RisingEdge,             // Trigger on rising edge (adjust if sensor needs falling/both)
+                Trigger::FallingEdge,             // Trigger on rising edge (adjust if sensor needs falling/both)
                 Some(Duration::from_millis(50)), // Debounce timeout (adjust if needed)
                 move |_level| {
+                    println!("Rising Edge");
                     // --- Start of Interrupt Handler ---
 
                     // --- Get Intended Direction ---
@@ -829,12 +834,12 @@ impl Blimp for Flappy {
             // Turn Right: Oscillate left wing, hold right neutral, deflect tail right
             //s1_ac = self.oscillate_wing(-1.0, flap_freq) as f32;
             //s2_ac = wing_servo_neutral; // Hold right wing
-            s3_ac = self.map_range(y, 0.2, 1.0, 90.0, 180.0); // Deflect tail fully right (adjust angle as needed)
+            s3_ac = self.map_range(y, 0.2, 1.0, 95.0, 180.0); // Deflect tail fully right (adjust angle as needed)
         } else if y < -0.1 {
             // Turn Left: Oscillate right wing, hold left neutral, deflect tail left
             //s1_ac = wing_servo_neutral; // Hold left wing
             //s2_ac = self.oscillate_wing(1.0, flap_freq) as f32;
-            s3_ac = self.map_range(y, -1.0, -0.2, 0.0, 90.0); // Deflect tail fully left (adjust angle as needed)
+            s3_ac = self.map_range(y, -1.0, -0.2, 0.0, 95.0); // Deflect tail fully left (adjust angle as needed)
         }
         // Note: If moving forward AND turning, the flapping (`s1_ac`/`s2_ac`) might override turn logic here.
         // Consider combining logic if simultaneous forward + turn requires different wing behavior.
@@ -843,7 +848,7 @@ impl Blimp for Flappy {
         // Apply threshold and check rail limits before commanding the SERVO
 
         if self.limit_switch_backup {
-            if self.limit_switch_backup_timer.elapsed() > Duration::from_millis(1500) {
+            if self.limit_switch_backup_timer.elapsed() > Duration::from_millis(100) {
                 // Reset backup timer if limit switch is still active after 1 second
                 // self.limit_switch_backup_timer.reset();
                 self.limit_switch_backup = false;

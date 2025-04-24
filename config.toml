@@ -16,4 +16,4 @@ kp_y = 1.2  #left right
 kp_z = 20.0 #up down
 kd_x = 0.1  #forward backwards
 kd_y = 0.8  #left right
-kd_z = 0.1  #up down
+kd_z = 10.0 #up down

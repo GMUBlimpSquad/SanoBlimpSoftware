@@ -174,16 +174,16 @@ async fn main() {
         }
 
         let balls = vec![2, 3]; //purple balls are [2 , 3]
-        let orange_goals = vec![5, 6, 7];
-        let yellow = vec![8, 9, 10];
+        let orange_goals = vec![5, 7];
+        let yellow = vec![6, 8, 10];
 
         let det = match *state.lock().unwrap() {
             States::Ball => {
-                desired_altitude = 3.0; //Ball altitude
+                desired_altitude = 2.8; //Ball altitude
                 detection.detect_bb(balls)
             }
             States::Goal => {
-                desired_altitude = 4.25; //Goal altitude
+                desired_altitude = 5.25; //Goal altitude
                 detection.detect_bb(orange_goals)
             } // States::Ball => detection.detect(balls, &stats_socket, &mut save_image),
               // TODO make the goals change read from the base station
@@ -235,24 +235,28 @@ async fn main() {
         } else {
             // Autonomous
             if det.len() > 1 {
-                let mut offset = 0;
+                let mut offset_z = 0;
+                let mut offset_y = 0;
                 if *state.lock().unwrap() == States::Goal {
-                    // z_err is set for ball
-                    offset = 20;
+                    // this is goal offset
+                    offset_z = 20;
+                    offset_y = -40;
                 } else {
                     // This offset is for ball, so 0
-                    offset = 0;
+                    offset_z = 12;
+                    offset_y = 10;
                 }
                 let altitude = blimp.sensor.get_altitude();
 
-                if altitude > desired_altitude {
+                if altitude > desired_altitude && *state.lock().unwrap() != States::Goal {
                     let z = match auto.altitude_hold(altitude, desired_altitude) {
                         Ok(z) => z,
                         Err(e) => 0.0,
                     };
                     blimp.update_input((1.0, 0.0, -z));
                 } else {
-                    let auto_input = auto.position(-1.0, det[0] as f32, (det[1] + offset) as f32);
+                    let auto_input =
+                        auto.position(-1.0, (det[0]) as f32, (det[1] + offset_z) as f32);
                     blimp.update_input(auto_input);
                 }
                 //println!("{:?}", auto_input);
@@ -290,7 +294,7 @@ async fn main() {
                     //
                     //println!(" current_direction: {:?}; Y: {:?}", current_direction, y);
                     //
-                    blimp.update_input((0.6, -0.8, -z));
+                    blimp.update_input((0.6, -0.5, -z));
                     let acc = blimp.mix();
                     blimp.actuator.actuate(acc);
                 }

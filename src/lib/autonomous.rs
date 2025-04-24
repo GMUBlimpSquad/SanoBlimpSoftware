@@ -147,7 +147,7 @@ impl Autonomous {
         // Desired setpoints (mirroring the Python logic):
         // xErr = 0 - x, yErr = 300 - y, zErr = 150 - z
         let x_err = 0.0 - x;
-        let y_err = self.map_value(y - 165.0, -160.0, 160.0, -1.0, 1.0); // 0 on the left
+        let y_err = self.map_value(y - 120.0, -160.0, 160.0, -1.0, 1.0); // 0 on the left
         let z_err = self.map_value(144.0 - z, -120.0, 120.0, -1.0, 1.0);
 
         println!("y_err: {}, z_err: {}", y_err, z_err);

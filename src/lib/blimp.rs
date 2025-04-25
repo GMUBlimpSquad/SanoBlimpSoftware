@@ -476,7 +476,7 @@ pub struct Flappy {
     pub score: bool,
     pub score_time: std::time::Instant,
     neutral_angle_motor: f32,
-    backing_out: bool,
+    pub backing_out: bool,
     pub backing_out_timer: std::time::Instant,
     limit_switch_backup_timer: std::time::Instant,
     limit_switch_backup: bool,

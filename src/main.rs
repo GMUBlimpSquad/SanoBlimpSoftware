@@ -266,7 +266,7 @@ async fn main() {
                     blimp.actuator.actuate(acc);
                 }
                 if *state.lock().unwrap() == States::Goal {
-                    if det[2] > 200 || det[3] > 200 {
+                    if det[2] > 150 || det[3] > 200 {
                         blimp.score = true;
                         blimp.score_time = std::time::Instant::now();
                     }
@@ -285,16 +285,18 @@ async fn main() {
                     //let current_direction = blimp.sensor.imu.mag_data().unwrap().x;
                     //
                     //let mut desired_direction = 14.0;
-                    //if search_timer.elapsed() > std::time::Duration::from_secs(30) {
-                    //    desired_direction = -desired_direction;
-                    //    search_timer = std::time::Instant::now();
-                    //}
+                    if search_timer.elapsed() > std::time::Duration::from_secs(60) {
+                        blimp.backing_out = true;
+                        blimp.backing_out_timer = std::time::Instant::now();
+                        // desired_direction = -desired_direction;
+                        search_timer = std::time::Instant::now();
+                    }
                     //
                     //let y = auto.direction_hold(current_direction, desired_direction);
                     //
                     //println!(" current_direction: {:?}; Y: {:?}", current_direction, y);
                     //
-                    blimp.update_input((0.6, -0.5, -z));
+                    blimp.update_input((0.4, 0.6, -z));
                     let acc = blimp.mix();
                     blimp.actuator.actuate(acc);
                 }

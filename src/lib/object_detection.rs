@@ -100,7 +100,7 @@ impl Detection {
         let mut line = String::new();
         if let Err(e) = self.reader.read_line(&mut line) {
             eprintln!("Error reading line from serial: {:?}", e);
-            exit(ExitCode::FAILURE);
+            exit(1);
             return vec![];
         }
 

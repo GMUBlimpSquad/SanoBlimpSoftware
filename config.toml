@@ -1,3 +1,8 @@
+[blimp]
+blimp_type="sano"
+blimp_version=2
+
+
 [server]
 host = "192.168.1.156"
 port = 54321

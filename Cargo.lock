@@ -20,6 +20,7 @@ dependencies = [
  "futures",
  "futures-util",
  "gilrs",
+ "i2cdev",
  "image",
  "imageproc",
  "linux-embedded-hal",

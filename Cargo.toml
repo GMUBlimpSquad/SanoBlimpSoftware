@@ -24,6 +24,13 @@ path = "example/bno055.rs"
 name = "search_sim"
 path = "aux/search_sim.rs"
 
+[[bin]]
+name = "rp_servo"
+path = "example/rp_servo.rs"
+
+[[bin]]
+name = "mobile_recv"
+path = "aux/mobile_recv.rs"
 
 [dependencies]
 ab_glyph = "0.2.29"
@@ -57,6 +64,7 @@ toml = "0.8.20"
 uuid = "1.16.0"
 rand = "0.9.0"
 chrono = "0.4.40"
+i2cdev = "0.6.1"
 
 [workspace.metadata.cross.target.aarch64-unknown-linux-gnu]
 # Install libssl-dev:arm64, see <https://github.com/cross-rs/cross/blob/main/docs/custom_images.md#adding-dependencies-to-existing-images>

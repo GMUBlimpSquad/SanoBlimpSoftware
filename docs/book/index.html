@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="en" class="light" dir="ltr">
+<html lang="en" class="light sidebar-visible" dir="ltr">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 
 
         <!-- Custom HTML head -->
-        
+
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
@@ -24,26 +24,41 @@
         <link rel="stylesheet" href="fonts/fonts.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" href="highlight.css">
-        <link rel="stylesheet" href="tomorrow-night.css">
-        <link rel="stylesheet" href="ayu-highlight.css">
+        <link rel="stylesheet" id="highlight-css" href="highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
 
-    </head>
-    <body class="sidebar-visible no-js">
-    <div id="body-container">
-        <!-- Provide site root to javascript -->
-        <script>
-            var path_to_root = "";
-            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
-        </script>
 
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
-                var theme = localStorage.getItem('mdbook-theme');
-                var sidebar = localStorage.getItem('mdbook-sidebar');
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
 
                 if (theme.startsWith('"') && theme.endsWith('"')) {
                     localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
@@ -57,70 +72,51 @@
 
         <!-- Set the theme before any content is loaded, prevents flash -->
         <script>
-            var theme;
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
-            var html = document.querySelector('html');
+            const html = document.documentElement;
             html.classList.remove('light')
             html.classList.add(theme);
-            var body = document.querySelector('body');
-            body.classList.remove('no-js')
-            body.classList.add('js');
+            html.classList.add("js");
         </script>
 
         <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
-            var body = document.querySelector('body');
-            var sidebar = null;
-            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
             } else {
                 sidebar = 'hidden';
+                sidebar_toggle.checked = false;
             }
-            sidebar_toggle.checked = sidebar === 'visible';
-            body.classList.remove('sidebar-visible');
-            body.classList.add("sidebar-" + sidebar);
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html" class="active"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="01_blimp_control___blimp__trait____flappy__implementation_.html"><strong aria-hidden="true">2.</strong> Blimp Control</a></li><li class="chapter-item expanded "><a href="02_hardware_actuation___pcaactuator__.html"><strong aria-hidden="true">3.</strong> Hardware Actuation</a></li><li class="chapter-item expanded "><a href="03_configuration___config__.html"><strong aria-hidden="true">4.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="04_object_detection___detection__.html"><strong aria-hidden="true">5.</strong> Object Detection</a></li><li class="chapter-item expanded "><a href="05_sensor_input_state__conceptual_.html"><strong aria-hidden="true">6.</strong> Sensor Input</a></li><li class="chapter-item expanded "><a href="06_autonomous_control___autonomous__.html"><strong aria-hidden="true">7.</strong> Autonomous Control</a></li><li class="chapter-item expanded "><a href="07_image_processing___streaming.html"><strong aria-hidden="true">8.</strong> Image Processing</a></li></ol>
-            </div>
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <!-- Track and set sidebar scroll position -->
-        <script>
-            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
-            sidebarScrollbox.addEventListener('click', function(e) {
-                if (e.target.tagName === 'A') {
-                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
-                }
-            }, { passive: true });
-            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
-            sessionStorage.removeItem('sidebar-scroll');
-            if (sidebarScrollTop) {
-                // preserve sidebar scroll position when navigating via links within sidebar
-                sidebarScrollbox.scrollTop = sidebarScrollTop;
-            } else {
-                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
-                var activeSection = document.querySelector('#sidebar .active');
-                if (activeSection) {
-                    activeSection.scrollIntoView({ block: 'center' });
-                }
-            }
-        </script>
-
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
-                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar-hover-placeholder"></div>
                 <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
                         <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
@@ -130,13 +126,14 @@
                             <i class="fa fa-paint-brush"></i>
                         </button>
                         <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
                         </ul>
-                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
                             <i class="fa fa-search"></i>
                         </button>
                     </div>
@@ -153,7 +150,12 @@
 
                 <div id="search-wrapper" class="hidden">
                     <form id="searchbar-outer" class="searchbar-outer">
-                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
                     </form>
                     <div id="searchresults-outer" class="searchresults-outer hidden">
                         <div id="searchresults-header" class="searchresults-header"></div>
@@ -173,22 +175,42 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="tutorial-sanoblimpsoftware"><a class="header" href="#tutorial-sanoblimpsoftware">Tutorial: SanoBlimpSoftware</a></h1>
-<p>This project controls a <strong>blimp</strong>, specifically one called <em>Flappy</em> or a <em>SanoBlimp</em>.
-It can be flown <strong>manually</strong> using a gamepad or fly <strong>autonomously</strong> using <em>computer vision</em>.
-In autonomous mode, it tries to find specific objects using a camera (<code>Object Detection</code>), calculates how to move towards them using a <em>PID controller</em> (<code>Autonomous Control</code>), and sends commands to the blimp's <em>motors and servos</em> (<code>Hardware Actuation</code>).
-Settings like motor power and controller sensitivity can be adjusted via a <strong>configuration</strong> file (<code>Configuration</code>).
-It also processes the camera image to draw boxes around detected objects and streams this video over the network (<code>Image Processing &amp; Streaming</code>).
-The blimp uses <em>sensors</em> like pressure sensors (for altitude) and IMUs (for orientation) to understand its own state (<code>Sensor Input/State</code>).</p>
-<p><strong>Source Repository:</strong> <a href="git@github.com:GMUBlimpSquad/SanoBlimpSoftware.git">git@github.com:GMUBlimpSquad/SanoBlimpSoftware.git</a></p>
+                        <h1 id="sanoblimpsoftware-documentation"><a class="header" href="#sanoblimpsoftware-documentation">SanoBlimpSoftware Documentation</a></h1>
+<p>Welcome to the SanoBlimpSoftware documentation! This comprehensive guide covers the autonomous blimp control system designed for embedded Linux platforms.</p>
+<h2 id="what-is-sanoblimpsoftware"><a class="header" href="#what-is-sanoblimpsoftware">What is SanoBlimpSoftware?</a></h2>
+<p>SanoBlimpSoftware is a robust control system for autonomous aerial blimps written in Rust. The system provides:</p>
+<ul>
+<li><strong>Dual Control Modes</strong>: Manual flight via gamepad or autonomous navigation using computer vision</li>
+<li><strong>Real-time Object Detection</strong>: Camera-based object tracking with serial communication</li>
+<li><strong>PID-based Control</strong>: Position and altitude hold with tunable gains</li>
+<li><strong>Multi-sensor Integration</strong>: IMU (BNO055) and barometric sensors (BME280)</li>
+<li><strong>Base Station Communication</strong>: UDP-based telemetry and command interface</li>
+<li><strong>Hardware Abstraction</strong>: Support for multiple blimp types (Sano, Flappy)</li>
+</ul>
+<h2 id="how-it-works"><a class="header" href="#how-it-works">How It Works</a></h2>
+<p>The blimp can operate in two modes:</p>
+<h3 id="manual-mode"><a class="header" href="#manual-mode">Manual Mode</a></h3>
+<p>Using a gamepad controller, pilots can directly control the blimp's movement, altitude, and orientation. The system translates joystick inputs into motor commands through a mixing algorithm.</p>
+<h3 id="autonomous-mode"><a class="header" href="#autonomous-mode">Autonomous Mode</a></h3>
+<p>The blimp uses computer vision to detect and track objects (balls or goals). A PID controller calculates the optimal movements to reach or follow the detected objects. The system continuously:</p>
+<ol>
+<li>Captures camera frames and detects objects</li>
+<li>Computes position errors relative to targets</li>
+<li>Applies PID control to calculate corrections</li>
+<li>Mixes control outputs into motor commands</li>
+<li>Sends telemetry to the base station</li>
+</ol>
+<h2 id="system-architecture"><a class="header" href="#system-architecture">System Architecture</a></h2>
 <pre class="mermaid">flowchart TD
-    A0[&quot;Blimp Control (`Blimp` Trait / `Flappy` Implementation)&quot;]
-    A1[&quot;Hardware Actuation (`PCAActuator`)&quot;]
-    A2[&quot;Object Detection (`Detection`)&quot;]
-    A3[&quot;Autonomous Control (`Autonomous`)&quot;]
-    A4[&quot;Configuration (`Config`)&quot;]
-    A5[&quot;Sensor Input/State (Conceptual)&quot;]
+    A0[&quot;Blimp Control (Blimp Trait / SanoBlimp Implementation)&quot;]
+    A1[&quot;Hardware Actuation (PCAActuator)&quot;]
+    A2[&quot;Object Detection (Detection)&quot;]
+    A3[&quot;Autonomous Control (Autonomous)&quot;]
+    A4[&quot;Configuration (Config)&quot;]
+    A5[&quot;Sensor Input/State (Sensors)&quot;]
     A6[&quot;Image Processing &amp; Streaming&quot;]
+    A7[&quot;Base Station Communication&quot;]
+    
     A0 -- &quot;Sends commands to&quot; --&gt; A1
     A0 -- &quot;Uses logic from&quot; --&gt; A3
     A2 -- &quot;Provides detection data to&quot; --&gt; A0
@@ -196,24 +218,79 @@ The blimp uses <em>sensors</em> like pressure sensors (for altitude) and IMUs (f
     A4 -- &quot;Configures&quot; --&gt; A3
     A5 -- &quot;Provides state data to&quot; --&gt; A3
     A2 -- &quot;Performs&quot; --&gt; A6
+    A0 -- &quot;Sends telemetry via&quot; --&gt; A7
+    A7 -- &quot;Receives commands for&quot; --&gt; A3
 </pre>
-<h2 id="chapters"><a class="header" href="#chapters">Chapters</a></h2>
+<h2 id="key-components"><a class="header" href="#key-components">Key Components</a></h2>
+<h3 id="1-blimp-control"><a class="header" href="#1-blimp-control">1. Blimp Control</a></h3>
+<p>The core control logic that manages the blimp's state, processes inputs, and coordinates between manual and autonomous modes. Different blimp types (Sano, Flappy) implement the common <code>Blimp</code> trait.</p>
+<h3 id="2-hardware-actuation"><a class="header" href="#2-hardware-actuation">2. Hardware Actuation</a></h3>
+<p>Direct control of motors and servos through the PCA9685 PWM controller. Handles ESC initialization and pulse width modulation.</p>
+<h3 id="3-object-detection"><a class="header" href="#3-object-detection">3. Object Detection</a></h3>
+<p>Receives detection data from a camera system via serial communication. Identifies and tracks balls or goals using bounding boxes.</p>
+<h3 id="4-autonomous-control"><a class="header" href="#4-autonomous-control">4. Autonomous Control</a></h3>
+<p>PID controller implementation that computes control outputs based on position errors, enabling the blimp to track and follow detected objects.</p>
+<h3 id="5-configuration"><a class="header" href="#5-configuration">5. Configuration</a></h3>
+<p>TOML-based configuration system for tuning PID gains, motor multipliers, network settings, and hardware parameters.</p>
+<h3 id="6-sensor-integration"><a class="header" href="#6-sensor-integration">6. Sensor Integration</a></h3>
+<p>Reads data from IMU (orientation) and barometric sensors (altitude) to provide state estimation for control algorithms.</p>
+<h3 id="7-base-station-communication"><a class="header" href="#7-base-station-communication">7. Base Station Communication</a></h3>
+<p>UDP protocol for bidirectional communication with ground control, sending telemetry and receiving configuration updates.</p>
+<h2 id="documentation-structure"><a class="header" href="#documentation-structure">Documentation Structure</a></h2>
+<p>This documentation is organized into several chapters:</p>
 <ol>
-<li><a href="01_blimp_control___blimp__trait____flappy__implementation_.html">Blimp Control (<code>Blimp</code> Trait / <code>Flappy</code> Implementation)</a></li>
-<li><a href="02_hardware_actuation___pcaactuator__.html">Hardware Actuation (<code>PCAActuator</code>)</a></li>
-<li><a href="03_configuration___config__.html">Configuration (<code>Config</code>)</a></li>
-<li><a href="04_object_detection___detection__.html">Object Detection (<code>Detection</code>)</a></li>
-<li><a href="05_sensor_input_state__conceptual_.html">Sensor Input/State (Conceptual)</a></li>
-<li><a href="06_autonomous_control___autonomous__.html">Autonomous Control (<code>Autonomous</code>)</a></li>
-<li><a href="07_image_processing___streaming.html">Image Processing &amp; Streaming</a></li>
+<li><strong><a href="01_blimp_control___blimp__trait____flappy__implementation_.html">Blimp Control</a></strong> - Core control logic and blimp implementations</li>
+<li><strong><a href="02_hardware_actuation___pcaactuator__.html">Hardware Actuation</a></strong> - Motor and servo control</li>
+<li><strong><a href="03_configuration___config__.html">Configuration</a></strong> - System configuration and tuning</li>
+<li><strong><a href="04_object_detection___detection__.html">Object Detection</a></strong> - Computer vision integration</li>
+<li><strong><a href="05_sensor_input_state__conceptual_.html">Sensor Input/State</a></strong> - Sensor reading and state estimation</li>
+<li><strong><a href="06_autonomous_control___autonomous__.html">Autonomous Control</a></strong> - PID control algorithms</li>
+<li><strong><a href="07_image_processing___streaming.html">Image Processing</a></strong> - Video streaming and visualization</li>
 </ol>
+<h2 id="quick-start"><a class="header" href="#quick-start">Quick Start</a></h2>
+<h3 id="hardware-requirements"><a class="header" href="#hardware-requirements">Hardware Requirements</a></h3>
+<ul>
+<li>Raspberry Pi 4 or compatible ARM64 board</li>
+<li>PCA9685 PWM controller</li>
+<li>BNO055 IMU sensor</li>
+<li>ESCs (BLHeli_S compatible)</li>
+<li>USB camera (for autonomous mode)</li>
+<li>Gamepad controller</li>
+</ul>
+<h3 id="installation"><a class="header" href="#installation">Installation</a></h3>
+<pre><code class="language-bash"># Clone the repository
+git clone git@github.com:GMUBlimpSquad/SanoBlimpSoftware.git
+cd SanoBlimpSoftware
+
+# Build for Raspberry Pi
+cross build --target aarch64-unknown-linux-gnu --release
+
+# Copy to Raspberry Pi
+scp target/aarch64-unknown-linux-gnu/release/SanoBlimpSoftware pi@&lt;IP&gt;:~/
+scp config.toml pi@&lt;IP&gt;:~/
+</code></pre>
+<h3 id="running"><a class="header" href="#running">Running</a></h3>
+<pre><code class="language-bash"># On the Raspberry Pi
+sudo ./SanoBlimpSoftware
+</code></pre>
+<h2 id="getting-help"><a class="header" href="#getting-help">Getting Help</a></h2>
+<ul>
+<li><strong>GitHub Issues</strong>: Report bugs or request features at the repository</li>
+<li><strong>Configuration</strong>: See the <a href="03_configuration___config__.html">Configuration</a> chapter</li>
+<li><strong>Hardware Setup</strong>: See the <a href="02_hardware_actuation___pcaactuator__.html">Hardware Actuation</a> chapter</li>
+<li><strong>Control Tuning</strong>: See the <a href="06_autonomous_control___autonomous__.html">Autonomous Control</a> chapter</li>
+</ul>
+<h2 id="source-code"><a class="header" href="#source-code">Source Code</a></h2>
+<p><strong>Repository:</strong> <a href="git@github.com:GMUBlimpSquad/SanoBlimpSoftware.git">git@github.com:GMUBlimpSquad/SanoBlimpSoftware.git</a></p>
+<h2 id="license"><a class="header" href="#license">License</a></h2>
+<p>See <a href="license.html">License</a> for details.</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
 
-                            <a rel="next prefetch" href="01_blimp_control___blimp__trait____flappy__implementation_.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="getting_started.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -224,7 +301,7 @@ The blimp uses <em>sensors</em> like pressure sensors (for altitude) and IMUs (f
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
 
-                    <a rel="next prefetch" href="01_blimp_control___blimp__trait____flappy__implementation_.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="getting_started.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
@@ -266,6 +343,7 @@ The blimp uses <em>sensors</em> like pressure sensors (for altitude) and IMUs (f
         <!-- Custom JS scripts -->
         <script src="mermaid.min.js"></script>
         <script src="mermaid-init.js"></script>
+
 
 
     </div>

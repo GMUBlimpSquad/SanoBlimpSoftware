@@ -37,28 +37,28 @@ fn main() {
 
     loop {
         //// Quaternion; due to a bug in the BNO055, this is recommended over Euler Angles
-        //match imu.quaternion() {
-        //    Ok(val) => {
-        //        quaternion = val;
-        //        println!("IMU Quaternion: {:?}", quaternion);
-        //        std::thread::sleep(std::time::Duration::from_millis(500));
-        //    }
-        //    Err(e) => {
-        //        eprintln!("{:?}", e);
-        //    }
-        //}
-        //
-        //// Euler angles, directly read
-        match imu.euler_angles() {
+        match imu.quaternion() {
             Ok(val) => {
-                euler_angles = val;
-                println!("IMU angles: {:?}", euler_angles);
+                quaternion = val;
+                println!("IMU Quaternion: {:?}", quaternion);
                 std::thread::sleep(std::time::Duration::from_millis(500));
             }
             Err(e) => {
                 eprintln!("{:?}", e);
             }
         }
+        //
+        //// Euler angles, directly read
+        // match imu.euler_angles() {
+        //     Ok(val) => {
+        //         euler_angles = val;
+        //         println!("IMU angles: {:?}", euler_angles);
+        //         std::thread::sleep(std::time::Duration::from_millis(500));
+        //     }
+        //     Err(e) => {
+        //         eprintln!("{:?}", e);
+        //     }
+        // }
         //match imu.mag_data() {
         //    Ok(val) => {
         //        println!("{:?}", val);

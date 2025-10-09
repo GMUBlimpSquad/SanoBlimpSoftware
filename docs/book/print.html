@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="en" class="light" dir="ltr">
+<html lang="en" class="light sidebar-visible" dir="ltr">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
@@ -8,7 +8,7 @@
 
 
         <!-- Custom HTML head -->
-        
+
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
@@ -25,26 +25,41 @@
         <link rel="stylesheet" href="fonts/fonts.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" href="highlight.css">
-        <link rel="stylesheet" href="tomorrow-night.css">
-        <link rel="stylesheet" href="ayu-highlight.css">
+        <link rel="stylesheet" id="highlight-css" href="highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
 
-    </head>
-    <body class="sidebar-visible no-js">
-    <div id="body-container">
-        <!-- Provide site root to javascript -->
-        <script>
-            var path_to_root = "";
-            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
-        </script>
 
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
-                var theme = localStorage.getItem('mdbook-theme');
-                var sidebar = localStorage.getItem('mdbook-sidebar');
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
 
                 if (theme.startsWith('"') && theme.endsWith('"')) {
                     localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
@@ -58,70 +73,51 @@
 
         <!-- Set the theme before any content is loaded, prevents flash -->
         <script>
-            var theme;
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
-            var html = document.querySelector('html');
+            const html = document.documentElement;
             html.classList.remove('light')
             html.classList.add(theme);
-            var body = document.querySelector('body');
-            body.classList.remove('no-js')
-            body.classList.add('js');
+            html.classList.add("js");
         </script>
 
         <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
-            var body = document.querySelector('body');
-            var sidebar = null;
-            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
             } else {
                 sidebar = 'hidden';
+                sidebar_toggle.checked = false;
             }
-            sidebar_toggle.checked = sidebar === 'visible';
-            body.classList.remove('sidebar-visible');
-            body.classList.add("sidebar-" + sidebar);
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="index.html"><strong aria-hidden="true">1.</strong> Introduction</a></li><li class="chapter-item expanded "><a href="01_blimp_control___blimp__trait____flappy__implementation_.html"><strong aria-hidden="true">2.</strong> Blimp Control</a></li><li class="chapter-item expanded "><a href="02_hardware_actuation___pcaactuator__.html"><strong aria-hidden="true">3.</strong> Hardware Actuation</a></li><li class="chapter-item expanded "><a href="03_configuration___config__.html"><strong aria-hidden="true">4.</strong> Configuration</a></li><li class="chapter-item expanded "><a href="04_object_detection___detection__.html"><strong aria-hidden="true">5.</strong> Object Detection</a></li><li class="chapter-item expanded "><a href="05_sensor_input_state__conceptual_.html"><strong aria-hidden="true">6.</strong> Sensor Input</a></li><li class="chapter-item expanded "><a href="06_autonomous_control___autonomous__.html"><strong aria-hidden="true">7.</strong> Autonomous Control</a></li><li class="chapter-item expanded "><a href="07_image_processing___streaming.html"><strong aria-hidden="true">8.</strong> Image Processing</a></li></ol>
-            </div>
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <!-- Track and set sidebar scroll position -->
-        <script>
-            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
-            sidebarScrollbox.addEventListener('click', function(e) {
-                if (e.target.tagName === 'A') {
-                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
-                }
-            }, { passive: true });
-            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
-            sessionStorage.removeItem('sidebar-scroll');
-            if (sidebarScrollTop) {
-                // preserve sidebar scroll position when navigating via links within sidebar
-                sidebarScrollbox.scrollTop = sidebarScrollTop;
-            } else {
-                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
-                var activeSection = document.querySelector('#sidebar .active');
-                if (activeSection) {
-                    activeSection.scrollIntoView({ block: 'center' });
-                }
-            }
-        </script>
-
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
-                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar-hover-placeholder"></div>
                 <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
                         <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
@@ -131,13 +127,14 @@
                             <i class="fa fa-paint-brush"></i>
                         </button>
                         <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
                         </ul>
-                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
                             <i class="fa fa-search"></i>
                         </button>
                     </div>
@@ -154,7 +151,12 @@
 
                 <div id="search-wrapper" class="hidden">
                     <form id="searchbar-outer" class="searchbar-outer">
-                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
                     </form>
                     <div id="searchresults-outer" class="searchresults-outer hidden">
                         <div id="searchresults-header" class="searchresults-header"></div>
@@ -174,22 +176,42 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="tutorial-sanoblimpsoftware"><a class="header" href="#tutorial-sanoblimpsoftware">Tutorial: SanoBlimpSoftware</a></h1>
-<p>This project controls a <strong>blimp</strong>, specifically one called <em>Flappy</em> or a <em>SanoBlimp</em>.
-It can be flown <strong>manually</strong> using a gamepad or fly <strong>autonomously</strong> using <em>computer vision</em>.
-In autonomous mode, it tries to find specific objects using a camera (<code>Object Detection</code>), calculates how to move towards them using a <em>PID controller</em> (<code>Autonomous Control</code>), and sends commands to the blimp's <em>motors and servos</em> (<code>Hardware Actuation</code>).
-Settings like motor power and controller sensitivity can be adjusted via a <strong>configuration</strong> file (<code>Configuration</code>).
-It also processes the camera image to draw boxes around detected objects and streams this video over the network (<code>Image Processing &amp; Streaming</code>).
-The blimp uses <em>sensors</em> like pressure sensors (for altitude) and IMUs (for orientation) to understand its own state (<code>Sensor Input/State</code>).</p>
-<p><strong>Source Repository:</strong> <a href="git@github.com:GMUBlimpSquad/SanoBlimpSoftware.git">git@github.com:GMUBlimpSquad/SanoBlimpSoftware.git</a></p>
+                        <h1 id="sanoblimpsoftware-documentation"><a class="header" href="#sanoblimpsoftware-documentation">SanoBlimpSoftware Documentation</a></h1>
+<p>Welcome to the SanoBlimpSoftware documentation! This comprehensive guide covers the autonomous blimp control system designed for embedded Linux platforms.</p>
+<h2 id="what-is-sanoblimpsoftware"><a class="header" href="#what-is-sanoblimpsoftware">What is SanoBlimpSoftware?</a></h2>
+<p>SanoBlimpSoftware is a robust control system for autonomous aerial blimps written in Rust. The system provides:</p>
+<ul>
+<li><strong>Dual Control Modes</strong>: Manual flight via gamepad or autonomous navigation using computer vision</li>
+<li><strong>Real-time Object Detection</strong>: Camera-based object tracking with serial communication</li>
+<li><strong>PID-based Control</strong>: Position and altitude hold with tunable gains</li>
+<li><strong>Multi-sensor Integration</strong>: IMU (BNO055) and barometric sensors (BME280)</li>
+<li><strong>Base Station Communication</strong>: UDP-based telemetry and command interface</li>
+<li><strong>Hardware Abstraction</strong>: Support for multiple blimp types (Sano, Flappy)</li>
+</ul>
+<h2 id="how-it-works"><a class="header" href="#how-it-works">How It Works</a></h2>
+<p>The blimp can operate in two modes:</p>
+<h3 id="manual-mode"><a class="header" href="#manual-mode">Manual Mode</a></h3>
+<p>Using a gamepad controller, pilots can directly control the blimp's movement, altitude, and orientation. The system translates joystick inputs into motor commands through a mixing algorithm.</p>
+<h3 id="autonomous-mode"><a class="header" href="#autonomous-mode">Autonomous Mode</a></h3>
+<p>The blimp uses computer vision to detect and track objects (balls or goals). A PID controller calculates the optimal movements to reach or follow the detected objects. The system continuously:</p>
+<ol>
+<li>Captures camera frames and detects objects</li>
+<li>Computes position errors relative to targets</li>
+<li>Applies PID control to calculate corrections</li>
+<li>Mixes control outputs into motor commands</li>
+<li>Sends telemetry to the base station</li>
+</ol>
+<h2 id="system-architecture"><a class="header" href="#system-architecture">System Architecture</a></h2>
 <pre class="mermaid">flowchart TD
-    A0[&quot;Blimp Control (`Blimp` Trait / `Flappy` Implementation)&quot;]
-    A1[&quot;Hardware Actuation (`PCAActuator`)&quot;]
-    A2[&quot;Object Detection (`Detection`)&quot;]
-    A3[&quot;Autonomous Control (`Autonomous`)&quot;]
-    A4[&quot;Configuration (`Config`)&quot;]
-    A5[&quot;Sensor Input/State (Conceptual)&quot;]
+    A0[&quot;Blimp Control (Blimp Trait / SanoBlimp Implementation)&quot;]
+    A1[&quot;Hardware Actuation (PCAActuator)&quot;]
+    A2[&quot;Object Detection (Detection)&quot;]
+    A3[&quot;Autonomous Control (Autonomous)&quot;]
+    A4[&quot;Configuration (Config)&quot;]
+    A5[&quot;Sensor Input/State (Sensors)&quot;]
     A6[&quot;Image Processing &amp; Streaming&quot;]
+    A7[&quot;Base Station Communication&quot;]
+    
     A0 -- &quot;Sends commands to&quot; --&gt; A1
     A0 -- &quot;Uses logic from&quot; --&gt; A3
     A2 -- &quot;Provides detection data to&quot; --&gt; A0
@@ -197,17 +219,1943 @@ The blimp uses <em>sensors</em> like pressure sensors (for altitude) and IMUs (f
     A4 -- &quot;Configures&quot; --&gt; A3
     A5 -- &quot;Provides state data to&quot; --&gt; A3
     A2 -- &quot;Performs&quot; --&gt; A6
+    A0 -- &quot;Sends telemetry via&quot; --&gt; A7
+    A7 -- &quot;Receives commands for&quot; --&gt; A3
 </pre>
-<h2 id="chapters"><a class="header" href="#chapters">Chapters</a></h2>
+<h2 id="key-components"><a class="header" href="#key-components">Key Components</a></h2>
+<h3 id="1-blimp-control"><a class="header" href="#1-blimp-control">1. Blimp Control</a></h3>
+<p>The core control logic that manages the blimp's state, processes inputs, and coordinates between manual and autonomous modes. Different blimp types (Sano, Flappy) implement the common <code>Blimp</code> trait.</p>
+<h3 id="2-hardware-actuation"><a class="header" href="#2-hardware-actuation">2. Hardware Actuation</a></h3>
+<p>Direct control of motors and servos through the PCA9685 PWM controller. Handles ESC initialization and pulse width modulation.</p>
+<h3 id="3-object-detection"><a class="header" href="#3-object-detection">3. Object Detection</a></h3>
+<p>Receives detection data from a camera system via serial communication. Identifies and tracks balls or goals using bounding boxes.</p>
+<h3 id="4-autonomous-control"><a class="header" href="#4-autonomous-control">4. Autonomous Control</a></h3>
+<p>PID controller implementation that computes control outputs based on position errors, enabling the blimp to track and follow detected objects.</p>
+<h3 id="5-configuration"><a class="header" href="#5-configuration">5. Configuration</a></h3>
+<p>TOML-based configuration system for tuning PID gains, motor multipliers, network settings, and hardware parameters.</p>
+<h3 id="6-sensor-integration"><a class="header" href="#6-sensor-integration">6. Sensor Integration</a></h3>
+<p>Reads data from IMU (orientation) and barometric sensors (altitude) to provide state estimation for control algorithms.</p>
+<h3 id="7-base-station-communication"><a class="header" href="#7-base-station-communication">7. Base Station Communication</a></h3>
+<p>UDP protocol for bidirectional communication with ground control, sending telemetry and receiving configuration updates.</p>
+<h2 id="documentation-structure"><a class="header" href="#documentation-structure">Documentation Structure</a></h2>
+<p>This documentation is organized into several chapters:</p>
 <ol>
-<li><a href="01_blimp_control___blimp__trait____flappy__implementation_.html">Blimp Control (<code>Blimp</code> Trait / <code>Flappy</code> Implementation)</a></li>
-<li><a href="02_hardware_actuation___pcaactuator__.html">Hardware Actuation (<code>PCAActuator</code>)</a></li>
-<li><a href="03_configuration___config__.html">Configuration (<code>Config</code>)</a></li>
-<li><a href="04_object_detection___detection__.html">Object Detection (<code>Detection</code>)</a></li>
-<li><a href="05_sensor_input_state__conceptual_.html">Sensor Input/State (Conceptual)</a></li>
-<li><a href="06_autonomous_control___autonomous__.html">Autonomous Control (<code>Autonomous</code>)</a></li>
-<li><a href="07_image_processing___streaming.html">Image Processing &amp; Streaming</a></li>
+<li><strong><a href="01_blimp_control___blimp__trait____flappy__implementation_.html">Blimp Control</a></strong> - Core control logic and blimp implementations</li>
+<li><strong><a href="02_hardware_actuation___pcaactuator__.html">Hardware Actuation</a></strong> - Motor and servo control</li>
+<li><strong><a href="03_configuration___config__.html">Configuration</a></strong> - System configuration and tuning</li>
+<li><strong><a href="04_object_detection___detection__.html">Object Detection</a></strong> - Computer vision integration</li>
+<li><strong><a href="05_sensor_input_state__conceptual_.html">Sensor Input/State</a></strong> - Sensor reading and state estimation</li>
+<li><strong><a href="06_autonomous_control___autonomous__.html">Autonomous Control</a></strong> - PID control algorithms</li>
+<li><strong><a href="07_image_processing___streaming.html">Image Processing</a></strong> - Video streaming and visualization</li>
 </ol>
+<h2 id="quick-start"><a class="header" href="#quick-start">Quick Start</a></h2>
+<h3 id="hardware-requirements"><a class="header" href="#hardware-requirements">Hardware Requirements</a></h3>
+<ul>
+<li>Raspberry Pi 4 or compatible ARM64 board</li>
+<li>PCA9685 PWM controller</li>
+<li>BNO055 IMU sensor</li>
+<li>ESCs (BLHeli_S compatible)</li>
+<li>USB camera (for autonomous mode)</li>
+<li>Gamepad controller</li>
+</ul>
+<h3 id="installation"><a class="header" href="#installation">Installation</a></h3>
+<pre><code class="language-bash"># Clone the repository
+git clone git@github.com:GMUBlimpSquad/SanoBlimpSoftware.git
+cd SanoBlimpSoftware
+
+# Build for Raspberry Pi
+cross build --target aarch64-unknown-linux-gnu --release
+
+# Copy to Raspberry Pi
+scp target/aarch64-unknown-linux-gnu/release/SanoBlimpSoftware pi@&lt;IP&gt;:~/
+scp config.toml pi@&lt;IP&gt;:~/
+</code></pre>
+<h3 id="running"><a class="header" href="#running">Running</a></h3>
+<pre><code class="language-bash"># On the Raspberry Pi
+sudo ./SanoBlimpSoftware
+</code></pre>
+<h2 id="getting-help"><a class="header" href="#getting-help">Getting Help</a></h2>
+<ul>
+<li><strong>GitHub Issues</strong>: Report bugs or request features at the repository</li>
+<li><strong>Configuration</strong>: See the <a href="03_configuration___config__.html">Configuration</a> chapter</li>
+<li><strong>Hardware Setup</strong>: See the <a href="02_hardware_actuation___pcaactuator__.html">Hardware Actuation</a> chapter</li>
+<li><strong>Control Tuning</strong>: See the <a href="06_autonomous_control___autonomous__.html">Autonomous Control</a> chapter</li>
+</ul>
+<h2 id="source-code"><a class="header" href="#source-code">Source Code</a></h2>
+<p><strong>Repository:</strong> <a href="git@github.com:GMUBlimpSquad/SanoBlimpSoftware.git">git@github.com:GMUBlimpSquad/SanoBlimpSoftware.git</a></p>
+<h2 id="license"><a class="header" href="#license">License</a></h2>
+<p>See <a href="license.html">License</a> for details.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="getting-started"><a class="header" href="#getting-started">Getting Started</a></h1>
+<p>This guide will help you set up and run SanoBlimpSoftware on your blimp hardware.</p>
+<h2 id="prerequisites"><a class="header" href="#prerequisites">Prerequisites</a></h2>
+<p>Before you begin, ensure you have the following:</p>
+<h3 id="hardware"><a class="header" href="#hardware">Hardware</a></h3>
+<ul>
+<li><strong>Raspberry Pi 4</strong> or compatible ARM64 single-board computer</li>
+<li><strong>PCA9685 PWM controller</strong> - For motor and servo control</li>
+<li><strong>BNO055 IMU sensor</strong> - 9-axis absolute orientation sensor</li>
+<li><strong>BME280 barometric sensor</strong> (optional) - For altitude measurement</li>
+<li><strong>ESCs</strong> - BLHeli_S compatible electronic speed controllers (4x)</li>
+<li><strong>Motors</strong> - Brushless motors compatible with your ESCs (4x)</li>
+<li><strong>Servos</strong> (optional) - For additional control surfaces</li>
+<li><strong>Gamepad controller</strong> - Any controller supported by gilrs (Xbox, PlayStation, etc.)</li>
+<li><strong>USB camera</strong> (optional) - For autonomous mode with object detection</li>
+<li><strong>Power supply</strong> - Adequate power for Raspberry Pi and motors</li>
+<li><strong>Network connection</strong> - WiFi or Ethernet for base station communication</li>
+</ul>
+<h3 id="software"><a class="header" href="#software">Software</a></h3>
+<ul>
+<li><strong>Rust toolchain</strong> - Version 1.70 or later</li>
+<li><strong>Git</strong> - For cloning the repository</li>
+<li><strong>cross</strong> (optional) - For cross-compilation from development machine</li>
+</ul>
+<h3 id="development-machine-optional"><a class="header" href="#development-machine-optional">Development Machine (Optional)</a></h3>
+<p>If you're cross-compiling from a non-ARM machine:</p>
+<ul>
+<li>Linux, macOS, or Windows with WSL2</li>
+<li>Docker (required by <code>cross</code>)</li>
+</ul>
+<h2 id="installation-1"><a class="header" href="#installation-1">Installation</a></h2>
+<h3 id="step-1-install-rust"><a class="header" href="#step-1-install-rust">Step 1: Install Rust</a></h3>
+<p>On your development machine or Raspberry Pi:</p>
+<pre><code class="language-bash">curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source $HOME/.cargo/env
+</code></pre>
+<h3 id="step-2-set-up-cross-compilation-optional"><a class="header" href="#step-2-set-up-cross-compilation-optional">Step 2: Set Up Cross-Compilation (Optional)</a></h3>
+<p>If building on a non-ARM machine:</p>
+<pre><code class="language-bash"># Install cross-compilation tool
+cargo install cross
+
+# Add ARM64 target
+rustup target add aarch64-unknown-linux-gnu
+</code></pre>
+<h3 id="step-3-clone-the-repository"><a class="header" href="#step-3-clone-the-repository">Step 3: Clone the Repository</a></h3>
+<pre><code class="language-bash">git clone git@github.com:GMUBlimpSquad/SanoBlimpSoftware.git
+cd SanoBlimpSoftware
+</code></pre>
+<h3 id="step-4-configure-the-system"><a class="header" href="#step-4-configure-the-system">Step 4: Configure the System</a></h3>
+<p>Edit <code>config.toml</code> to match your hardware setup:</p>
+<pre><code class="language-toml">[blimp]
+blimp_type = "sano"      # "sano" or "flappy"
+blimp_version = 2         # Hardware version (1 or 2)
+
+[server]
+host = "192.168.1.156"   # Your base station IP address
+port = 54321              # Data port
+port_stat = 54320         # Status/control port
+
+[motor]
+m1_mul = 1.0              # Motor 1 multiplier (adjust for balance)
+m2_mul = 1.0              # Motor 2 multiplier
+m3_mul = 1.0              # Motor 3 multiplier
+m4_mul = 1.0              # Motor 4 multiplier
+midpoint_angle = 90.0     # ESC neutral angle (typically 90°)
+
+[controller]
+kp_x = 1.0                # Proportional gain for X-axis
+kp_y = 1.0                # Proportional gain for Y-axis (yaw)
+kp_z = 1.0                # Proportional gain for Z-axis (altitude)
+kd_x = 0.1                # Derivative gain for X-axis
+kd_y = 0.1                # Derivative gain for Y-axis
+kd_z = 0.1                # Derivative gain for Z-axis
+</code></pre>
+<h3 id="step-5-build-the-project"><a class="header" href="#step-5-build-the-project">Step 5: Build the Project</a></h3>
+<h4 id="option-a-native-build-on-raspberry-pi"><a class="header" href="#option-a-native-build-on-raspberry-pi">Option A: Native Build (on Raspberry Pi)</a></h4>
+<pre><code class="language-bash">cargo build --release
+</code></pre>
+<h4 id="option-b-cross-compile-from-development-machine"><a class="header" href="#option-b-cross-compile-from-development-machine">Option B: Cross-Compile (from development machine)</a></h4>
+<pre><code class="language-bash">cross build --target aarch64-unknown-linux-gnu --release
+</code></pre>
+<h3 id="step-6-prepare-the-raspberry-pi"><a class="header" href="#step-6-prepare-the-raspberry-pi">Step 6: Prepare the Raspberry Pi</a></h3>
+<p>Install required system packages:</p>
+<pre><code class="language-bash">ssh pi@&lt;RASPBERRY_PI_IP&gt;
+
+# Update system
+sudo apt-get update
+sudo apt-get upgrade -y
+
+# Install dependencies
+sudo apt-get install -y \
+    libdbus-1-dev \
+    pkg-config \
+    libudev-dev \
+    i2c-tools \
+    build-essential
+
+# Add user to required groups
+sudo usermod -a -G i2c,gpio,spi,dialout pi
+
+# Enable I2C and SPI
+sudo raspi-config
+# Navigate to: Interface Options -&gt; I2C -&gt; Enable
+# Navigate to: Interface Options -&gt; SPI -&gt; Enable
+
+# Reboot to apply changes
+sudo reboot
+</code></pre>
+<h3 id="step-7-deploy-to-raspberry-pi"><a class="header" href="#step-7-deploy-to-raspberry-pi">Step 7: Deploy to Raspberry Pi</a></h3>
+<p>From your development machine:</p>
+<pre><code class="language-bash"># Copy binary
+scp target/aarch64-unknown-linux-gnu/release/SanoBlimpSoftware pi@&lt;RASPBERRY_PI_IP&gt;:~/
+
+# Copy configuration
+scp config.toml pi@&lt;RASPBERRY_PI_IP&gt;:~/
+
+# Create rail position file (required)
+ssh pi@&lt;RASPBERRY_PI_IP&gt; "echo '0' &gt; ~/rail.pos"
+</code></pre>
+<h3 id="step-8-verify-hardware-connections"><a class="header" href="#step-8-verify-hardware-connections">Step 8: Verify Hardware Connections</a></h3>
+<p>Before running, verify your hardware is connected correctly:</p>
+<pre><code class="language-bash"># Check I2C devices
+i2cdetect -y 1
+
+# You should see:
+# 0x28 or 0x29: BNO055 IMU
+# 0x40: PCA9685 PWM controller
+# 0x76 or 0x77: BME280 (if installed)
+</code></pre>
+<p>Expected output:</p>
+<pre><code>     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- -- 
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+20: -- -- -- -- -- -- -- -- 28 -- -- -- -- -- -- -- 
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+40: 40 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+70: -- -- -- -- -- -- 76 --
+</code></pre>
+<h2 id="usage"><a class="header" href="#usage">Usage</a></h2>
+<h3 id="running-the-main-program"><a class="header" href="#running-the-main-program">Running the Main Program</a></h3>
+<p>SSH into your Raspberry Pi and run:</p>
+<pre><code class="language-bash">cd ~
+sudo ./SanoBlimpSoftware
+</code></pre>
+<p><strong>Note</strong>: <code>sudo</code> is required for GPIO, I2C, and SPI access.</p>
+<h3 id="first-run"><a class="header" href="#first-run">First Run</a></h3>
+<p>On the first run, the system will:</p>
+<ol>
+<li>Initialize the PCA9685 PWM controller</li>
+<li>Calibrate ESCs (you'll hear beeps)</li>
+<li>Initialize the BNO055 IMU</li>
+<li>Connect to the base station</li>
+<li>Wait for controller input</li>
+</ol>
+<h3 id="controller-layout"><a class="header" href="#controller-layout">Controller Layout</a></h3>
+<h4 id="manual-control-mode"><a class="header" href="#manual-control-mode">Manual Control Mode</a></h4>
+<ul>
+<li><strong>Left Stick Y-axis</strong>: Forward/backward movement</li>
+<li><strong>Left Stick X-axis</strong>: Left/right turning (yaw)</li>
+<li><strong>Right Stick Y-axis</strong>: Altitude control (up/down)</li>
+<li><strong>Start Button</strong>: Toggle between manual and autonomous mode</li>
+<li><strong>Right Trigger</strong>: Switch to ball tracking mode (autonomous)</li>
+<li><strong>Left Trigger</strong>: Switch to goal tracking mode (autonomous)</li>
+<li><strong>East Button</strong> (B/Circle): Execute scoring maneuver</li>
+<li><strong>West Button</strong> (X/Square): Save current camera frame</li>
+</ul>
+<h4 id="autonomous-mode-indicators"><a class="header" href="#autonomous-mode-indicators">Autonomous Mode Indicators</a></h4>
+<ul>
+<li>When autonomous mode is active, the blimp will track objects based on the selected state</li>
+<li>Red indicator in telemetry shows autonomous mode is active</li>
+<li>The blimp will automatically adjust position to center on detected objects</li>
+</ul>
+<h3 id="testing-individual-components"><a class="header" href="#testing-individual-components">Testing Individual Components</a></h3>
+<p>Before full flight, test components individually:</p>
+<h4 id="test-imu"><a class="header" href="#test-imu">Test IMU</a></h4>
+<pre><code class="language-bash">cargo run --bin bno
+</code></pre>
+<p>Should display orientation data (Euler angles or quaternions).</p>
+<h4 id="test-servos"><a class="header" href="#test-servos">Test Servos</a></h4>
+<pre><code class="language-bash">cargo run --bin servo
+</code></pre>
+<p>Should move servos through their range.</p>
+<h4 id="test-bluetooth-if-needed"><a class="header" href="#test-bluetooth-if-needed">Test Bluetooth (if needed)</a></h4>
+<pre><code class="language-bash">cargo run --bin gatt_client
+</code></pre>
+<h2 id="hardware-setup"><a class="header" href="#hardware-setup">Hardware Setup</a></h2>
+<h3 id="wiring-diagram"><a class="header" href="#wiring-diagram">Wiring Diagram</a></h3>
+<h4 id="i2c-connections"><a class="header" href="#i2c-connections">I2C Connections</a></h4>
+<pre><code>Raspberry Pi          Device
+GPIO 2 (SDA) -------- SDA (BNO055, PCA9685)
+GPIO 3 (SCL) -------- SCL (BNO055, PCA9685)
+3.3V ---------------- VCC (BNO055)
+5V ------------------ VCC (PCA9685)
+GND ----------------- GND (All devices)
+</code></pre>
+<h4 id="pca9685-to-escservo-connections"><a class="header" href="#pca9685-to-escservo-connections">PCA9685 to ESC/Servo Connections</a></h4>
+<pre><code>PCA9685 Channel      Connection
+0 (C0) ------------- Motor 1 ESC signal
+1 (C1) ------------- Motor 2 ESC signal
+2 (C2) ------------- Motor 3 ESC signal
+3 (C3) ------------- Motor 4 ESC signal
+4 (C4) ------------- Servo 1 signal (optional)
+5 (C5) ------------- Servo 2 signal (optional)
+6 (C6) ------------- Servo 3 signal (optional)
+7 (C7) ------------- Servo 4 signal (optional)
+</code></pre>
+<h4 id="gpio-connections"><a class="header" href="#gpio-connections">GPIO Connections</a></h4>
+<pre><code>GPIO 23 ------------- Rail position sensor (optional)
+</code></pre>
+<h3 id="motor-configuration"><a class="header" href="#motor-configuration">Motor Configuration</a></h3>
+<p>The Sano blimp uses a quad-motor configuration:</p>
+<ul>
+<li><strong>M1 &amp; M2</strong>: Forward thrust motors</li>
+<li><strong>M3 &amp; M4</strong>: Lateral/altitude motors (optional, depending on version)</li>
+</ul>
+<p>Adjust <code>m1_mul</code> and <code>m2_mul</code> in <code>config.toml</code> if motors have different characteristics.</p>
+<h3 id="esc-calibration"><a class="header" href="#esc-calibration">ESC Calibration</a></h3>
+<p>ESCs are automatically calibrated on startup through this sequence:</p>
+<ol>
+<li><strong>Max throttle</strong> - Sent immediately (180°)</li>
+<li><strong>Wait for ESC beep</strong> - Indicates recognition</li>
+<li><strong>Min throttle</strong> - Arms the ESCs (0°)</li>
+<li><strong>Neutral position</strong> - Sets to configured midpoint</li>
+</ol>
+<p>If ESCs don't arm, check:</p>
+<ul>
+<li>Power supply is adequate</li>
+<li>ESC signal wires are properly connected</li>
+<li><code>midpoint_angle</code> is correct for your ESCs (usually 90°)</li>
+</ul>
+<h2 id="troubleshooting"><a class="header" href="#troubleshooting">Troubleshooting</a></h2>
+<h3 id="issue-failed-to-initialize-i2c-device"><a class="header" href="#issue-failed-to-initialize-i2c-device">Issue: "Failed to initialize I2C device"</a></h3>
+<p><strong>Solution</strong>: Ensure I2C is enabled:</p>
+<pre><code class="language-bash">sudo raspi-config
+# Interface Options -&gt; I2C -&gt; Yes
+sudo reboot
+</code></pre>
+<h3 id="issue-permission-denied-errors"><a class="header" href="#issue-permission-denied-errors">Issue: "Permission denied" errors</a></h3>
+<p><strong>Solution</strong>: Either run with <code>sudo</code> or add user to groups:</p>
+<pre><code class="language-bash">sudo usermod -a -G i2c,gpio,spi,dialout $USER
+# Log out and back in
+</code></pre>
+<h3 id="issue-motors-not-responding"><a class="header" href="#issue-motors-not-responding">Issue: Motors not responding</a></h3>
+<p><strong>Checklist</strong>:</p>
+<ol>
+<li>Check power supply is connected and adequate</li>
+<li>Verify ESC connections to PCA9685</li>
+<li>Check PCA9685 appears in <code>i2cdetect</code></li>
+<li>Verify ESC calibration sequence completed (listen for beeps)</li>
+<li>Check <code>midpoint_angle</code> in config.toml</li>
+</ol>
+<h3 id="issue-imu-not-found"><a class="header" href="#issue-imu-not-found">Issue: IMU not found</a></h3>
+<p><strong>Solution</strong>: Check BNO055 connections and address:</p>
+<pre><code class="language-bash">i2cdetect -y 1
+# Should show 28 or 29
+</code></pre>
+<p>The code uses alternative address (0x29). If your IMU is at 0x28, modify <code>src/lib/blimp.rs</code>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Change from:
+let mut imu = Bno055::new(dev).with_alternative_address();
+// To:
+let mut imu = Bno055::new(dev);
+<span class="boring">}</span></code></pre></pre>
+<h3 id="issue-controller-not-detected"><a class="header" href="#issue-controller-not-detected">Issue: Controller not detected</a></h3>
+<p><strong>Solution</strong>:</p>
+<ol>
+<li>Check controller is connected via USB or Bluetooth</li>
+<li>Verify controller is supported by gilrs</li>
+<li>Check <code>dmesg</code> for USB connection messages</li>
+<li>Test with a different USB port</li>
+</ol>
+<h3 id="issue-cant-connect-to-base-station"><a class="header" href="#issue-cant-connect-to-base-station">Issue: Can't connect to base station</a></h3>
+<p><strong>Solution</strong>:</p>
+<ol>
+<li>Verify network connectivity: <code>ping &lt;base_station_ip&gt;</code></li>
+<li>Check firewall isn't blocking UDP ports 54320 and 54321</li>
+<li>Ensure base station is running and listening</li>
+<li>Verify IP address in <code>config.toml</code> is correct</li>
+</ol>
+<h3 id="issue-railpos-not-found"><a class="header" href="#issue-railpos-not-found">Issue: "rail.pos not found"</a></h3>
+<p><strong>Solution</strong>: Create the file:</p>
+<pre><code class="language-bash">echo '0' &gt; ~/rail.pos
+</code></pre>
+<h2 id="next-steps"><a class="header" href="#next-steps">Next Steps</a></h2>
+<p>Now that you have the system running:</p>
+<ol>
+<li><strong>Tune PID Gains</strong>: See <a href="06_autonomous_control___autonomous__.html">Autonomous Control</a> for tuning guidance</li>
+<li><strong>Configure Motors</strong>: Adjust multipliers in config.toml for balanced flight</li>
+<li><strong>Set Up Object Detection</strong>: Configure camera and detection system</li>
+<li><strong>Understand the Code</strong>: Read through the <a href="index.html">documentation chapters</a></li>
+<li><strong>Monitor Telemetry</strong>: Use base station to view real-time sensor data</li>
+</ol>
+<h2 id="additional-resources"><a class="header" href="#additional-resources">Additional Resources</a></h2>
+<ul>
+<li><a href="02_hardware_actuation___pcaactuator__.html">Hardware Actuation Details</a></li>
+<li><a href="03_configuration___config__.html">Configuration Reference</a></li>
+<li><a href="05_sensor_input_state__conceptual_.html">Sensor Integration</a></li>
+<li><a href="04_object_detection___detection__.html">Object Detection Setup</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="installation-guide"><a class="header" href="#installation-guide">Installation Guide</a></h1>
+<p>This guide provides step-by-step instructions for installing and configuring SanoBlimpSoftware on your Raspberry Pi.</p>
+<h2 id="prerequisites-1"><a class="header" href="#prerequisites-1">Prerequisites</a></h2>
+<p>Before beginning installation, ensure you have:</p>
+<h3 id="hardware-1"><a class="header" href="#hardware-1">Hardware</a></h3>
+<ul>
+<li>Raspberry Pi 4 (or compatible ARM64 SBC)</li>
+<li>MicroSD card (16GB minimum, 32GB recommended)</li>
+<li>Network connection (WiFi or Ethernet)</li>
+<li>All required sensors and controllers (see <a href="hardware.html">Hardware Guide</a>)</li>
+</ul>
+<h3 id="development-machine"><a class="header" href="#development-machine">Development Machine</a></h3>
+<ul>
+<li>Computer running Linux, macOS, or Windows with WSL2</li>
+<li>Rust toolchain installed</li>
+<li>Git installed</li>
+<li>SSH client</li>
+<li>(Optional) Docker for cross-compilation</li>
+</ul>
+<h2 id="installation-steps"><a class="header" href="#installation-steps">Installation Steps</a></h2>
+<h3 id="1-prepare-the-raspberry-pi"><a class="header" href="#1-prepare-the-raspberry-pi">1. Prepare the Raspberry Pi</a></h3>
+<h4 id="11-install-raspberry-pi-os"><a class="header" href="#11-install-raspberry-pi-os">1.1 Install Raspberry Pi OS</a></h4>
+<p>Download and flash Raspberry Pi OS (64-bit):</p>
+<pre><code class="language-bash"># Using Raspberry Pi Imager (recommended)
+# 1. Download from https://www.raspberrypi.com/software/
+# 2. Select "Raspberry Pi OS (64-bit)"
+# 3. Configure hostname, SSH, WiFi in advanced options
+# 4. Flash to SD card
+
+# Or use command line with dd (Linux/macOS):
+sudo dd if=raspberry-pi-os-64bit.img of=/dev/sdX bs=4M status=progress
+sync
+</code></pre>
+<p><strong>Important</strong>: Enable SSH during imaging or create an empty file named <code>ssh</code> in the boot partition.</p>
+<h4 id="12-initial-raspberry-pi-setup"><a class="header" href="#12-initial-raspberry-pi-setup">1.2 Initial Raspberry Pi Setup</a></h4>
+<p>Boot the Raspberry Pi and SSH into it:</p>
+<pre><code class="language-bash">ssh pi@raspberrypi.local
+# Default password: raspberry (change immediately)
+</code></pre>
+<p>Update the system:</p>
+<pre><code class="language-bash">sudo apt-get update
+sudo apt-get upgrade -y
+sudo apt-get dist-upgrade -y
+</code></pre>
+<h4 id="13-install-system-dependencies"><a class="header" href="#13-install-system-dependencies">1.3 Install System Dependencies</a></h4>
+<pre><code class="language-bash">sudo apt-get install -y \
+    build-essential \
+    git \
+    cmake \
+    pkg-config \
+    libdbus-1-dev \
+    libudev-dev \
+    i2c-tools \
+    python3-smbus \
+    vim \
+    curl \
+    wget
+</code></pre>
+<h4 id="14-enable-required-interfaces"><a class="header" href="#14-enable-required-interfaces">1.4 Enable Required Interfaces</a></h4>
+<pre><code class="language-bash">sudo raspi-config
+</code></pre>
+<p>Navigate and enable:</p>
+<ul>
+<li><strong>Interface Options → I2C → Yes</strong></li>
+<li><strong>Interface Options → SPI → Yes</strong> (if using BME280 on SPI)</li>
+<li><strong>Interface Options → Serial Port</strong>:
+<ul>
+<li>"Would you like a login shell over serial?" → <strong>No</strong></li>
+<li>"Would you like serial port hardware enabled?" → <strong>Yes</strong></li>
+</ul>
+</li>
+</ul>
+<p>Exit and reboot:</p>
+<pre><code class="language-bash">sudo reboot
+</code></pre>
+<h4 id="15-configure-user-permissions"><a class="header" href="#15-configure-user-permissions">1.5 Configure User Permissions</a></h4>
+<p>Add the user to required groups:</p>
+<pre><code class="language-bash">sudo usermod -a -G i2c,gpio,spi,dialout,video pi
+</code></pre>
+<p>Log out and back in for changes to take effect:</p>
+<pre><code class="language-bash">exit
+ssh pi@raspberrypi.local
+</code></pre>
+<p>Verify group membership:</p>
+<pre><code class="language-bash">groups
+# Should include: i2c gpio spi dialout video
+</code></pre>
+<h4 id="16-verify-hardware-connections"><a class="header" href="#16-verify-hardware-connections">1.6 Verify Hardware Connections</a></h4>
+<p>Check I2C devices are detected:</p>
+<pre><code class="language-bash">i2cdetect -y 1
+</code></pre>
+<p>Expected output (example):</p>
+<pre><code>     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- -- 
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+20: -- -- -- -- -- -- -- -- 29 -- -- -- -- -- -- -- 
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+40: 40 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+70: -- -- -- -- -- -- 76 --
+</code></pre>
+<ul>
+<li><code>29</code>: BNO055 IMU</li>
+<li><code>40</code>: PCA9685 PWM controller</li>
+<li><code>76</code> or <code>77</code>: BME280 barometric sensor (optional)</li>
+</ul>
+<h3 id="2-set-up-development-environment"><a class="header" href="#2-set-up-development-environment">2. Set Up Development Environment</a></h3>
+<h4 id="21-install-rust-on-raspberry-pi-option-a-native-build"><a class="header" href="#21-install-rust-on-raspberry-pi-option-a-native-build">2.1 Install Rust on Raspberry Pi (Option A: Native Build)</a></h4>
+<p>If building directly on the Raspberry Pi:</p>
+<pre><code class="language-bash">curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source $HOME/.cargo/env
+</code></pre>
+<p>Verify installation:</p>
+<pre><code class="language-bash">rustc --version
+cargo --version
+</code></pre>
+<h4 id="22-install-rust-on-development-machine-option-b-cross-compilation"><a class="header" href="#22-install-rust-on-development-machine-option-b-cross-compilation">2.2 Install Rust on Development Machine (Option B: Cross-Compilation)</a></h4>
+<p>If cross-compiling from your development computer:</p>
+<pre><code class="language-bash"># Install Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source $HOME/.cargo/env
+
+# Add ARM64 target
+rustup target add aarch64-unknown-linux-gnu
+
+# Install cross-compilation tool
+cargo install cross
+
+# Verify Docker is installed (required by cross)
+docker --version
+</code></pre>
+<h3 id="3-clone-and-build-the-project"><a class="header" href="#3-clone-and-build-the-project">3. Clone and Build the Project</a></h3>
+<h4 id="31-clone-the-repository"><a class="header" href="#31-clone-the-repository">3.1 Clone the Repository</a></h4>
+<p>On your development machine:</p>
+<pre><code class="language-bash">git clone git@github.com:GMUBlimpSquad/SanoBlimpSoftware.git
+cd SanoBlimpSoftware
+</code></pre>
+<h4 id="32-build-the-project"><a class="header" href="#32-build-the-project">3.2 Build the Project</a></h4>
+<p><strong>Option A: Native Build</strong> (on Raspberry Pi):</p>
+<pre><code class="language-bash"># SSH into Raspberry Pi
+ssh pi@raspberrypi.local
+
+# Clone repository
+git clone git@github.com:GMUBlimpSquad/SanoBlimpSoftware.git
+cd SanoBlimpSoftware
+
+# Build release version
+cargo build --release
+
+# Binary location: target/release/SanoBlimpSoftware
+</code></pre>
+<p><strong>Option B: Cross-Compilation</strong> (from development machine):</p>
+<pre><code class="language-bash"># In SanoBlimpSoftware directory
+cross build --target aarch64-unknown-linux-gnu --release
+
+# Binary location: target/aarch64-unknown-linux-gnu/release/SanoBlimpSoftware
+</code></pre>
+<p>Build time:</p>
+<ul>
+<li>Native build on Pi 4: ~30-45 minutes (first build)</li>
+<li>Cross-compilation: ~10-20 minutes (first build)</li>
+<li>Subsequent builds: Much faster (incremental compilation)</li>
+</ul>
+<h4 id="33-build-example-programs-optional"><a class="header" href="#33-build-example-programs-optional">3.3 Build Example Programs (Optional)</a></h4>
+<pre><code class="language-bash"># Build all examples
+cargo build --release --bins
+
+# Or build specific examples
+cargo build --release --bin bno     # IMU test
+cargo build --release --bin servo   # Servo test
+cargo build --release --bin bme     # BME280 test
+</code></pre>
+<h3 id="4-configuration"><a class="header" href="#4-configuration">4. Configuration</a></h3>
+<h4 id="41-create-configuration-file"><a class="header" href="#41-create-configuration-file">4.1 Create Configuration File</a></h4>
+<p>Edit <code>config.toml</code> in the project root:</p>
+<pre><code class="language-toml">[blimp]
+blimp_type = "sano"      # Type: "sano" or "flappy"
+blimp_version = 2         # Hardware version: 1 or 2
+
+[server]
+host = "192.168.1.156"   # Base station IP address
+port = 54321              # Data/video port
+port_stat = 54320         # Control/status port
+
+[motor]
+m1_mul = 1.0              # Motor 1 speed multiplier
+m2_mul = 1.0              # Motor 2 speed multiplier
+m3_mul = 1.0              # Motor 3 speed multiplier
+m4_mul = 1.0              # Motor 4 speed multiplier
+midpoint_angle = 90.0     # ESC neutral angle in degrees
+
+[controller]
+kp_x = 1.0                # Proportional gain - forward/back
+kp_y = 1.0                # Proportional gain - yaw
+kp_z = 1.0                # Proportional gain - altitude
+kd_x = 0.1                # Derivative gain - forward/back
+kd_y = 0.1                # Derivative gain - yaw
+kd_z = 0.1                # Derivative gain - altitude
+</code></pre>
+<h4 id="42-configuration-parameters-explained"><a class="header" href="#42-configuration-parameters-explained">4.2 Configuration Parameters Explained</a></h4>
+<p><strong>[blimp] section</strong>:</p>
+<ul>
+<li><code>blimp_type</code>: Physical blimp configuration
+<ul>
+<li><code>"sano"</code>: Quad-motor configuration</li>
+<li><code>"flappy"</code>: Wing-flapping configuration</li>
+</ul>
+</li>
+<li><code>blimp_version</code>: Hardware version affects sensor interfaces
+<ul>
+<li><code>1</code>: BME280 on SPI</li>
+<li><code>2</code>: BME280 on I2C (or not used)</li>
+</ul>
+</li>
+</ul>
+<p><strong>[server] section</strong>:</p>
+<ul>
+<li><code>host</code>: IP address of base station computer</li>
+<li><code>port</code>: UDP port for data transmission (video, telemetry)</li>
+<li><code>port_stat</code>: UDP port for control messages</li>
+</ul>
+<p><strong>[motor] section</strong>:</p>
+<ul>
+<li><code>m1_mul</code>, <code>m2_mul</code>, etc.: Multipliers to balance motor thrust
+<ul>
+<li>Values typically between 0.5 and 1.5</li>
+<li>Adjust if blimp drifts in one direction</li>
+</ul>
+</li>
+<li><code>midpoint_angle</code>: ESC stop/neutral position
+<ul>
+<li>Typically 90° (1500 µs pulse width)</li>
+<li>Some ESCs may require adjustment</li>
+</ul>
+</li>
+</ul>
+<p><strong>[controller] section</strong>:</p>
+<ul>
+<li><code>kp_x</code>, <code>kp_y</code>, <code>kp_z</code>: Proportional gains for PID controller
+<ul>
+<li>Higher values = more aggressive response</li>
+<li>Start with 1.0 and tune</li>
+</ul>
+</li>
+<li><code>kd_x</code>, <code>kd_y</code>, <code>kd_z</code>: Derivative gains for PID controller
+<ul>
+<li>Dampens oscillations</li>
+<li>Typically 0.05 to 0.2</li>
+</ul>
+</li>
+</ul>
+<p>See <a href="03_configuration___config__.html">Configuration</a> for detailed tuning guidance.</p>
+<h3 id="5-deploy-to-raspberry-pi"><a class="header" href="#5-deploy-to-raspberry-pi">5. Deploy to Raspberry Pi</a></h3>
+<h4 id="51-copy-files"><a class="header" href="#51-copy-files">5.1 Copy Files</a></h4>
+<p>From your development machine:</p>
+<pre><code class="language-bash"># Set Raspberry Pi IP address
+RPI_IP="raspberrypi.local"  # or use IP like "192.168.1.100"
+
+# Copy binary (use correct path based on build method)
+# For cross-compilation:
+scp target/aarch64-unknown-linux-gnu/release/SanoBlimpSoftware pi@$RPI_IP:~/
+
+# Copy configuration
+scp config.toml pi@$RPI_IP:~/
+
+# Copy example binaries (optional)
+scp target/aarch64-unknown-linux-gnu/release/bno pi@$RPI_IP:~/
+scp target/aarch64-unknown-linux-gnu/release/servo pi@$RPI_IP:~/
+</code></pre>
+<h4 id="52-set-permissions"><a class="header" href="#52-set-permissions">5.2 Set Permissions</a></h4>
+<p>SSH into Raspberry Pi:</p>
+<pre><code class="language-bash">ssh pi@$RPI_IP
+cd ~
+chmod +x SanoBlimpSoftware
+chmod +x bno servo  # If copied
+</code></pre>
+<h4 id="53-create-required-files"><a class="header" href="#53-create-required-files">5.3 Create Required Files</a></h4>
+<p>Create the rail position tracking file:</p>
+<pre><code class="language-bash">echo '0' &gt; ~/rail.pos
+</code></pre>
+<p>This file tracks the position of the optional rail mechanism.</p>
+<h3 id="6-verification-and-testing"><a class="header" href="#6-verification-and-testing">6. Verification and Testing</a></h3>
+<h4 id="61-test-i2c-communication"><a class="header" href="#61-test-i2c-communication">6.1 Test I2C Communication</a></h4>
+<pre><code class="language-bash"># List I2C devices
+i2cdetect -y 1
+
+# Test BNO055 (if installed standalone test program)
+./bno
+
+# Expected output: Orientation data (Euler angles or quaternions)
+</code></pre>
+<h4 id="62-test-motor-controllers-safely"><a class="header" href="#62-test-motor-controllers-safely">6.2 Test Motor Controllers (Safely!)</a></h4>
+<p><strong>⚠️ REMOVE PROPELLERS BEFORE TESTING</strong></p>
+<pre><code class="language-bash"># Test servo output (servos only, no motors)
+./servo
+
+# Expected: Servos should move through their range
+</code></pre>
+<h4 id="63-test-gamepad"><a class="header" href="#63-test-gamepad">6.3 Test Gamepad</a></h4>
+<pre><code class="language-bash"># Check USB devices
+lsusb
+
+# Your controller should appear in the list
+# Example: "Microsoft Corp. Xbox360 Controller"
+
+# Test in main program (motors disabled for safety)
+sudo ./SanoBlimpSoftware
+# Press buttons - check for response in debug output
+</code></pre>
+<h4 id="64-test-network-communication"><a class="header" href="#64-test-network-communication">6.4 Test Network Communication</a></h4>
+<p>On Raspberry Pi:</p>
+<pre><code class="language-bash"># Verify network connectivity to base station
+ping 192.168.1.156  # Replace with your base station IP
+
+# Check UDP connectivity (if base station is running)
+# You should see "connected to the base station" message when running main program
+</code></pre>
+<h3 id="7-running-the-software"><a class="header" href="#7-running-the-software">7. Running the Software</a></h3>
+<h4 id="71-initial-test-run"><a class="header" href="#71-initial-test-run">7.1 Initial Test Run</a></h4>
+<p><strong>⚠️ Keep propellers removed for first test</strong></p>
+<pre><code class="language-bash">cd ~
+sudo ./SanoBlimpSoftware
+</code></pre>
+<p>Expected startup sequence:</p>
+<pre><code>Initializing ESCs...
+Sending max throttle (arming sequence)
+Sending min throttle (arming)
+Setting ESCs to neutral
+ESCs initialized!
+connected to the base station
+</code></pre>
+<p>If you see errors, see <a href="installation.html#troubleshooting">Troubleshooting</a> below.</p>
+<h4 id="72-create-startup-script-optional"><a class="header" href="#72-create-startup-script-optional">7.2 Create Startup Script (Optional)</a></h4>
+<p>Create a script for easier launching:</p>
+<pre><code class="language-bash">nano ~/start_blimp.sh
+</code></pre>
+<p>Add:</p>
+<pre><code class="language-bash">#!/bin/bash
+cd /home/pi
+sudo ./SanoBlimpSoftware
+</code></pre>
+<p>Make executable:</p>
+<pre><code class="language-bash">chmod +x ~/start_blimp.sh
+</code></pre>
+<p>Run with:</p>
+<pre><code class="language-bash">./start_blimp.sh
+</code></pre>
+<h4 id="73-auto-start-on-boot-optional"><a class="header" href="#73-auto-start-on-boot-optional">7.3 Auto-Start on Boot (Optional)</a></h4>
+<p>Create a systemd service:</p>
+<pre><code class="language-bash">sudo nano /etc/systemd/system/sanoblimp.service
+</code></pre>
+<p>Add:</p>
+<pre><code class="language-ini">[Unit]
+Description=SanoBlimp Control Software
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/home/pi
+ExecStart=/home/pi/SanoBlimpSoftware
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+</code></pre>
+<p>Enable and start:</p>
+<pre><code class="language-bash">sudo systemctl enable sanoblimp.service
+sudo systemctl start sanoblimp.service
+
+# Check status
+sudo systemctl status sanoblimp.service
+
+# View logs
+sudo journalctl -u sanoblimp.service -f
+</code></pre>
+<p>Disable auto-start:</p>
+<pre><code class="language-bash">sudo systemctl disable sanoblimp.service
+</code></pre>
+<h3 id="8-updates-and-maintenance"><a class="header" href="#8-updates-and-maintenance">8. Updates and Maintenance</a></h3>
+<h4 id="81-updating-the-software"><a class="header" href="#81-updating-the-software">8.1 Updating the Software</a></h4>
+<p>On development machine:</p>
+<pre><code class="language-bash">cd SanoBlimpSoftware
+git pull origin main
+cross build --target aarch64-unknown-linux-gnu --release
+scp target/aarch64-unknown-linux-gnu/release/SanoBlimpSoftware pi@$RPI_IP:~/
+</code></pre>
+<p>On Raspberry Pi:</p>
+<pre><code class="language-bash"># If service is running
+sudo systemctl stop sanoblimp.service
+
+# Replace binary (already done by scp above)
+
+# Restart service
+sudo systemctl start sanoblimp.service
+</code></pre>
+<h4 id="82-backing-up-configuration"><a class="header" href="#82-backing-up-configuration">8.2 Backing Up Configuration</a></h4>
+<pre><code class="language-bash"># From development machine
+scp pi@$RPI_IP:~/config.toml ./config_backup_$(date +%Y%m%d).toml
+</code></pre>
+<h4 id="83-system-updates"><a class="header" href="#83-system-updates">8.3 System Updates</a></h4>
+<p>Periodically update Raspberry Pi OS:</p>
+<pre><code class="language-bash">sudo apt-get update
+sudo apt-get upgrade -y
+sudo reboot
+</code></pre>
+<h2 id="troubleshooting-1"><a class="header" href="#troubleshooting-1">Troubleshooting</a></h2>
+<h3 id="build-errors"><a class="header" href="#build-errors">Build Errors</a></h3>
+<p><strong>Problem</strong>: <code>cross</code> fails with Docker errors</p>
+<pre><code class="language-bash"># Solution: Ensure Docker is running
+sudo systemctl start docker
+docker ps  # Should work without errors
+</code></pre>
+<p><strong>Problem</strong>: Linker errors during cross-compilation</p>
+<pre><code class="language-bash"># Solution: Clean and rebuild
+cargo clean
+cross build --target aarch64-unknown-linux-gnu --release
+</code></pre>
+<p><strong>Problem</strong>: Out of memory during compilation on Raspberry Pi</p>
+<pre><code class="language-bash"># Solution: Increase swap space
+sudo dphys-swapfile swapoff
+sudo nano /etc/dphys-swapfile
+# Change CONF_SWAPSIZE=100 to CONF_SWAPSIZE=2048
+sudo dphys-swapfile setup
+sudo dphys-swapfile swapon
+</code></pre>
+<h3 id="runtime-errors"><a class="header" href="#runtime-errors">Runtime Errors</a></h3>
+<p><strong>Problem</strong>: "Permission denied" when accessing I2C</p>
+<pre><code class="language-bash"># Solution: Run with sudo or fix permissions
+sudo ./SanoBlimpSoftware
+
+# Or add udev rule (then reboot):
+echo 'KERNEL=="i2c-[0-9]*", GROUP="i2c", MODE="0660"' | sudo tee /etc/udev/rules.d/99-i2c.rules
+sudo reboot
+</code></pre>
+<p><strong>Problem</strong>: "No such device" for I2C</p>
+<pre><code class="language-bash"># Solution: Verify I2C is enabled
+sudo raspi-config
+# Interface Options → I2C → Yes
+sudo reboot
+
+# Check kernel module is loaded
+lsmod | grep i2c
+# Should show i2c_bcm2835 or similar
+</code></pre>
+<p><strong>Problem</strong>: ESCs not initializing</p>
+<pre><code class="language-bash"># Check: Are ESCs powered?
+# Check: Are signal wires connected correctly?
+# Check: Is midpoint_angle correct in config.toml?
+# Try: Manually calibrate ESCs with a servo tester
+</code></pre>
+<p><strong>Problem</strong>: "Failed to connect to base station"</p>
+<pre><code class="language-bash"># Check: Is base station running?
+# Check: Is IP address correct in config.toml?
+# Check: Firewall blocking UDP ports?
+ping &lt;BASE_STATION_IP&gt;
+# Test UDP: nc -u &lt;BASE_STATION_IP&gt; 54320
+</code></pre>
+<h3 id="hardware-issues"><a class="header" href="#hardware-issues">Hardware Issues</a></h3>
+<p><strong>Problem</strong>: I2C devices not detected</p>
+<pre><code class="language-bash"># Check wiring
+# Check device addresses match code
+# Try slower I2C speed
+sudo nano /boot/config.txt
+# Add: dtparam=i2c_arm_baudrate=50000
+sudo reboot
+</code></pre>
+<p><strong>Problem</strong>: Gamepad not recognized</p>
+<pre><code class="language-bash"># Check USB connection
+lsusb
+# Try different USB port
+# Check permissions
+ls -l /dev/input/js*  # Joystick device
+</code></pre>
+<h2 id="next-steps-1"><a class="header" href="#next-steps-1">Next Steps</a></h2>
+<p>After successful installation:</p>
+<ol>
+<li><strong>Test Components</strong>: Use example programs to verify each component</li>
+<li><strong>Tune Configuration</strong>: See <a href="03_configuration___config__.html">Configuration</a></li>
+<li><strong>Calibrate Sensors</strong>: Follow <a href="hardware.html">Hardware Guide</a> calibration procedures</li>
+<li><strong>Test Flight</strong>: Start with manual mode, then progress to autonomous</li>
+<li><strong>Read Documentation</strong>: Understand the system through remaining chapters</li>
+</ol>
+<h2 id="additional-resources-1"><a class="header" href="#additional-resources-1">Additional Resources</a></h2>
+<ul>
+<li><a href="getting_started.html">Getting Started Guide</a></li>
+<li><a href="hardware.html">Hardware Guide</a></li>
+<li><a href="03_configuration___config__.html">Configuration Guide</a></li>
+<li><a href="https://www.raspberrypi.com/documentation/">Raspberry Pi Documentation</a></li>
+<li><a href="https://rust-lang.github.io/rustup/cross-compilation.html">Rust Cross-Compilation Guide</a></li>
+</ul>
+<h2 id="support"><a class="header" href="#support">Support</a></h2>
+<p>For issues:</p>
+<ul>
+<li>Check <a href="https://github.com/GMUBlimpSquad/SanoBlimpSoftware/issues">GitHub Issues</a></li>
+<li>Review documentation thoroughly</li>
+<li>Verify hardware connections</li>
+<li>Check logs: <code>sudo journalctl -u sanoblimp.service</code></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="hardware-guide"><a class="header" href="#hardware-guide">Hardware Guide</a></h1>
+<p>This guide provides detailed information about the hardware components, wiring, and setup for SanoBlimpSoftware.</p>
+<h2 id="overview"><a class="header" href="#overview">Overview</a></h2>
+<p>The SanoBlimpSoftware system is designed to run on a Raspberry Pi and interfaces with various sensors, motor controllers, and actuators to control an autonomous blimp.</p>
+<h2 id="hardware-components"><a class="header" href="#hardware-components">Hardware Components</a></h2>
+<h3 id="required-components"><a class="header" href="#required-components">Required Components</a></h3>
+<h4 id="1-raspberry-pi-single-board-computer"><a class="header" href="#1-raspberry-pi-single-board-computer">1. Raspberry Pi (Single Board Computer)</a></h4>
+<ul>
+<li><strong>Model</strong>: Raspberry Pi 4 Model B (recommended)</li>
+<li><strong>RAM</strong>: 2GB or higher</li>
+<li><strong>Storage</strong>: 16GB+ microSD card</li>
+<li><strong>OS</strong>: Raspberry Pi OS (64-bit)</li>
+<li><strong>Purpose</strong>: Main control computer running SanoBlimpSoftware</li>
+</ul>
+<p><strong>Alternatives</strong>: Any ARM64 Linux SBC with I2C, GPIO, and network connectivity</p>
+<h4 id="2-pca9685-pwm-controller"><a class="header" href="#2-pca9685-pwm-controller">2. PCA9685 PWM Controller</a></h4>
+<ul>
+<li><strong>Type</strong>: 16-Channel 12-bit PWM/Servo Driver</li>
+<li><strong>Interface</strong>: I2C</li>
+<li><strong>Address</strong>: 0x40 (default) or 0x41</li>
+<li><strong>Supply Voltage</strong>: 5V</li>
+<li><strong>Purpose</strong>: Controls ESCs and servos via PWM signals</li>
+<li><strong>Specifications</strong>:
+<ul>
+<li>Frequency: 40-1000 Hz (configured to 60 Hz for servos, 63 Hz for motors)</li>
+<li>Resolution: 12-bit (4096 steps)</li>
+<li>Output: 16 independent PWM channels</li>
+</ul>
+</li>
+</ul>
+<p><strong>Where to Buy</strong>: Adafruit PCA9685, or compatible clones</p>
+<h4 id="3-bno055-imu-inertial-measurement-unit"><a class="header" href="#3-bno055-imu-inertial-measurement-unit">3. BNO055 IMU (Inertial Measurement Unit)</a></h4>
+<ul>
+<li><strong>Type</strong>: 9-axis Absolute Orientation Sensor</li>
+<li><strong>Interface</strong>: I2C</li>
+<li><strong>Address</strong>: 0x28 (default) or 0x29 (alternative)</li>
+<li><strong>Supply Voltage</strong>: 3.3V</li>
+<li><strong>Purpose</strong>: Provides orientation, angular velocity, and acceleration data</li>
+<li><strong>Features</strong>:
+<ul>
+<li>3-axis accelerometer</li>
+<li>3-axis gyroscope</li>
+<li>3-axis magnetometer</li>
+<li>Built-in sensor fusion (outputs quaternions or Euler angles)</li>
+</ul>
+</li>
+</ul>
+<p><strong>Note</strong>: SanoBlimpSoftware uses alternative address (0x29) by default</p>
+<h4 id="4-bme280-barometric-sensor-optional"><a class="header" href="#4-bme280-barometric-sensor-optional">4. BME280 Barometric Sensor (Optional)</a></h4>
+<ul>
+<li><strong>Type</strong>: Combined temperature, humidity, and pressure sensor</li>
+<li><strong>Interface</strong>: I2C or SPI</li>
+<li><strong>Address</strong>: 0x76 or 0x77 (I2C)</li>
+<li><strong>Supply Voltage</strong>: 3.3V</li>
+<li><strong>Purpose</strong>: Altitude estimation via barometric pressure</li>
+<li><strong>Interface Choice</strong>:
+<ul>
+<li>Version 1: SPI (<code>/dev/spidev0.0</code>)</li>
+<li>Version 2: I2C (<code>/dev/i2c-1</code>)</li>
+</ul>
+</li>
+</ul>
+<p><strong>Note</strong>: Currently commented out in latest code but supported</p>
+<h4 id="5-electronic-speed-controllers-escs"><a class="header" href="#5-electronic-speed-controllers-escs">5. Electronic Speed Controllers (ESCs)</a></h4>
+<ul>
+<li><strong>Quantity</strong>: 4</li>
+<li><strong>Type</strong>: BLHeli_S compatible</li>
+<li><strong>Input</strong>: PWM (1000-2000 µs pulse width)</li>
+<li><strong>Output</strong>: 3-phase brushless motor control</li>
+<li><strong>Purpose</strong>: Control motor speed based on PWM signals</li>
+<li><strong>Requirements</strong>:
+<ul>
+<li>Support for 1500 µs neutral/stop position</li>
+<li>Auto-calibration capable</li>
+<li>Sufficient current rating for motors</li>
+</ul>
+</li>
+</ul>
+<h4 id="6-brushless-motors"><a class="header" href="#6-brushless-motors">6. Brushless Motors</a></h4>
+<ul>
+<li><strong>Quantity</strong>: 4</li>
+<li><strong>Type</strong>: Outrunner brushless DC motors</li>
+<li><strong>Suggested</strong>:
+<ul>
+<li>KV rating appropriate for blimp (low KV, high torque)</li>
+<li>Lightweight</li>
+<li>Compatible with ESCs</li>
+</ul>
+</li>
+<li><strong>Configuration</strong>:
+<ul>
+<li>M1, M2: Forward thrust</li>
+<li>M3, M4: Lateral/altitude control (configuration-dependent)</li>
+</ul>
+</li>
+</ul>
+<h4 id="7-servos-optional"><a class="header" href="#7-servos-optional">7. Servos (Optional)</a></h4>
+<ul>
+<li><strong>Quantity</strong>: Up to 4</li>
+<li><strong>Type</strong>: Standard analog servos</li>
+<li><strong>Control</strong>: PWM (500-2500 µs pulse width)</li>
+<li><strong>Purpose</strong>: Control surfaces, rudders, or grabbers</li>
+<li><strong>Mounting</strong>: Channels C4-C7 on PCA9685</li>
+</ul>
+<h4 id="8-gamepad-controller"><a class="header" href="#8-gamepad-controller">8. Gamepad Controller</a></h4>
+<ul>
+<li><strong>Type</strong>: Any USB or Bluetooth gamepad</li>
+<li><strong>Compatibility</strong>: Must be supported by <code>gilrs</code> Rust library</li>
+<li><strong>Examples</strong>:
+<ul>
+<li>Xbox One/Series controller</li>
+<li>PlayStation DualShock 4/DualSense</li>
+<li>Nintendo Switch Pro Controller</li>
+<li>Generic USB gamepads</li>
+</ul>
+</li>
+<li><strong>Connection</strong>: USB or Bluetooth</li>
+</ul>
+<h4 id="9-usb-camera-optional-for-autonomous-mode"><a class="header" href="#9-usb-camera-optional-for-autonomous-mode">9. USB Camera (Optional, for Autonomous Mode)</a></h4>
+<ul>
+<li><strong>Type</strong>: USB webcam or Raspberry Pi Camera Module (with USB adapter)</li>
+<li><strong>Interface</strong>: Serial communication (<code>/dev/ttyACM0</code>)</li>
+<li><strong>Purpose</strong>: Object detection for autonomous navigation</li>
+<li><strong>Requirements</strong>:
+<ul>
+<li>Outputs JSON detection data via serial</li>
+<li>Provides base64-encoded images</li>
+<li>See <a href="04_object_detection___detection__.html">Object Detection</a> for protocol details</li>
+</ul>
+</li>
+</ul>
+<p><strong>Note</strong>: Requires separate object detection firmware</p>
+<h4 id="10-power-supply"><a class="header" href="#10-power-supply">10. Power Supply</a></h4>
+<ul>
+<li><strong>For Raspberry Pi</strong>: 5V, 3A minimum (USB-C)</li>
+<li><strong>For Motors</strong>: Separate battery (typically LiPo)
+<ul>
+<li>Voltage: Match motor/ESC specifications (e.g., 3S LiPo = 11.1V)</li>
+<li>Capacity: Sufficient for flight time requirements</li>
+<li>Discharge rating: Match total motor current draw</li>
+</ul>
+</li>
+<li><strong>Important</strong>: Keep logic power (Pi) separate from motor power to prevent voltage drops/noise</li>
+</ul>
+<h4 id="11-miscellaneous"><a class="header" href="#11-miscellaneous">11. Miscellaneous</a></h4>
+<ul>
+<li><strong>Wiring</strong>: Jumper wires, servo extension cables</li>
+<li><strong>Connectors</strong>: For ESCs and servos</li>
+<li><strong>Mounting</strong>: Appropriate hardware for blimp frame</li>
+<li><strong>Voltage Regulator</strong>: If sharing battery between Pi and motors (not recommended)</li>
+<li><strong>Rail Position Sensor</strong> (optional): GPIO-connected sensor on pin 23</li>
+</ul>
+<h2 id="hardware-versions"><a class="header" href="#hardware-versions">Hardware Versions</a></h2>
+<p>SanoBlimpSoftware supports two hardware configurations:</p>
+<h3 id="version-1"><a class="header" href="#version-1">Version 1</a></h3>
+<ul>
+<li>BME280 via SPI (<code>/dev/spidev0.0</code>)</li>
+<li>PCA9685 at default I2C address (0x40)</li>
+<li>BNO055 at alternative I2C address (0x29)</li>
+</ul>
+<h3 id="version-2"><a class="header" href="#version-2">Version 2</a></h3>
+<ul>
+<li>BME280 via I2C (if used)</li>
+<li>PCA9685 at address 0x40</li>
+<li>BNO055 at alternative I2C address (0x29)</li>
+</ul>
+<p>Specify version in <code>config.toml</code>:</p>
+<pre><code class="language-toml">[blimp]
+blimp_version = 2  # or 1
+</code></pre>
+<h2 id="wiring-diagrams"><a class="header" href="#wiring-diagrams">Wiring Diagrams</a></h2>
+<h3 id="i2c-bus-connections"><a class="header" href="#i2c-bus-connections">I2C Bus Connections</a></h3>
+<pre><code>Raspberry Pi (40-pin header)
+┌────────────────────────────┐
+│ Pin 1  [3.3V]  [5V]  Pin 2 │
+│ Pin 3  [SDA]   [5V]  Pin 4 │
+│ Pin 5  [SCL]   [GND] Pin 6 │
+│        ...                  │
+└────────────────────────────┘
+
+I2C Devices:
+┌──────────────────────┐      ┌──────────────────────┐      ┌──────────────────────┐
+│     BNO055 IMU       │      │   PCA9685 Driver     │      │   BME280 (optional)  │
+├──────────────────────┤      ├──────────────────────┤      ├──────────────────────┤
+│ VIN ← 3.3V (Pin 1)   │      │ VCC ← 5V (Pin 2/4)   │      │ VIN ← 3.3V           │
+│ GND ← GND (Pin 6)    │      │ GND ← GND (Pin 6)    │      │ GND ← GND            │
+│ SDA ← SDA (Pin 3)    │      │ SDA ← SDA (Pin 3)    │      │ SDA ← SDA (I2C mode) │
+│ SCL ← SCL (Pin 5)    │      │ SCL ← SCL (Pin 5)    │      │ SCL ← SCL (I2C mode) │
+│ Addr: 0x29           │      │ Addr: 0x40           │      │ Addr: 0x76/0x77      │
+└──────────────────────┘      └──────────────────────┘      └──────────────────────┘
+
+Note: All I2C devices share the same SDA/SCL bus
+</code></pre>
+<h3 id="pca9685-to-motorservo-connections"><a class="header" href="#pca9685-to-motorservo-connections">PCA9685 to Motor/Servo Connections</a></h3>
+<pre><code>PCA9685 Channels              ESCs / Servos
+┌──────────────────┐         ┌──────────────────┐
+│ C0  ─────────────┼────────→│ Motor 1 ESC      │
+│ C1  ─────────────┼────────→│ Motor 2 ESC      │
+│ C2  ─────────────┼────────→│ Motor 3 ESC      │
+│ C3  ─────────────┼────────→│ Motor 4 ESC      │
+│ C4  ─────────────┼────────→│ Servo 1 (opt)    │
+│ C5  ─────────────┼────────→│ Servo 2 (opt)    │
+│ C6  ─────────────┼────────→│ Servo 3 (opt)    │
+│ C7  ─────────────┼────────→│ Servo 4 (opt)    │
+│ C8-C15 (unused)  │         └──────────────────┘
+│                  │
+│ V+  ← External   │  ⚠️ Connect motor battery + (for ESC/servo power)
+│     Power Supply │     Do NOT connect to Raspberry Pi power!
+└──────────────────┘
+</code></pre>
+<p><strong>Important</strong>:</p>
+<ul>
+<li>PCA9685 V+ powers the servos/ESCs, not the PCA9685 chip itself</li>
+<li>PCA9685 logic is powered via I2C VCC (5V from Pi)</li>
+<li>ESC/Servo ground must be common with Raspberry Pi ground</li>
+</ul>
+<h3 id="gpio-connections-1"><a class="header" href="#gpio-connections-1">GPIO Connections</a></h3>
+<pre><code>Raspberry Pi GPIO
+┌──────────────────────┐
+│ GPIO 23 ─────────────┼─────→ Rail Position Sensor (optional)
+│                      │        - Input with pull-up
+│                      │        - Rising edge interrupt
+└──────────────────────┘
+</code></pre>
+<h3 id="complete-system-wiring"><a class="header" href="#complete-system-wiring">Complete System Wiring</a></h3>
+<pre><code>                         Power Supply
+                              │
+                    ┌─────────┴─────────┐
+                    │                   │
+                5V, 3A              LiPo Battery
+                    │              (11.1V typical)
+                    │                   │
+           ┌────────▼────────┐          │
+           │  Raspberry Pi 4 │          │
+           │                 │          │
+           │  I2C (SDA/SCL)  │          │
+           └─────┬─┬─┬───────┘          │
+                 │ │ │                  │
+        ┌────────┘ │ └────────┐         │
+        │          │          │         │
+     ┌──▼──┐   ┌──▼───┐   ┌──▼───┐     │
+     │BNO  │   │PCA   │   │BME   │     │
+     │055  │   │9685  │   │280   │     │
+     └─────┘   └──┬───┘   └──────┘     │
+                  │                    │
+         ┌────────┼────────┬───────┬───┴─────┐
+         │        │        │       │         │
+      ┌──▼─┐  ┌──▼─┐  ┌──▼─┐  ┌──▼─┐     ┌─▼──┐
+      │ESC │  │ESC │  │ESC │  │ESC │     │BEC │ (optional)
+      │ 1  │  │ 2  │  │ 3  │  │ 4  │     │5V  │
+      └──┬─┘  └──┬─┘  └──┬─┘  └──┬─┘     └────┘
+         │       │       │       │
+      ┌──▼─┐  ┌──▼─┐  ┌──▼─┐  ┌──▼─┐
+      │ M1 │  │ M2 │  │ M3 │  │ M4 │
+      └────┘  └────┘  └────┘  └────┘
+</code></pre>
+<h2 id="assembly-instructions"><a class="header" href="#assembly-instructions">Assembly Instructions</a></h2>
+<h3 id="step-1-prepare-the-raspberry-pi"><a class="header" href="#step-1-prepare-the-raspberry-pi">Step 1: Prepare the Raspberry Pi</a></h3>
+<ol>
+<li>Install Raspberry Pi OS (64-bit recommended)</li>
+<li>Enable I2C: <code>sudo raspi-config</code> → Interface Options → I2C</li>
+<li>Enable SPI (if using BME280 on SPI): Interface Options → SPI</li>
+<li>Update system: <code>sudo apt-get update &amp;&amp; sudo apt-get upgrade</code></li>
+</ol>
+<h3 id="step-2-connect-i2c-devices"><a class="header" href="#step-2-connect-i2c-devices">Step 2: Connect I2C Devices</a></h3>
+<ol>
+<li><strong>Power off</strong> Raspberry Pi</li>
+<li>Connect BNO055:
+<ul>
+<li>VIN → 3.3V (Pin 1)</li>
+<li>GND → GND (Pin 6)</li>
+<li>SDA → SDA (Pin 3)</li>
+<li>SCL → SCL (Pin 5)</li>
+</ul>
+</li>
+<li>Connect PCA9685:
+<ul>
+<li>VCC → 5V (Pin 2 or 4)</li>
+<li>GND → GND (Pin 6 or other GND pin)</li>
+<li>SDA → SDA (Pin 3, shared with BNO055)</li>
+<li>SCL → SCL (Pin 5, shared with BNO055)</li>
+</ul>
+</li>
+<li>(Optional) Connect BME280 similarly</li>
+</ol>
+<h3 id="step-3-connect-pca9685-to-escs"><a class="header" href="#step-3-connect-pca9685-to-escs">Step 3: Connect PCA9685 to ESCs</a></h3>
+<ol>
+<li>Connect ESC signal wires to PCA9685 channels 0-3</li>
+<li>Connect ESC ground wires to PCA9685 GND</li>
+<li><strong>Do not connect ESC power</strong> to PCA9685 V+ yet</li>
+<li>Ensure proper polarity (signal, power, ground)</li>
+</ol>
+<h3 id="step-4-connect-motors-to-escs"><a class="header" href="#step-4-connect-motors-to-escs">Step 4: Connect Motors to ESCs</a></h3>
+<ol>
+<li>Connect motor wires to ESC outputs</li>
+<li>If motor spins wrong direction, swap any two motor wires</li>
+</ol>
+<h3 id="step-5-power-connections"><a class="header" href="#step-5-power-connections">Step 5: Power Connections</a></h3>
+<ol>
+<li>Connect main battery to ESC power inputs (all ESCs in parallel)</li>
+<li>Optionally connect battery to PCA9685 V+ (for servo power)</li>
+<li>Use a BEC or voltage regulator if powering Pi from main battery</li>
+<li><strong>Recommended</strong>: Use separate power supplies for Pi and motors</li>
+</ol>
+<h3 id="step-6-verification"><a class="header" href="#step-6-verification">Step 6: Verification</a></h3>
+<ol>
+<li>Power on Raspberry Pi</li>
+<li>Check I2C devices: <code>i2cdetect -y 1</code></li>
+<li>Verify device addresses appear correctly</li>
+</ol>
+<h2 id="i2c-address-configuration"><a class="header" href="#i2c-address-configuration">I2C Address Configuration</a></h2>
+<p>Run <code>i2cdetect -y 1</code> to verify devices:</p>
+<pre><code>     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- -- 
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+20: -- -- -- -- -- -- -- -- 28 -- -- -- -- -- -- -- 
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+40: 40 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+70: -- -- -- -- -- -- 76 --
+</code></pre>
+<p>Expected devices:</p>
+<ul>
+<li><code>28</code> or <code>29</code>: BNO055</li>
+<li><code>40</code>: PCA9685</li>
+<li><code>76</code> or <code>77</code>: BME280 (if present)</li>
+</ul>
+<h3 id="changing-i2c-addresses"><a class="header" href="#changing-i2c-addresses">Changing I2C Addresses</a></h3>
+<p>If you need to change addresses:</p>
+<p><strong>BNO055</strong>: Solder ADR pin to change between 0x28 and 0x29</p>
+<p><strong>PCA9685</strong>: Solder address jumpers (A0-A5) to change from 0x40</p>
+<p><strong>BME280</strong>: SDO pin determines 0x76 (low) or 0x77 (high)</p>
+<h2 id="motor-configuration-1"><a class="header" href="#motor-configuration-1">Motor Configuration</a></h2>
+<h3 id="motor-layout"><a class="header" href="#motor-layout">Motor Layout</a></h3>
+<pre><code>        Forward
+          ↑
+    M1         M2
+     ●─────────●
+     │         │
+     │  Blimp  │
+     │         │
+     ●─────────●
+    M3         M4
+</code></pre>
+<h3 id="motor-functions"><a class="header" href="#motor-functions">Motor Functions</a></h3>
+<p><strong>Sano Configuration</strong>:</p>
+<ul>
+<li><strong>M1 &amp; M2</strong>: Primary forward thrust (differential thrust for yaw control)</li>
+<li><strong>M3 &amp; M4</strong>: Reserved for additional control (version-dependent)</li>
+</ul>
+<p><strong>Flappy Configuration</strong>:</p>
+<ul>
+<li>Uses servos for wing actuation instead of quad motors</li>
+<li>Motor configuration differs significantly</li>
+</ul>
+<h3 id="esc-calibration-1"><a class="header" href="#esc-calibration-1">ESC Calibration</a></h3>
+<p>The software automatically calibrates ESCs on startup:</p>
+<ol>
+<li><strong>Max Throttle (180°)</strong>: Sent to all ESCs</li>
+<li><strong>Wait</strong>: ~100ms for ESC acknowledgment beep</li>
+<li><strong>Min Throttle (0°)</strong>: Arms the ESCs</li>
+<li><strong>Neutral (configured midpoint)</strong>: Ready for operation</li>
+</ol>
+<p><strong>Manual Calibration</strong> (if auto fails):</p>
+<ol>
+<li>Disconnect motors from ESCs (safety)</li>
+<li>Power on Raspberry Pi</li>
+<li>Run calibration program</li>
+<li>Follow ESC beep patterns</li>
+<li>Power cycle ESCs</li>
+</ol>
+<h3 id="pwm-specifications"><a class="header" href="#pwm-specifications">PWM Specifications</a></h3>
+<p><strong>For Motors (ESCs)</strong>:</p>
+<ul>
+<li>Frequency: 63 Hz</li>
+<li>Min pulse: 1000 µs (0% throttle)</li>
+<li>Mid pulse: 1500 µs (neutral/stop)</li>
+<li>Max pulse: 2000 µs (100% throttle)</li>
+</ul>
+<p><strong>For Servos</strong>:</p>
+<ul>
+<li>Frequency: 60 Hz</li>
+<li>Min pulse: 500 µs (0°)</li>
+<li>Max pulse: 2500 µs (180°)</li>
+<li>Neutral: 1500 µs (90°)</li>
+</ul>
+<p>These are configured in <code>src/lib/blimp.rs</code>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>const PWM_FREQUENCY_MOTOR: f32 = 63.0;
+const MIN_PULSE: f32 = 1000.0;
+const MAX_PULSE: f32 = 2000.0;
+const MID_PULSE: f32 = 1500.0;
+<span class="boring">}</span></code></pre></pre>
+<h2 id="sensor-configuration"><a class="header" href="#sensor-configuration">Sensor Configuration</a></h2>
+<h3 id="bno055-imu"><a class="header" href="#bno055-imu">BNO055 IMU</a></h3>
+<p><strong>Operation Mode</strong>: NDOF (Nine Degrees of Freedom)</p>
+<ul>
+<li>Combines accelerometer, gyroscope, and magnetometer</li>
+<li>Provides sensor fusion for absolute orientation</li>
+</ul>
+<p><strong>Calibration</strong>:</p>
+<ul>
+<li>BNO055 auto-calibrates over time</li>
+<li>Move blimp through various orientations during first minute</li>
+<li>Calibration status available via <code>get_calibration_status()</code></li>
+</ul>
+<p><strong>Output</strong>:</p>
+<ul>
+<li>Quaternions (preferred for calculations)</li>
+<li>Euler angles (roll, pitch, yaw)</li>
+<li>Angular velocity</li>
+<li>Linear acceleration</li>
+</ul>
+<h3 id="bme280-barometer"><a class="header" href="#bme280-barometer">BME280 Barometer</a></h3>
+<p><strong>Sea Level Pressure</strong>: Set in driver (default 101325 Pa)</p>
+<p><strong>Altitude Calculation</strong>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>const ALTITUDE_FACTOR: f32 = 44330.0;
+const ISA_EXPONENT: f32 = 1.0 / 5.255;
+altitude = ALTITUDE_FACTOR * (1.0 - (pressure / sea_level_pressure).powf(ISA_EXPONENT))
+<span class="boring">}</span></code></pre></pre>
+<p><strong>Ground Reference</strong>: Stored on first reading for relative altitude</p>
+<h2 id="troubleshooting-2"><a class="header" href="#troubleshooting-2">Troubleshooting</a></h2>
+<h3 id="i2c-issues"><a class="header" href="#i2c-issues">I2C Issues</a></h3>
+<p><strong>Problem</strong>: Devices not detected</p>
+<ul>
+<li>Check wiring connections</li>
+<li>Verify I2C is enabled: <code>sudo raspi-config</code></li>
+<li>Check pull-up resistors (usually on breakout boards)</li>
+<li>Try different I2C speed: edit <code>/boot/config.txt</code>:
+<pre><code>dtparam=i2c_arm=on,i2c_arm_baudrate=100000
+</code></pre>
+</li>
+</ul>
+<p><strong>Problem</strong>: Bus errors or data corruption</p>
+<ul>
+<li>Shorten wire lengths</li>
+<li>Add stronger pull-up resistors (2.2kΩ to 4.7kΩ)</li>
+<li>Keep I2C wires away from motor wires</li>
+</ul>
+<h3 id="motor-problems"><a class="header" href="#motor-problems">Motor Problems</a></h3>
+<p><strong>Problem</strong>: Motors don't spin</p>
+<ul>
+<li>Check ESC power supply</li>
+<li>Verify ESC calibration completed</li>
+<li>Check motor-to-ESC connections</li>
+<li>Test with a servo tester</li>
+</ul>
+<p><strong>Problem</strong>: Motors spin at wrong speeds</p>
+<ul>
+<li>Adjust motor multipliers in <code>config.toml</code></li>
+<li>Check for loose connections</li>
+<li>Verify PWM signals with oscilloscope</li>
+</ul>
+<p><strong>Problem</strong>: Motors jitter or vibrate</p>
+<ul>
+<li>Check propeller balance</li>
+<li>Verify ESC firmware is updated</li>
+<li>Ensure adequate power supply</li>
+</ul>
+<h3 id="sensor-problems"><a class="header" href="#sensor-problems">Sensor Problems</a></h3>
+<p><strong>Problem</strong>: IMU data is noisy</p>
+<ul>
+<li>Calibrate IMU properly</li>
+<li>Mount IMU rigidly, away from motors</li>
+<li>Shield from magnetic interference</li>
+</ul>
+<p><strong>Problem</strong>: Altitude readings drift</p>
+<ul>
+<li>Recalibrate ground altitude</li>
+<li>BME280 is sensitive to temperature changes</li>
+<li>Ensure good ventilation around sensor</li>
+</ul>
+<h2 id="safety-considerations"><a class="header" href="#safety-considerations">Safety Considerations</a></h2>
+<p>⚠️ <strong>Important Safety Guidelines</strong>:</p>
+<ol>
+<li>
+<p><strong>Power Safety</strong>:</p>
+<ul>
+<li>Always disconnect motors when testing</li>
+<li>Use appropriate battery protections (fuses, BEC)</li>
+<li>Never short battery terminals</li>
+</ul>
+</li>
+<li>
+<p><strong>Propeller Safety</strong>:</p>
+<ul>
+<li>Remove propellers during initial testing</li>
+<li>Keep hands away from spinning propellers</li>
+<li>Use propeller guards</li>
+</ul>
+</li>
+<li>
+<p><strong>Electrical Safety</strong>:</p>
+<ul>
+<li>Verify polarity before connecting power</li>
+<li>Use appropriate gauge wire for current loads</li>
+<li>Secure all connections</li>
+</ul>
+</li>
+<li>
+<p><strong>Testing</strong>:</p>
+<ul>
+<li>Test components individually before integration</li>
+<li>Start with low throttle values</li>
+<li>Have an emergency stop plan</li>
+</ul>
+</li>
+<li>
+<p><strong>Operating Environment</strong>:</p>
+<ul>
+<li>Adequate space for blimp operation</li>
+<li>No obstacles or people nearby</li>
+<li>Avoid outdoor operation in wind</li>
+</ul>
+</li>
+</ol>
+<h2 id="recommended-tools"><a class="header" href="#recommended-tools">Recommended Tools</a></h2>
+<ul>
+<li>Multimeter</li>
+<li>Soldering iron</li>
+<li>Wire strippers</li>
+<li>Heat shrink tubing</li>
+<li>Oscilloscope (for PWM debugging)</li>
+<li>Servo tester (for ESC testing)</li>
+<li>I2C scanner tool</li>
+</ul>
+<h2 id="additional-resources-2"><a class="header" href="#additional-resources-2">Additional Resources</a></h2>
+<ul>
+<li><a href="https://pinout.xyz/">Raspberry Pi GPIO Pinout</a></li>
+<li><a href="https://www.nxp.com/docs/en/data-sheet/PCA9685.pdf">PCA9685 Datasheet</a></li>
+<li><a href="https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bno055-ds000.pdf">BNO055 Datasheet</a></li>
+<li><a href="https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf">BME280 Datasheet</a></li>
+</ul>
+<h2 id="see-also"><a class="header" href="#see-also">See Also</a></h2>
+<ul>
+<li><a href="getting_started.html">Getting Started</a> - Setup and installation</li>
+<li><a href="02_hardware_actuation___pcaactuator__.html">Hardware Actuation</a> - PCA9685 control details</li>
+<li><a href="03_configuration___config__.html">Configuration</a> - Software configuration</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="usage-guide"><a class="header" href="#usage-guide">Usage Guide</a></h1>
+<p>This guide covers day-to-day operation of SanoBlimpSoftware, including manual and autonomous flight modes, configuration adjustments, and common scenarios.</p>
+<h2 id="starting-the-system"><a class="header" href="#starting-the-system">Starting the System</a></h2>
+<h3 id="basic-startup"><a class="header" href="#basic-startup">Basic Startup</a></h3>
+<pre><code class="language-bash"># SSH into Raspberry Pi
+ssh pi@raspberrypi.local
+
+# Navigate to project directory
+cd ~
+
+# Run the software
+sudo ./SanoBlimpSoftware
+</code></pre>
+<h3 id="startup-sequence"><a class="header" href="#startup-sequence">Startup Sequence</a></h3>
+<p>When started, the system performs these operations:</p>
+<ol>
+<li><strong>Load Configuration</strong> - Reads <code>config.toml</code></li>
+<li><strong>Initialize I2C</strong> - Connects to sensors and PWM controller</li>
+<li><strong>Initialize IMU</strong> - Sets BNO055 to NDOF mode</li>
+<li><strong>Initialize ESCs</strong> - Calibrates electronic speed controllers
+<ul>
+<li>Sends max throttle (180°)</li>
+<li>Waits for ESC beep</li>
+<li>Sends min throttle (0°)</li>
+<li>Sets to neutral position</li>
+</ul>
+</li>
+<li><strong>Connect to Base Station</strong> - Establishes UDP communication</li>
+<li><strong>Initialize Controllers</strong> - Detects connected gamepads</li>
+<li><strong>Enter Main Loop</strong> - Ready for operation</li>
+</ol>
+<p><strong>Expected Output</strong>:</p>
+<pre><code>Initializing ESCs...
+Sending max throttle (arming sequence)
+Sending min throttle (arming)
+Setting ESCs to neutral
+ESCs initialized!
+connected to the base station
+</code></pre>
+<h2 id="control-modes"><a class="header" href="#control-modes">Control Modes</a></h2>
+<p>SanoBlimpSoftware operates in two primary modes:</p>
+<h3 id="manual-mode-1"><a class="header" href="#manual-mode-1">Manual Mode</a></h3>
+<p><strong>Default mode on startup</strong>. Pilot has direct control via gamepad.</p>
+<p><strong>Activating Manual Mode</strong>:</p>
+<ul>
+<li>Press <strong>Start button</strong> to toggle from autonomous to manual mode</li>
+<li>LED/indicator on base station shows manual mode active</li>
+</ul>
+<p><strong>Controls</strong>:</p>
+<ul>
+<li><strong>Left Stick Y-axis</strong>: Forward (up) / Backward (down)</li>
+<li><strong>Left Stick X-axis</strong>: Turn left / Turn right (yaw control)</li>
+<li><strong>Right Stick Y-axis</strong>: Altitude up (up) / Altitude down (down)</li>
+</ul>
+<p><strong>Behavior</strong>:</p>
+<ul>
+<li>Direct joystick-to-motor mapping</li>
+<li>No computer vision or automatic corrections</li>
+<li>Pilot maintains full control</li>
+<li>PID controller inactive</li>
+</ul>
+<h3 id="autonomous-mode-1"><a class="header" href="#autonomous-mode-1">Autonomous Mode</a></h3>
+<p><strong>Computer vision-based</strong> navigation. Blimp tracks detected objects.</p>
+<p><strong>Activating Autonomous Mode</strong>:</p>
+<ul>
+<li>Press <strong>Start button</strong> to toggle from manual to autonomous mode</li>
+<li>Base station indicator shows autonomous mode active</li>
+</ul>
+<p><strong>How It Works</strong>:</p>
+<ol>
+<li>Camera system detects objects via serial port</li>
+<li>System identifies largest target matching current state</li>
+<li>PID controller calculates position error</li>
+<li>Control outputs adjust motors to center on target</li>
+<li>Telemetry sent to base station</li>
+</ol>
+<p><strong>Object States</strong>:</p>
+<ul>
+<li><strong>Ball State</strong>: Tracks balls (object classes 2, 3)</li>
+<li><strong>Goal State</strong>: Tracks goals (object classes 5, 7 for orange goals)</li>
+</ul>
+<p><strong>Switching States</strong>:</p>
+<ul>
+<li><strong>Right Trigger</strong>: Switch to Ball tracking mode</li>
+<li><strong>Left Trigger</strong>: Switch to Goal tracking mode</li>
+</ul>
+<h2 id="controller-reference"><a class="header" href="#controller-reference">Controller Reference</a></h2>
+<h3 id="complete-button-mapping"><a class="header" href="#complete-button-mapping">Complete Button Mapping</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>Input</th><th>Function</th><th>Notes</th></tr></thead><tbody>
+<tr><td><strong>Left Stick Y</strong></td><td>Forward/Backward</td><td>Negative = forward, Positive = backward</td></tr>
+<tr><td><strong>Left Stick X</strong></td><td>Yaw (Turn)</td><td>Negative = left, Positive = right</td></tr>
+<tr><td><strong>Right Stick Y</strong></td><td>Altitude</td><td>Negative = up, Positive = down</td></tr>
+<tr><td><strong>Start Button</strong></td><td>Toggle Manual/Autonomous</td><td>Changes control mode</td></tr>
+<tr><td><strong>Right Trigger</strong></td><td>Set Ball State</td><td>For autonomous mode</td></tr>
+<tr><td><strong>Left Trigger</strong></td><td>Set Goal State</td><td>For autonomous mode</td></tr>
+<tr><td><strong>East Button</strong> (B/○)</td><td>Score Maneuver</td><td>Executes scoring sequence</td></tr>
+<tr><td><strong>West Button</strong> (X/□)</td><td>Save Frame</td><td>Captures current camera image</td></tr>
+</tbody></table>
+</div>
+<h3 id="input-scaling"><a class="header" href="#input-scaling">Input Scaling</a></h3>
+<p>Raw joystick values (-1.0 to 1.0) are scaled:</p>
+<p><strong>Manual Mode</strong> (Sano configuration):</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Forward/backward thrust
+m1 = neutral_angle + (x * 10.0)
+m2 = neutral_angle + (x * 10.0)
+
+// Altitude control via servos
+s1 = neutral_angle - (z * 90.0)  // Clamp 0-180°
+s2 = neutral_angle + (z * 90.0)  // Clamp 0-180°
+
+// Yaw control (differential thrust)
+m1 += y * 10.0
+m2 -= y * 10.0
+
+// Final clamping
+m1 = clamp(m1, neutral_angle - 20.0, neutral_angle + 20.0)
+m2 = clamp(m2, neutral_angle - 20.0, neutral_angle + 20.0)
+<span class="boring">}</span></code></pre></pre>
+<p>Adjust these values by modifying motor multipliers in <code>config.toml</code>.</p>
+<h2 id="autonomous-operation"><a class="header" href="#autonomous-operation">Autonomous Operation</a></h2>
+<h3 id="object-detection"><a class="header" href="#object-detection">Object Detection</a></h3>
+<p>The system receives detection data via serial port (<code>/dev/ttyACM0</code>) from an external camera system.</p>
+<p><strong>Detection Message Format</strong> (JSON):</p>
+<pre><code class="language-json">{
+  "type": 1,
+  "data": {
+    "boxes": [
+      [x, y, width, height, confidence, class],
+      ...
+    ],
+    "image": "base64_encoded_image"
+  }
+}
+</code></pre>
+<p><strong>Detection Process</strong>:</p>
+<ol>
+<li>Parse JSON from serial input</li>
+<li>Filter boxes by target class (ball or goal)</li>
+<li>Select largest matching bounding box</li>
+<li>Extract center coordinates</li>
+<li>Pass to PID controller</li>
+</ol>
+<h3 id="pid-control"><a class="header" href="#pid-control">PID Control</a></h3>
+<p>When a target is detected, the autonomous controller:</p>
+<p><strong>Position Control</strong>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Compute errors
+x_err = 0.0 - x              // Target center x
+y_err = 160.0 - y            // Target center y (normalized)
+z_err = 122.0 - z            // Target altitude
+
+// PID calculation
+pid_x = (kp_x * x_err) + (kd_x * dx/dt)
+pid_y = (kp_y * y_err) + (kd_y * dy/dt)
+pid_z = (kp_z * z_err) + (kd_z * dz/dt)
+
+// Clamp outputs to [-1.0, 1.0]
+<span class="boring">}</span></code></pre></pre>
+<p><strong>Altitude Hold</strong>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>altitude_error = current_altitude - desired_altitude
+mapped = map_value(altitude_error, -10.0, 10.0, -1.0, 1.0)
+output = clamp(mapped, -1.0, 1.0)
+<span class="boring">}</span></code></pre></pre>
+<p>See <a href="06_autonomous_control___autonomous__.html">Autonomous Control</a> for tuning details.</p>
+<h3 id="search-behavior"><a class="header" href="#search-behavior">Search Behavior</a></h3>
+<p>When no target is detected (empty detection result):</p>
+<ul>
+<li><strong>Current Implementation</strong>: Maintains last known position</li>
+<li><strong>Commented Code</strong>: Includes search pattern logic (rotation and altitude cycling)</li>
+</ul>
+<p>To enable search behavior, uncomment search logic in <code>src/main.rs</code> around line 190.</p>
+<h2 id="special-maneuvers"><a class="header" href="#special-maneuvers">Special Maneuvers</a></h2>
+<h3 id="scoring-maneuver"><a class="header" href="#scoring-maneuver">Scoring Maneuver</a></h3>
+<p><strong>Activation</strong>: Press East Button (B/Circle)</p>
+<p><strong>Behavior</strong>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// Move forward and up for 3 seconds
+m1 = neutral_angle + 7.0
+m2 = neutral_angle + 7.0
+m3 = neutral_angle + 25.0
+m4 = neutral_angle + 25.0
+// Duration: 3 seconds
+// Then return to neutral
+<span class="boring">}</span></code></pre></pre>
+<p>Purpose: Execute goal-scoring action in competition scenarios.</p>
+<h3 id="emergency-stop"><a class="header" href="#emergency-stop">Emergency Stop</a></h3>
+<p><strong>Method 1</strong>: Switch to manual mode (Start button) and center all sticks</p>
+<p><strong>Method 2</strong>: Power off ESCs (if accessible)</p>
+<p><strong>Method 3</strong>: Kill power to Raspberry Pi (last resort)</p>
+<p><strong>Recommended</strong>: Configure emergency stop button on gamepad if possible</p>
+<h2 id="telemetry"><a class="header" href="#telemetry">Telemetry</a></h2>
+<h3 id="data-sent-to-base-station"><a class="header" href="#data-sent-to-base-station">Data Sent to Base Station</a></h3>
+<p>Every loop iteration (~50-100 Hz), the system sends:</p>
+<pre><code class="language-json">{
+  "type": "sensor_update",
+  "battery": 0.85,              // Controller battery level (0.0-1.0)
+  "altitude": 5.2,              // Meters
+  "roll": -1.2,                 // Degrees
+  "pitch": 0.8,                 // Degrees
+  "yaw": 45.0,                  // Degrees (0-360)
+  "tracking_error_x": -10.5,    // Pixels
+  "tracking_error_y": 5.3,      // Pixels
+  "state": "Ball"               // "Ball" or "Goal"
+}
+</code></pre>
+<h3 id="receiving-commands"><a class="header" href="#receiving-commands">Receiving Commands</a></h3>
+<p>Base station can send configuration updates:</p>
+<pre><code class="language-json">{
+  "type": "UpdateConfig",
+  "kp_x": 1.2,
+  "kd_x": 0.15,
+  "kp_z": 1.0,
+  "kd_z": 0.1,
+  "kp_yaw": 0.8,
+  "kd_yaw": 0.05,
+  "m1_multiplier": 1.0,
+  "m2_multiplier": 1.0,
+  "motor_neutral_angle": 90.0
+}
+</code></pre>
+<p>System applies changes immediately without restart.</p>
+<h2 id="configuration-tuning"><a class="header" href="#configuration-tuning">Configuration Tuning</a></h2>
+<h3 id="runtime-configuration-changes"><a class="header" href="#runtime-configuration-changes">Runtime Configuration Changes</a></h3>
+<p>The base station can update configuration in real-time:</p>
+<ol>
+<li>Base station sends <code>UpdateConfig</code> message</li>
+<li>Blimp receives via UDP on port 54320</li>
+<li><code>autonomous.update_gains()</code> applies new PID gains</li>
+<li>Changes take effect immediately</li>
+</ol>
+<h3 id="persistent-configuration-changes"><a class="header" href="#persistent-configuration-changes">Persistent Configuration Changes</a></h3>
+<p>Edit <code>config.toml</code> and restart the software:</p>
+<pre><code class="language-bash"># Stop the software (Ctrl+C if running in foreground)
+# Or stop service:
+sudo systemctl stop sanoblimp.service
+
+# Edit configuration
+nano ~/config.toml
+
+# Restart
+sudo ./SanoBlimpSoftware
+# Or:
+sudo systemctl start sanoblimp.service
+</code></pre>
+<p>See <a href="03_configuration___config__.html">Configuration</a> for parameter details.</p>
+<h2 id="common-flight-scenarios"><a class="header" href="#common-flight-scenarios">Common Flight Scenarios</a></h2>
+<h3 id="scenario-1-manual-test-flight"><a class="header" href="#scenario-1-manual-test-flight">Scenario 1: Manual Test Flight</a></h3>
+<p><strong>Purpose</strong>: Verify hardware and basic controls</p>
+<p><strong>Steps</strong>:</p>
+<ol>
+<li>Remove propellers (safety first!)</li>
+<li>Start software: <code>sudo ./SanoBlimpSoftware</code></li>
+<li>Connect gamepad</li>
+<li>Ensure manual mode (press Start if needed)</li>
+<li>Test each control axis:
+<ul>
+<li>Left stick Y: Check M1/M2 response</li>
+<li>Left stick X: Check differential thrust</li>
+<li>Right stick Y: Check servo/altitude response</li>
+</ul>
+</li>
+<li>If responses correct, attach propellers</li>
+<li>Perform hover test in safe area</li>
+</ol>
+<h3 id="scenario-2-ball-tracking"><a class="header" href="#scenario-2-ball-tracking">Scenario 2: Ball Tracking</a></h3>
+<p><strong>Purpose</strong>: Autonomous ball detection and following</p>
+<p><strong>Steps</strong>:</p>
+<ol>
+<li>Start software with camera system active</li>
+<li>Press <strong>Start</strong> to enter autonomous mode</li>
+<li>Press <strong>Right Trigger</strong> to select Ball state</li>
+<li>Place ball in camera view</li>
+<li>Blimp should move to center ball in frame</li>
+<li>Monitor telemetry on base station</li>
+</ol>
+<p><strong>Expected Behavior</strong>:</p>
+<ul>
+<li>Blimp moves forward if ball is ahead</li>
+<li>Blimp turns if ball is left/right of center</li>
+<li>Blimp adjusts altitude if ball is above/below center</li>
+<li>Close approach when ball appears large (high w/h values)</li>
+</ul>
+<h3 id="scenario-3-goal-scoring"><a class="header" href="#scenario-3-goal-scoring">Scenario 3: Goal Scoring</a></h3>
+<p><strong>Purpose</strong>: Autonomous goal approach and scoring</p>
+<p><strong>Steps</strong>:</p>
+<ol>
+<li>Start in autonomous mode</li>
+<li>Press <strong>Left Trigger</strong> to select Goal state</li>
+<li>Detect goal in camera view</li>
+<li>Approach goal (automatic)</li>
+<li>When close (w &gt; 200 or h &gt; 200 pixels), press <strong>East</strong> for scoring maneuver</li>
+<li>Blimp executes forward-up motion for 3 seconds</li>
+<li>Returns to normal operation</li>
+</ol>
+<h3 id="scenario-4-tuning-pid-gains"><a class="header" href="#scenario-4-tuning-pid-gains">Scenario 4: Tuning PID Gains</a></h3>
+<p><strong>Purpose</strong>: Optimize autonomous control response</p>
+<p><strong>Steps</strong>:</p>
+<ol>
+<li>Start with default gains (kp=1.0, kd=0.1)</li>
+<li>Enable autonomous mode with target visible</li>
+<li>Observe behavior:
+<ul>
+<li><strong>Slow response</strong>: Increase kp</li>
+<li><strong>Oscillation</strong>: Increase kd or decrease kp</li>
+<li><strong>Overshoot</strong>: Increase kd</li>
+</ul>
+</li>
+<li>Use base station to send new gains</li>
+<li>Test and iterate</li>
+<li>Save working gains to <code>config.toml</code></li>
+</ol>
+<p>See <a href="06_autonomous_control___autonomous__.html">Autonomous Control</a> for detailed tuning.</p>
+<h2 id="monitoring-and-debugging"><a class="header" href="#monitoring-and-debugging">Monitoring and Debugging</a></h2>
+<h3 id="console-output"><a class="header" href="#console-output">Console Output</a></h3>
+<p>When running in foreground, monitor console:</p>
+<pre><code class="language-bash">sudo ./SanoBlimpSoftware
+
+# Look for:
+# - "connected to the base station" (confirms network)
+# - IMU data (if enabled in code)
+# - Detection results (if debug prints enabled)
+</code></pre>
+<h3 id="system-logs"><a class="header" href="#system-logs">System Logs</a></h3>
+<p>When running as service:</p>
+<pre><code class="language-bash"># View live logs
+sudo journalctl -u sanoblimp.service -f
+
+# View recent logs
+sudo journalctl -u sanoblimp.service -n 100
+
+# Filter errors
+sudo journalctl -u sanoblimp.service -p err
+</code></pre>
+<h3 id="base-station-monitoring"><a class="header" href="#base-station-monitoring">Base Station Monitoring</a></h3>
+<p>Use base station GUI/interface to view:</p>
+<ul>
+<li>Real-time telemetry graphs</li>
+<li>Video stream with detection overlays</li>
+<li>Battery level</li>
+<li>Current state (Ball/Goal, Manual/Autonomous)</li>
+<li>Connection status</li>
+</ul>
+<h3 id="debug-mode"><a class="header" href="#debug-mode">Debug Mode</a></h3>
+<p>To enable additional debug output, modify source code:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>// In src/main.rs, uncomment debug prints:
+println!("Detection: {:?}", det);
+println!("PID output: {:?}", auto_input);
+println!("Current altitude: {}", altitude);
+<span class="boring">}</span></code></pre></pre>
+<p>Rebuild and redeploy:</p>
+<pre><code class="language-bash">cross build --target aarch64-unknown-linux-gnu --release
+scp target/aarch64-unknown-linux-gnu/release/SanoBlimpSoftware pi@raspberrypi.local:~/
+</code></pre>
+<h2 id="safety-guidelines"><a class="header" href="#safety-guidelines">Safety Guidelines</a></h2>
+<h3 id="pre-flight-checklist"><a class="header" href="#pre-flight-checklist">Pre-Flight Checklist</a></h3>
+<ul>
+<li><input disabled="" type="checkbox"/>
+Configuration file correct</li>
+<li><input disabled="" type="checkbox"/>
+All sensors responding (check <code>i2cdetect</code>)</li>
+<li><input disabled="" type="checkbox"/>
+Gamepad connected and responsive</li>
+<li><input disabled="" type="checkbox"/>
+Base station running and connected</li>
+<li><input disabled="" type="checkbox"/>
+Propellers secure and balanced</li>
+<li><input disabled="" type="checkbox"/>
+Flight area clear of obstacles</li>
+<li><input disabled="" type="checkbox"/>
+Emergency stop plan in place</li>
+<li><input disabled="" type="checkbox"/>
+Battery charged (both blimp and controller)</li>
+</ul>
+<h3 id="during-flight"><a class="header" href="#during-flight">During Flight</a></h3>
+<ul>
+<li>Maintain line of sight with blimp</li>
+<li>Keep emergency controller accessible</li>
+<li>Monitor battery levels</li>
+<li>Watch for unusual behavior (excessive vibration, drift)</li>
+<li>Land if battery drops below 20%</li>
+<li>Avoid obstacles and people</li>
+</ul>
+<h3 id="after-flight"><a class="header" href="#after-flight">After Flight</a></h3>
+<ul>
+<li>Land safely before battery depletes</li>
+<li>Disarm ESCs (disconnect power)</li>
+<li>Review telemetry logs</li>
+<li>Note any issues for maintenance</li>
+<li>Charge batteries</li>
+</ul>
+<h2 id="troubleshooting-3"><a class="header" href="#troubleshooting-3">Troubleshooting</a></h2>
+<h3 id="issue-blimp-doesnt-respond-to-controller"><a class="header" href="#issue-blimp-doesnt-respond-to-controller">Issue: Blimp doesn't respond to controller</a></h3>
+<p><strong>Check</strong>:</p>
+<ol>
+<li>Is gamepad connected? Check <code>lsusb</code></li>
+<li>Is software in manual mode? Press Start</li>
+<li>Are sticks centered? Dead zone may be active</li>
+<li>Check console for controller events</li>
+</ol>
+<h3 id="issue-autonomous-mode-doesnt-track-object"><a class="header" href="#issue-autonomous-mode-doesnt-track-object">Issue: Autonomous mode doesn't track object</a></h3>
+<p><strong>Check</strong>:</p>
+<ol>
+<li>Is camera system running and sending data?</li>
+<li>Check serial port: <code>ls -l /dev/ttyACM0</code></li>
+<li>Is object class in target list?</li>
+<li>Verify detection data with serial monitor</li>
+<li>Check autonomous state matches object (Ball vs Goal)</li>
+</ol>
+<h3 id="issue-blimp-drifts-in-one-direction"><a class="header" href="#issue-blimp-drifts-in-one-direction">Issue: Blimp drifts in one direction</a></h3>
+<p><strong>Solution</strong>:</p>
+<ul>
+<li>Adjust motor multipliers in <code>config.toml</code></li>
+<li>If drifts left, reduce <code>m1_mul</code> or increase <code>m2_mul</code></li>
+<li>Test incrementally (0.05 adjustments)</li>
+<li>May require hardware balancing</li>
+</ul>
+<h3 id="issue-oscillation-in-autonomous-mode"><a class="header" href="#issue-oscillation-in-autonomous-mode">Issue: Oscillation in autonomous mode</a></h3>
+<p><strong>Solution</strong>:</p>
+<ul>
+<li>Increase derivative gain (kd)</li>
+<li>Reduce proportional gain (kp)</li>
+<li>Start with kd = 0.2, kp = 0.8</li>
+<li>Tune incrementally</li>
+</ul>
+<h3 id="issue-connection-lost-to-base-station"><a class="header" href="#issue-connection-lost-to-base-station">Issue: Connection lost to base station</a></h3>
+<p><strong>Check</strong>:</p>
+<ol>
+<li>Network connectivity: <code>ping &lt;base_ip&gt;</code></li>
+<li>Base station still running?</li>
+<li>Firewall blocking ports?</li>
+<li>Check IP address in config.toml</li>
+<li>Review base station logs</li>
+</ol>
+<h3 id="issue-motors-wont-arm"><a class="header" href="#issue-motors-wont-arm">Issue: Motors won't arm</a></h3>
+<p><strong>Check</strong>:</p>
+<ol>
+<li>ESC power connected?</li>
+<li>Check neutral_angle in config (try 90.0)</li>
+<li>Listen for ESC beeps during startup</li>
+<li>Try manual ESC calibration with servo tester</li>
+<li>Verify PWM signals with oscilloscope</li>
+</ol>
+<h2 id="advanced-usage"><a class="header" href="#advanced-usage">Advanced Usage</a></h2>
+<h3 id="custom-control-mixing"><a class="header" href="#custom-control-mixing">Custom Control Mixing</a></h3>
+<p>Modify <code>src/lib/blimp.rs</code>, function <code>mix()</code> to change control behavior:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>fn mix(&amp;mut self) -&gt; Actuations {
+    let (x, y, z) = self.input;
+    
+    // Custom mixing logic here
+    // Example: Non-linear response
+    let x_scaled = x.powi(3) * 10.0;  // Cubic response
+    
+    // Your motor calculations
+    // ...
+}
+<span class="boring">}</span></code></pre></pre>
+<h3 id="custom-detection-classes"><a class="header" href="#custom-detection-classes">Custom Detection Classes</a></h3>
+<p>Edit target classes in <code>src/main.rs</code>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>let balls = vec![2, 3, 4];           // Add class 4
+let orange_goals = vec![5, 7];
+let yellow_goals = vec![6, 8];       // Alternative goals
+<span class="boring">}</span></code></pre></pre>
+<h3 id="recording-flight-data"><a class="header" href="#recording-flight-data">Recording Flight Data</a></h3>
+<p>Add logging to <code>src/main.rs</code>:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>use std::fs::OpenOptions;
+use std::io::Write;
+
+// In main loop:
+let mut log_file = OpenOptions::new()
+    .create(true)
+    .append(true)
+    .open("flight_log.csv")
+    .unwrap();
+
+writeln!(log_file, "{},{},{},{}", 
+    sensordat.altitude, 
+    sensordat.yaw, 
+    auto_input.0, 
+    auto_input.1
+).unwrap();
+<span class="boring">}</span></code></pre></pre>
+<h2 id="performance-optimization"><a class="header" href="#performance-optimization">Performance Optimization</a></h2>
+<h3 id="reducing-latency"><a class="header" href="#reducing-latency">Reducing Latency</a></h3>
+<ul>
+<li>Use wired gamepad instead of Bluetooth</li>
+<li>Optimize network (reduce WiFi interference)</li>
+<li>Increase serial baud rate if camera supports</li>
+<li>Profile code to identify bottlenecks</li>
+</ul>
+<h3 id="battery-life"><a class="header" href="#battery-life">Battery Life</a></h3>
+<ul>
+<li>Use efficient flight patterns</li>
+<li>Reduce hover time</li>
+<li>Optimize motor efficiency (prop selection)</li>
+<li>Monitor current draw</li>
+<li>Use low-battery warnings</li>
+</ul>
+<h2 id="next-steps-2"><a class="header" href="#next-steps-2">Next Steps</a></h2>
+<ul>
+<li><strong>Tune Your System</strong>: See <a href="03_configuration___config__.html">Configuration</a></li>
+<li><strong>Understand Control</strong>: Read <a href="06_autonomous_control___autonomous__.html">Autonomous Control</a></li>
+<li><strong>Hardware Deep Dive</strong>: Review <a href="02_hardware_actuation___pcaactuator__.html">Hardware Actuation</a></li>
+<li><strong>Integrate Detection</strong>: Set up <a href="04_object_detection___detection__.html">Object Detection</a></li>
+</ul>
+<h2 id="additional-resources-3"><a class="header" href="#additional-resources-3">Additional Resources</a></h2>
+<ul>
+<li><a href="getting_started.html">Getting Started</a></li>
+<li><a href="installation.html">Installation Guide</a></li>
+<li><a href="hardware.html">Hardware Guide</a></li>
+<li>Base Station Documentation (separate repository)</li>
+</ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="chapter-1-blimp-control-blimp-trait--flappy-implementation"><a class="header" href="#chapter-1-blimp-control-blimp-trait--flappy-implementation">Chapter 1: Blimp Control (<code>Blimp</code> Trait / <code>Flappy</code> Implementation)</a></h1>
 <p>Welcome to the SanoBlimpSoftware project! This is the first step in understanding how our blimp thinks and moves.</p>
 <p>Imagine you have a remote-controlled blimp. How does it know whether to go forward when you push the joystick, or how to fly on its own to a specific target? We need a "brain" or a "pilot" inside the software to handle these decisions. That's exactly what this chapter is about!</p>
@@ -1970,6 +3918,8 @@ if let Err(e) = self.udp_socket.send_to(&amp;img_buf, udp_dest) {
 <li>And how we can watch it remotely (<a href="07_image_processing___streaming.html">Chapter 7: Image Processing &amp; Streaming</a>)</li>
 </ul>
 <p>We hope this tour helps you understand, use, and contribute to the <code>SanoBlimpSoftware</code> project. Happy flying!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contributing"><a class="header" href="#contributing">Contributing</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="license-1"><a class="header" href="#license-1">License</a></h1>
 
                     </main>
 
@@ -2029,6 +3979,7 @@ if let Err(e) = self.udp_socket.send_to(&amp;img_buf, udp_dest) {
             window.setTimeout(window.print, 100);
         });
         </script>
+
 
     </div>
     </body>

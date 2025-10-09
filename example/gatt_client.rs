@@ -8,7 +8,7 @@ use bluer::{
     },
 };
 use futures::FutureExt;
-use std::{collections::BTreeMap, sync::Arc, time::Duration};
+use std::{collections::BTreeMap, str, sync::Arc, time::Duration};
 use tokio::{
     io::{AsyncBufReadExt, BufReader},
     sync::Mutex,
@@ -48,6 +48,7 @@ async fn main() -> bluer::Result<()> {
     let value_read = value.clone();
     let value_write = value.clone();
     let value_notify = value.clone();
+
     let app = Application {
         services: vec![Service {
             uuid: SERVICE_UUID,
@@ -73,7 +74,21 @@ async fn main() -> bluer::Result<()> {
                     method: CharacteristicWriteMethod::Fun(Box::new(move |new_value, req| {
                         let value = value_write.clone();
                         async move {
-                            println!("Write request {:?} with value {:x?}", &req, &new_value);
+                            // println!("Write request {:?} with value {:x?}", &req, &new_value);
+                            if let Ok(msg) = str::from_utf8(&new_value) {
+                                println!("[raw]{:?}", msg);
+                                let parts: Vec<&str> =
+                                    msg.trim().split(|c| c == ':' || c == ' ').collect();
+                                if parts.len() >= 5 {
+                                    let prefix = parts[0];
+                                    if let (Ok(x), Ok(y)) =
+                                        (parts[2].parse::<f64>(), parts[4].parse::<f64>())
+                                    {
+                                        println!("{x}, {y}");
+                                    }
+                                }
+                            }
+
                             let mut value = value.lock().await;
                             *value = new_value;
                             Ok(())

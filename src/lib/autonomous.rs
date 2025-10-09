@@ -115,16 +115,11 @@ impl Autonomous {
         current_altitude: f32,
         desired_altitude: f32,
     ) -> Result<f32, AltitudeError> {
-        // Hypothetical current altitude reading:
-        // In real code, read from sensor. Here, we mock 102.5 for demonstration.
-
-        // Our target height = ground + desired offset
-        //let target_height = ground_alt + desired_altitude;
-        // Altitude error = current - target
         let altitude_error = current_altitude - desired_altitude;
 
         // Map the error from [-10, 10] to [-1, 1]
         let mapped = self.map_value(altitude_error, -10.0, 10.0, -1.0, 1.0);
+
         // Clamp to [-1, 1]
         let clamped = mapped.clamp(-1.0, 1.0);
 
@@ -134,7 +129,7 @@ impl Autonomous {
     pub fn direction_hold(&self, current_direction: f32, desired_direction: f32) -> f32 {
         let direction_error = (current_direction - desired_direction) * 10.0;
 
-        println!("direction_error: {:?}", direction_error);
+        // println!("direction_error: {:?}", direction_error);
         //let mapped = self.map_value(direction_error, -20.0, 20.0, -1.0, 1.0);
         //let mapped = direction_error / 20.0;
 
@@ -152,8 +147,9 @@ impl Autonomous {
         // Desired setpoints (mirroring the Python logic):
         // xErr = 0 - x, yErr = 300 - y, zErr = 150 - z
         let x_err = 0.0 - x;
+        // let y_err = self.map_value(y - 130.0, -160.0, 160.0, -1.0, 1.0);
         let y_err = self.map_value(y - 160.0, -160.0, 160.0, -1.0, 1.0);
-        let z_err = self.map_value(125.0 - z, -120.0, 120.0, -1.0, 1.0);
+        let z_err = self.map_value(122.0 - z, -120.0, 120.0, -1.0, 1.0);
 
         // Calculate time elapsed since the last detection
         let now = Instant::now();

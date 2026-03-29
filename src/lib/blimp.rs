@@ -614,61 +614,47 @@ impl Blimp for SanoBlimp {
 
     fn mix(&mut self) -> Actuations {
         let (x, y, z) = self.input;
+
+        //println!("{:?}", self.sensor.get_orientation());
         //
-        // //println!("{:?}", self.sensor.get_orientation());
-        // //
-        //
-        // //println!("{:?}", self.sensor.imu.gyro_data());
-        //
-        // let m1_mul = self.m1_mul;
-        // let m2_mul = self.m2_mul;
-        //
-        // let mut m1 = self.neutral_angle_motor - (x * 10.0) * m1_mul; // Map movement to a range (0-180°)
-        // let mut m2 = self.neutral_angle_motor - (x * 10.0) * m2_mul;
-        //
-        // //m1 += self.sensor.imu.gyro_data().unwrap().y;
-        // //m2 -= self.sensor.imu.gyro_data().unwrap().y;
-        //
-        // if z > 0.1 {
-        //     m1 += z * 10.0;
-        //     m2 += z * 10.0;
-        // }
-        // if z < -0.1 {
-        //     m1 -= z * 10.0;
-        //     m2 -= z * 10.0;
-        // }
-        //
-        // let mut s3 = NEUTRAL_ANGLE - (90.0 * z);
-        // let mut s4 = NEUTRAL_ANGLE + (90.0 * z);
-        //
-        // if y < -0.1 {
-        //     m1 += y * 10.0;
-        //     m2 -= y * 10.0;
-        // }
-        // if y > 0.1 {
-        //     m1 += y * 10.0;
-        //     m2 -= y * 10.0;
-        // }
-        //
-        // if z < -0.2 || z > 0.2 {
-        //     if y < -0.2 {
-        //         s4 = NEUTRAL_ANGLE;
-        //     } else if y > 0.2 {
-        //         s3 = NEUTRAL_ANGLE;
-        //     }
+
+        //println!("{:?}", self.sensor.imu.gyro_data());
+
+        let m1_mul = self.m1_mul;
+        let m2_mul = self.m2_mul;
+
+        let mut m1 = self.neutral_angle_motor - (x * 20.0) * m1_mul; // Map movement to a range (0-180°)
+        let mut m2 = self.neutral_angle_motor - (x * 20.0) * m2_mul;
+
+        //m1 += self.sensor.imu.gyro_data().unwrap().y;
+        //m2 -= self.sensor.imu.gyro_data().unwrap().y;
+        // if z.abs() > 0.1 {
+        //     m1 += z * 20.0;
+        //     m2 += z * 20.0;
         // }
 
-        let mut m1 = self.neutral_angle_motor + (x * 10.0); // Map movement to a range (0-180°)
-        let mut m2 = self.neutral_angle_motor + (x * 10.0);
+        let mut s1: f32 = 90.0;
+        let mut s2: f32 = 90.0;
+        let mut s3 = NEUTRAL_ANGLE + (90.0 * z);
+        let mut s4 = NEUTRAL_ANGLE - (90.0 * z);
 
-        let mut s1 = self.neutral_angle_motor - (z * 90.0);
-        let mut s2 = self.neutral_angle_motor + (z * 90.0);
+        if y < -0.1 {
+            m1 += y * 20.0;
+            m2 = self.neutral_angle_motor;
+        }
+        if y > 0.1 {
+            m1 = self.neutral_angle_motor;
+            m2 -= y * 20.0;
+        }
 
-        m1 += y * 10.0;
-        m2 -= y * 10.0;
+        if z < -0.2 || z > 0.2 {
+            if y < -0.2 {
+                s3 = NEUTRAL_ANGLE;
+            } else if y > 0.2 {
+                s4 = NEUTRAL_ANGLE;
+            }
+        }
 
-        let s3: f32 = 90.0;
-        let s4: f32 = 90.0;
         Actuations {
             m1: m1.clamp(
                 self.neutral_angle_motor - 20.0,

@@ -4,10 +4,10 @@ use tokio::spawn;
 mod lib;
 use core::time;
 use gilrs::{Button, Event, GamepadId, Gilrs};
-use lib::autonomous::{self, Autonomous};
+// use lib::autonomous::{self, Autonomous};
 use lib::base_station::communication::*;
 use lib::blimp::{self, Blimp};
-use lib::object_detection::Detection;
+// use lib::object_detection::Detection;
 use serde::Deserialize;
 use std::fmt::format;
 use std::fs;
@@ -150,15 +150,15 @@ async fn main() {
         }
     }
 
-    let mut auto = Autonomous::new(
-        conf.controller.kp_x,
-        conf.controller.kp_y,
-        conf.controller.kp_z,
-        conf.controller.kd_x,
-        conf.controller.kd_y,
-        conf.controller.kd_z,
-        0.0,
-    );
+    // let mut auto = Autonomous::new(
+    //     conf.controller.kp_x,
+    //     conf.controller.kp_y,
+    //     conf.controller.kp_z,
+    //     conf.controller.kd_x,
+    //     conf.controller.kd_y,
+    //     conf.controller.kd_z,
+    //     0.0,
+    // );
 
     //blimp.rail_init();
 
@@ -179,22 +179,24 @@ async fn main() {
         let orange_goals = vec![5, 7];
         let yellow = vec![6, 8];
 
-        // let det = match *state.lock().unwrap() {
-        //     //BlimpStates::Ball => detection.detect(balls, &stats_socket, &mut save_image),
-        //     BlimpStates::Ball => {
-        //         desired_altitude = 4.0;
-        //         // detection.detect(balls, &stats_socket, &mut save_image)
-        //         detection.detect_bb(balls)
-        //     }
-        //     // TODO make the goals change read from the base station
-        //     BlimpStates::Goal => {
-        //         desired_altitude = 5.0;
-        //         detection.detect_bb(orange_goals)
-        //         // detection.detect(yellow, &stats_socket, &mut save_image)
-        //     } //BlimpStates::Goal => detection.detect(orange_goals, &stats_socket, &mut save_image),
-        // };
-        //
-        // Check for Commands
+        let goals = vec![5, 6, 7, 8, 9, 10];
+
+        let det = match *state.lock().unwrap() {
+            //BlimpStates::Ball => detection.detect(balls, &stats_socket, &mut save_image),
+            BlimpStates::Ball => {
+                desired_altitude = 4.0;
+                // detection.detect(balls, &stats_socket, &mut save_image)
+                // detection.detect_bb(balls)
+            }
+            // TODO make the goals change read from the base station
+            BlimpStates::Goal => {
+                desired_altitude = 5.0;
+                // detection.detect_bb(goals)
+                // detection.detect(yellow, &stats_socket, &mut save_image)
+            } //BlimpStates::Goal => detection.detect(orange_goals, &stats_socket, &mut save_image),
+        };
+
+        //Check for Commands
         let mut command_buffer = [0u8; 1024];
         match stats_socket.recv_from(&mut command_buffer) {
             Ok((size, src)) => {
@@ -203,15 +205,15 @@ async fn main() {
                         Ok(command) => match command {
                             BaseToBlimpMessage::UpdateConfig(config) => {
                                 println!("Updating Gains");
-                                auto.update_gains(
-                                    config.kp_x,
-                                    config.kp_yaw,
-                                    config.kp_z,
-                                    config.kd_x,
-                                    config.kd_yaw,
-                                    config.kd_z,
-                                    0.0,
-                                );
+                                // auto.update_gains(
+                                //     config.kp_x,
+                                //     config.kp_yaw,
+                                //     config.kp_z,
+                                //     config.kd_x,
+                                //     config.kd_yaw,
+                                //     config.kd_z,
+                                //     0.0,
+                                // );
                             }
 
                             BaseToBlimpMessage::RequestVideo { target_port } => {
@@ -246,68 +248,69 @@ async fn main() {
             Err(e) => {}
         };
         //let current_direction = blimp.sensor.imu.euler_angles().unwrap();
-        //println!("{:?}", current_direction);
+        println!("{:?}", blimp.is_manual());
         if blimp.is_manual() {
             // Manual control
             blimp.manual();
-        } else {
-            // Autonomous
-            // if det.len() > 1 {
-            //     // let auto_input = auto.position(-0.6, det[0] as f32, det[1] as f32);
-            //     let auto_input = auto.position(-0.5, det[0] as f32, det[1] as f32);
-            //     //println!("{:?}", auto_input);
-            //     blimp.update_input(auto_input);
-            //     let acc = blimp.mix();
-            //     if !blimp.score {
-            //         blimp.actuator.actuate(acc);
-            //     }
-            //     if *state.lock().unwrap() == BlimpStates::Goal {
-            //         if det[2] > 200 || det[3] > 200 {
-            //             blimp.score = true;
-            //             blimp.score_time = std::time::Instant::now();
-            //         }
-            //     }
-            //     time_p = std::time::Instant::now();
-            // } else {
-            //     if time_p.elapsed() > std::time::Duration::from_secs(2) {
-            //         // TODO make it part of the config
-            //         let altitude = blimp.sensor.get_altitude();
-            //
-            //         let z = match auto.altitude_hold(altitude, desired_altitude) {
-            //             Ok(z) => z,
-            //             Err(e) => 0.0,
-            //         };
-            //         // println!("Searching {z}");
-
-            //let current_direction = blimp.sensor.imu.euler_angles().unwrap().c;
-            // let current_direction = blimp.sensor.imu.quaternion().unwrap().v.x;
-            // let current_direction = blimp.sensor.imu.mag_data().unwrap().x;
-            // println!("{:?}", current_direction);
-
-            // if search_timer.elapsed() > std::time::Duration::from_secs(10) {
-            // desired_direction += 0.1;
-            //    desired_altitude += 1.0;
-            //    if desired_altitude >= 10.0 {
-            //        desired_altitude = 5.0;
-            //    }
-            //    if desired_direction >= 9.0 {
-            //        desired_direction *= -1.0;
-            //    }
-            //
-            // search_timer = std::time::Instant::now();
-            // }
-            //
-            // let y = auto.direction_hold(current_direction, desired_direction);
-            //
-            // println!(" current_direction: {:?}; Y: {:?}", current_direction, y);
-            //
-            // blimp.update_input((0.6, y, 0.0));
-            //                    blimp.update_input((0.5, 0.4, z));
-
-            //                   let acc = blimp.mix();
-            //                  blimp.actuator.actuate(acc);
-            //}
-            // }
         }
+        // } else {
+        //     // Autonomous
+        //     if det.len() > 1 {
+        //         // let auto_input = auto.position(-0.6, det[0] as f32, det[1] as f32);
+        //         let auto_input = auto.position(-0.5, det[0] as f32, det[1] as f32);
+        //         //println!("{:?}", auto_input);
+        //         blimp.update_input(auto_input);
+        //         let acc = blimp.mix();
+        //         if !blimp.score {
+        //             blimp.actuator.actuate(acc);
+        //         }
+        //         if *state.lock().unwrap() == BlimpStates::Goal {
+        //             if det[2] > 200 || det[3] > 200 {
+        //                 blimp.score = true;
+        //                 blimp.score_time = std::time::Instant::now();
+        //             }
+        //         }
+        //         time_p = std::time::Instant::now();
+        //     } else {
+        //         if time_p.elapsed() > std::time::Duration::from_secs(2) {
+        //             // TODO make it part of the config
+        //             //let altitude = blimp.sensor.get_altitude();
+
+        //             //let z = match auto.altitude_hold(altitude, desired_altitude) {
+        //             //   Ok(z) => z,
+        //             //  Err(e) => 0.0,
+        //             //};
+        //             // println!("Searching {z}");
+
+        //             //let current_direction = blimp.sensor.imu.euler_angles().unwrap().c;
+        //             // let current_direction = blimp.sensor.imu.quaternion().unwrap().v.x;
+        //             // let current_direction = blimp.sensor.imu.mag_data().unwrap().x;
+        //             // println!("{:?}", current_direction);
+
+        //             // if search_timer.elapsed() > std::time::Duration::from_secs(10) {
+        //             // desired_direction += 0.1;
+        //             //    desired_altitude += 1.0;
+        //             //    if desired_altitude >= 10.0 {
+        //             //        desired_altitude = 5.0;
+        //             //    }
+        //             //    if desired_direction >= 9.0 {
+        //             //        desired_direction *= -1.0;
+        //             //    }
+        //             //
+        //             // search_timer = std::time::Instant::now();
+        //             // }
+        //             //
+        //             // let y = auto.direction_hold(current_direction, desired_direction);
+        //             //
+        //             // println!(" current_direction: {:?}; Y: {:?}", current_direction, y);
+        //             //
+        //             // blimp.update_input((0.6, y, 0.0));
+        //             //                   blimp.update_input((0.5, 0.4, z));
+
+        //             let acc = blimp.mix();
+        //             blimp.actuator.actuate(acc);
+        //         }
+        //     }
+        // }
     }
 }

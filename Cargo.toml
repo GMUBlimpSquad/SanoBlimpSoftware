@@ -70,5 +70,5 @@ i2cdev = "0.6.1"
 # Install libssl-dev:arm64, see <https://github.com/cross-rs/cross/blob/main/docs/custom_images.md#adding-dependencies-to-existing-images>
 pre-build = [
     "dpkg --add-architecture $CROSS_DEB_ARCH",
-    "apt-get update && apt-get --assume-yes install libdbus-1-dev:$CROSS_DEB_ARCH pkg-config:$CROSS_DEB_ARCH libudev-dev:$CROSS_DEB_ARCH",
+    "apt-get update && apt-get --assume-yes install libdbus-1-dev:$CROSS_DEB_ARCH pkg-config:$CROSS_DEB_ARCH libudev-dev:$CROSS_DEB_ARCH libdbus-1-dev:$CROSS_DEB_ARCH pkg-config:$CROSS_DEB_ARCH",
 ]

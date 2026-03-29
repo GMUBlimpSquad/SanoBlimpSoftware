@@ -18,6 +18,7 @@ const MAX_PULSE_MOTOR: f32 = 2600.0; // Maximum pulse width in µs (Full throttl
                                      // Neutral angle might differ based on ESC calibration and desired zero point
 pub const NEUTRAL_ANGLE_MOTOR: f32 = 83.0; // Neutral position/angle for motors (adjust based on testing)
 
+
 // Represents the desired state of all motors and servos
 #[derive(Debug, Default, Clone, Copy)] // Added Clone, Copy for convenience
 pub struct Actuations {
